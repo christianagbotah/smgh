@@ -40,8 +40,7 @@ if (!fs.existsSync(path.join(appDir, 'node_modules', '.prisma', 'client'))) {
   run('npx prisma generate');
 }
 
-// Step 3: Copy static assets and public files into standalone
-// Standalone output only includes the server — static files must be copied in
+// Step 3: Copy static assets into standalone (always overwrite)
 const standaloneDir = path.join(appDir, '.next', 'standalone');
 const standaloneNext = path.join(standaloneDir, '.next');
 
@@ -49,16 +48,18 @@ if (fs.existsSync(standaloneDir)) {
   // Copy .next/static into standalone/.next/static
   const staticSrc = path.join(appDir, '.next', 'static');
   const staticDst = path.join(standaloneNext, 'static');
-  if (fs.existsSync(staticSrc) && !fs.existsSync(staticDst)) {
+  if (fs.existsSync(staticSrc)) {
     log('Copying .next/static into standalone...');
+    run(`rm -rf ${staticDst}`);
     run(`cp -r ${staticSrc} ${staticDst}`);
   }
 
   // Copy public/ into standalone/
   const publicSrc = path.join(appDir, 'public');
   const publicDst = path.join(standaloneDir, 'public');
-  if (fs.existsSync(publicSrc) && !fs.existsSync(publicDst)) {
+  if (fs.existsSync(publicSrc)) {
     log('Copying public/ into standalone...');
+    run(`rm -rf ${publicDst}`);
     run(`cp -r ${publicSrc} ${publicDst}`);
   }
 }
@@ -66,7 +67,7 @@ if (fs.existsSync(standaloneDir)) {
 // Step 4: Start the standalone server
 const serverFile = path.join(standaloneDir, 'server.js');
 if (!fs.existsSync(serverFile)) {
-  log('ERROR: Standalone build not found. Run "npm run build" first.');
+  log('ERROR: Standalone build not found at ' + serverFile);
   process.exit(1);
 }
 
