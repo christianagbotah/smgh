@@ -1,3 +1,10 @@
 {
+  "/api/artists/route": "app/api/artists/route.js",
+  "/api/custom-pages/route": "app/api/custom-pages/route.js",
+  "/api/events/route": "app/api/events/route.js",
+  "/api/foundation/route": "app/api/foundation/route.js",
+  "/api/gallery/route": "app/api/gallery/route.js",
+  "/api/settings/route": "app/api/settings/route.js",
+  "/api/testimonials/route": "app/api/testimonials/route.js",
   "/page": "app/page.js"
 }
