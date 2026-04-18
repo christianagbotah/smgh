@@ -132,12 +132,12 @@ export default function HomePage() {
       fetch('/api/testimonials').then(r => r.json()),
       fetch('/api/foundation').then(r => r.json()),
     ]).then(([eventsData, galleryData, settingsData, artistsData, testimonialsData, foundationData]) => {
-      setEvents(eventsData)
-      setGallery(galleryData)
+      setEvents(Array.isArray(eventsData) ? eventsData : [])
+      setGallery(Array.isArray(galleryData) ? galleryData : [])
       setSettings(settingsData)
-      setArtists(artistsData.filter((a: Artist) => a.featured))
+      setArtists(Array.isArray(artistsData) ? artistsData.filter((a: Artist) => a.featured) : [])
       setTestimonials(Array.isArray(testimonialsData) ? testimonialsData : [])
-      const fd = (foundationData as any).records || []
+      const fd = Array.isArray((foundationData as any).records) ? (foundationData as any).records : []
       setFoundation(fd)
 
       // Parse hero slider images from settings
@@ -153,7 +153,8 @@ export default function HomePage() {
 
       // Fallback: use event banners if no hero images set
       if (!heroImages) {
-        const banners = eventsData
+        const safeEventsForBanners = Array.isArray(eventsData) ? eventsData : []
+        const banners = safeEventsForBanners
           .filter((e: Event) => e.bannerImage)
           .reverse()
           .slice(0, 5)
@@ -174,12 +175,14 @@ export default function HomePage() {
     return () => clearInterval(timer)
   }, [testimonials.length])
 
-  const upcomingEvents = events.filter(e => e.status === 'upcoming')
-  const completedEvents = events.filter(e => e.status === 'completed')
+  const safeEvents = Array.isArray(events) ? events : []
+  const upcomingEvents = safeEvents.filter(e => e.status === 'upcoming')
+  const completedEvents = safeEvents.filter(e => e.status === 'completed')
   const latestEvent = upcomingEvents[0] || completedEvents[0]
 
-  const totalBeneficiaries = foundation.reduce((sum, r) => sum + (r.beneficiariesCount || 0), 0)
-  const totalRaised = foundation.reduce((sum, r) => sum + (r.amountRaised || 0), 0)
+  const safeFoundation = Array.isArray(foundation) ? foundation : []
+  const totalBeneficiaries = safeFoundation.reduce((sum, r) => sum + (r.beneficiariesCount || 0), 0)
+  const totalRaised = safeFoundation.reduce((sum, r) => sum + (r.amountRaised || 0), 0)
 
   const formatDate = (d: string) => {
     return new Date(d).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
