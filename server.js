@@ -1,11 +1,10 @@
 const { createServer } = require('http');
 const { parse } = require('url');
 const next = require('next');
-const path = require('path');
 
 const dev = false;
 const dir = __dirname;
-const app = next({ dev, dir, conf: { distDir: '_next' } });
+const app = next({ dev, dir });
 const handle = app.getRequestHandler();
 
 const PORT = process.env.PORT || 3000;

@@ -15,6 +15,7 @@ node_modules
 
 # next.js
 /.next/
+/_next/
 /out/
 
 # production
@@ -30,14 +31,12 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files
 .env*
 !.env.example
-!.env.production
 
 # vercel
 .vercel
-
 
 # typescript
 *.tsbuildinfo
@@ -50,11 +49,5 @@ dev.log
 dev.out.log
 test
 prompt
-
 server.log
-# Skills directory
-/skills/_next/
 .cpanel.yml.bak
-_next/cache/
-_next/trace/
-_next/trace-build/
