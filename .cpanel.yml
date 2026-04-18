@@ -1,0 +1,7 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/christianagagbotah/smgh-web
+    - /bin/cp -R * $DEPLOYPATH
+    - /bin/cp -R .next $DEPLOYPATH
+    - /bin/cp -R .next/standalone $DEPLOYPATH
