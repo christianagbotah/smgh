@@ -2,6 +2,15 @@
 deployment:
   tasks:
     - export DEPLOYPATH=/home/christianagagbotah/smgh-web
-    - /bin/cp -R * $DEPLOYPATH
-    - /bin/cp -R .next $DEPLOYPATH
-    - /bin/cp -R .next/standalone $DEPLOYPATH
+    - /bin/cp -R src $DEPLOYPATH/
+    - /bin/cp -R prisma $DEPLOYPATH/
+    - /bin/cp -R public $DEPLOYPATH/
+    - /bin/cp -R scripts $DEPLOYPATH/
+    - /bin/cp package.json $DEPLOYPATH/
+    - /bin/cp next.config.ts $DEPLOYPATH/
+    - /bin/cp tsconfig.json $DEPLOYPATH/
+    - /bin/cp tailwind.config.ts $DEPLOYPATH/
+    - /bin/cp postcss.config.mjs $DEPLOYPATH/
+    - /bin/cp .cpanel.yml $DEPLOYPATH/
+    - /bin/cp components.json $DEPLOYPATH/
+    - /bin/cp eslint.config.mjs $DEPLOYPATH/
