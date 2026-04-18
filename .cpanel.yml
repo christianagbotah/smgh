@@ -2,6 +2,7 @@
 deployment:
   tasks:
     - export DEPLOYPATH=/home/lightwor/smgh-web
+    - /bin/mkdir -p $DEPLOYPATH/.next
     - /bin/cp -R src $DEPLOYPATH/
     - /bin/cp -R prisma $DEPLOYPATH/
     - /bin/cp -R public $DEPLOYPATH/
