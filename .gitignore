@@ -14,8 +14,8 @@ node_modules
 /coverage
 
 # next.js
-/.next/
-/_next/
+# /.next/ — build included for cPanel deployment (no build on server)
+/.next/cache/
 /out/
 
 # production
@@ -51,3 +51,4 @@ test
 prompt
 server.log
 .cpanel.yml.bak
+.github/
