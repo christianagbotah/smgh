@@ -135,7 +135,7 @@ export default function HomePage() {
       setEvents(eventsData)
       setGallery(galleryData)
       setSettings(settingsData)
-      setArtists(Array.isArray(artistsData) ? artistsData.filter((a: Artist) => a.featured) : [])
+      setArtists(artistsData.filter((a: Artist) => a.featured))
       setTestimonials(Array.isArray(testimonialsData) ? testimonialsData : [])
       const fd = (foundationData as any).records || []
       setFoundation(fd)
@@ -153,13 +153,11 @@ export default function HomePage() {
 
       // Fallback: use event banners if no hero images set
       if (!heroImages) {
-        const banners = Array.isArray(eventsData)
-          ? eventsData
-              .filter((e: Event) => e.bannerImage)
-              .reverse()
-              .slice(0, 5)
-              .map((e: Event) => ({ url: e.bannerImage!, alt: e.title }))
-          : []
+        const banners = eventsData
+          .filter((e: Event) => e.bannerImage)
+          .reverse()
+          .slice(0, 5)
+          .map((e: Event) => ({ url: e.bannerImage!, alt: e.title }))
         setHeroSlides(banners)
       }
 
@@ -176,9 +174,8 @@ export default function HomePage() {
     return () => clearInterval(timer)
   }, [testimonials.length])
 
-  const safeEvents = Array.isArray(events) ? events : []
-  const upcomingEvents = safeEvents.filter(e => e.status === 'upcoming')
-  const completedEvents = safeEvents.filter(e => e.status === 'completed')
+  const upcomingEvents = events.filter(e => e.status === 'upcoming')
+  const completedEvents = events.filter(e => e.status === 'completed')
   const latestEvent = upcomingEvents[0] || completedEvents[0]
 
   const totalBeneficiaries = foundation.reduce((sum, r) => sum + (r.beneficiariesCount || 0), 0)

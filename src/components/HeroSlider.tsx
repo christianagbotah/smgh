@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, ReactNode } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface Slide {
@@ -11,37 +11,38 @@ interface Slide {
 interface HeroSliderProps {
   slides: Slide[]
   interval?: number
-  children?: ReactNode
+  children?: React.ReactNode
 }
 
-export default function HeroSlider({ slides, interval = 5000, children }: HeroSliderProps) {
+export default function HeroSlider({ slides, interval = 6000, children }: HeroSliderProps) {
   const [current, setCurrent] = useState(0)
-  const hasImages = slides.length > 0
 
   const next = useCallback(() => {
-    setCurrent(prev => (prev + 1) % Math.max(slides.length, 1))
+    setCurrent(prev => (prev + 1) % slides.length)
   }, [slides.length])
 
   useEffect(() => {
-    if (!hasImages) return
+    if (slides.length <= 1) return
     const timer = setInterval(next, interval)
     return () => clearInterval(timer)
-  }, [hasImages, interval, next])
+  }, [next, interval, slides.length])
 
-  const bgStyle: React.CSSProperties = hasImages
-    ? {}
-    : { background: 'linear-gradient(135deg, #064e3b 0%, #065f46 40%, #047857 100%)' }
+  if (slides.length === 0) return null
 
   return (
-    <section className="relative w-full h-screen min-h-[600px] max-h-[900px] overflow-hidden" style={bgStyle}>
-      {hasImages && (
+    <section className="relative min-h-[90vh] flex flex-col justify-center overflow-hidden">
+      {/* Spacer pushes content up to avoid overlap with stats cards */}
+      <div className="flex-shrink-0" />
+
+      {/* Slider Background */}
+      <div className="absolute inset-0">
         <AnimatePresence mode="wait">
           <motion.div
             key={current}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 1.2, ease: 'easeInOut' }}
             className="absolute inset-0"
           >
             <img
@@ -49,32 +50,39 @@ export default function HeroSlider({ slides, interval = 5000, children }: HeroSl
               alt={slides[current].alt || 'SMGH'}
               className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-black/50" />
           </motion.div>
         </AnimatePresence>
-      )}
 
-      {/* Slide indicators */}
-      {hasImages && slides.length > 1 && (
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-30">
-          {slides.map((_, idx) => (
+        {/* Overlay gradients */}
+        <div className="absolute inset-0 bg-gradient-to-br from-black/80 via-black/60 to-green-900/40" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
+      </div>
+
+      {/* Slider Dots - Bottom Left */}
+      {slides.length > 1 && (
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
+          {slides.map((slide, idx) => (
             <button
               key={idx}
               onClick={() => setCurrent(idx)}
-              className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                idx === current ? 'bg-white w-8' : 'bg-white/40 hover:bg-white/60'
-              }`}
+              className="group relative"
               aria-label={`Go to slide ${idx + 1}`}
-            />
+            >
+              <span
+                className={`block rounded-full transition-all duration-500 ${
+                  idx === current
+                    ? 'w-8 h-2 bg-white'
+                    : 'w-2 h-2 bg-white/40 group-hover:bg-white/70'
+                }`}
+              />
+            </button>
           ))}
         </div>
       )}
 
-      {/* Content overlay */}
-      <div className="absolute inset-0 flex items-center justify-center z-20">
-        <div className="text-center px-4 max-w-4xl mx-auto">
-          {children}
-        </div>
+      {/* Content Overlay */}
+      <div className="relative z-10 max-w-5xl mx-auto px-4 text-center pb-20 md:pb-24">
+        {children}
       </div>
     </section>
   )
