@@ -14,3 +14,4 @@ deployment:
     - /bin/cp .cpanel.yml $DEPLOYPATH/
     - /bin/cp components.json $DEPLOYPATH/
     - /bin/cp eslint.config.mjs $DEPLOYPATH/
+    - /bin/cp app.js $DEPLOYPATH/
