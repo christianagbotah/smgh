@@ -13,5 +13,6 @@ deployment:
     - /bin/cp next.config.ts $DEPLOYPATH/
     - /bin/cp tsconfig.json $DEPLOYPATH/
     - /bin/cp app.js $DEPLOYPATH/
+    - /bin/cp server.js $DEPLOYPATH/
     - cd $DEPLOYPATH && npm install --production
     - cd $DEPLOYPATH && npx prisma generate
