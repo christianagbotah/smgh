@@ -1,7 +1,7 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/christianagagbotah/smgh-web
+    - export DEPLOYPATH=/home/lightwor/smgh-web
     - /bin/cp -R src $DEPLOYPATH/
     - /bin/cp -R prisma $DEPLOYPATH/
     - /bin/cp -R public $DEPLOYPATH/
@@ -15,3 +15,6 @@ deployment:
     - /bin/cp components.json $DEPLOYPATH/
     - /bin/cp eslint.config.mjs $DEPLOYPATH/
     - /bin/cp app.js $DEPLOYPATH/
+    - cd $DEPLOYPATH && npm install
+    - cd $DEPLOYPATH && npx prisma generate
+    - cd $DEPLOYPATH && npm run build
