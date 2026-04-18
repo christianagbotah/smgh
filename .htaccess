@@ -1,0 +1,3 @@
+# DO NOT REMOVE - cPanel Passenger Node.js proxy configuration
+PassengerEnabled on
+PassengerAppRoot /home/lightwor/smgh-web

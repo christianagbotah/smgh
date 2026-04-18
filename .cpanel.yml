@@ -14,5 +14,6 @@ deployment:
     - /bin/cp tsconfig.json $DEPLOYPATH/
     - /bin/cp app.js $DEPLOYPATH/
     - /bin/cp server.js $DEPLOYPATH/
+    - /bin/cp .htaccess $DEPLOYPATH/
     - cd $DEPLOYPATH && npm install --production
     - cd $DEPLOYPATH && npx prisma generate
