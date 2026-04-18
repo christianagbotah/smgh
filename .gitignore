@@ -15,8 +15,6 @@ node_modules
 
 # next.js
 /.next/
-!.next/standalone/
-!.next/static/
 /out/
 
 # production
@@ -35,6 +33,7 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 !.env.example
+!.env.production
 
 # vercel
 .vercel
@@ -56,4 +55,6 @@ server.log
 # Skills directory
 /skills/_next/
 .cpanel.yml.bak
-_next/
+_next/cache/
+_next/trace/
+_next/trace-build/

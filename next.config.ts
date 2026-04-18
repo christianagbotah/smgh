@@ -1,8 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // cPanel deployment: output standalone server
-  output: 'standalone',
+  distDir: "_next",
   typescript: {
     ignoreBuildErrors: true,
   },
