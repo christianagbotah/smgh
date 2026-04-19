@@ -1,0 +1,4 @@
+{
+  "/api/events/route": "app/api/events/route.js",
+  "/api/settings/route": "app/api/settings/route.js"
+}
