@@ -11,7 +11,7 @@ echo ""
 APP_DIR="/home/lightwor/smgh-web"
 NODE_BIN="/home/lightwor/nodevenv/smgh-web/20/bin/node"
 NPM_BIN="/home/lightwor/nodevenv/smgh-web/20/bin/npm"
-NPX_BIN="/home/lightwor/nodevenv/smgh-web/20/bin/npx"
+PRISMA_BIN="$APP_DIR/node_modules/.bin/prisma"
 
 cd "$APP_DIR"
 
@@ -28,7 +28,7 @@ echo "  Done."
 
 echo ""
 echo "Step 3: Generating Prisma client for this platform..."
-$NPX_BIN prisma generate 2>&1
+$NODE_BIN $PRISMA_BIN generate 2>&1
 echo "  Done."
 
 echo ""
