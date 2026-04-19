@@ -894,7 +894,7 @@ export default function HomePage() {
                     required
                     className="flex-1 px-4 py-3 rounded-xl bg-white border border-green-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all"
                   />
-                  <Button type="submit" className="bg-green-600 hover:bg-green-700 text-white px-3 sm:px-6 rounded-xl transition-all">
+                  <Button type="submit" className="bg-green-600 hover:bg-green-700 text-white rounded-xl transition-all h-[46px] shrink-0">
                     <Send className="w-4 h-4 sm:hidden" />
                     <span className="hidden sm:inline">Subscribe</span>
                   </Button>
