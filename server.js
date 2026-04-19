@@ -65,8 +65,9 @@ app.prepare().then(() => {
     const urlPath = parsedUrl.pathname;
 
     // Serve .next/static files directly
+    // URL: /_next/static/... → File: .next/static/...
     if (urlPath.startsWith('/_next/static/')) {
-      if (serveStatic(req, res, '.next' + urlPath)) return;
+      if (serveStatic(req, res, '.next' + urlPath.substring(6))) return;
     }
 
     // Serve public files directly (favicon, images, etc.)
