@@ -446,8 +446,8 @@ CREATE TABLE OrderItem (
       await q('INSERT INTO EventArtist (id,eventId,artistId,sortOrder) VALUES (?,?,?,?)', [uid(), eid, artistIds[ev.ai[i]], i]);
     }
     for (let i = 0; i < ev.gal.length; i++) {
-      await q('INSERT INTO GalleryItem (id,title,type,url,thumbnail,eventId,year,category,sortOrder,createdAt) VALUES (?,?,"image",?,?,?,?,?,?)',
-        [uid(), ev.t+' - Photo '+(i+1), ev.gal[i], ev.gal[i], eid, parseInt(ev.d.slice(0,4)), 'event', i, now]);
+      await q('INSERT INTO GalleryItem (id,title,type,url,thumbnail,eventId,year,category,sortOrder,createdAt) VALUES (?,?,?,?,?,?,?,?,?,?)',
+        [uid(), ev.t+' - Photo '+(i+1), 'image', ev.gal[i], ev.gal[i], eid, parseInt(ev.d.slice(0,4)), 'event', i, now]);
     }
   }
   console.log('✅ 9 events with artists and gallery');
@@ -460,8 +460,8 @@ CREATE TABLE OrderItem (
     ['SMGH Team', '/images/artists/minister-bob.jpg', 2023, 'team'],
   ];
   for (const g of gal) {
-    await q('INSERT INTO GalleryItem (id,title,type,url,thumbnail,year,category,sortOrder,createdAt) VALUES (?,?,"image",?,?,?,?,0,?)',
-      [uid(), g[0], g[1], g[1], g[2], g[3], now]);
+    await q('INSERT INTO GalleryItem (id,title,type,url,thumbnail,year,category,sortOrder,createdAt) VALUES (?,?,?,?,?,?,?,?,?)',
+      [uid(), g[0], 'image', g[1], g[1], g[2], g[3], 0, now]);
   }
   console.log('✅ 4 general gallery items');
 
