@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./db/smgh.db"
 }
 
 model Event {
@@ -103,7 +103,7 @@ model Donation {
   amount           Float
   currency         String   @default("GHS")
   paymentMethod    String   @default("manual")
-  paymentProvider  String?  // "paystack", "hubtel", or null for manual
+  paymentProvider  String?
   status           String   @default("pending")
   reference        String?
   message          String?
@@ -141,7 +141,7 @@ model AdminUser {
   username  String   @unique
   password  String
   name      String
-  role      String   @default("editor") // "super_admin" or "editor"
+  role      String   @default("editor")
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -220,13 +220,13 @@ model Product {
 model ProductVariant {
   id        String  @id @default(cuid())
   productId String
-  name      String  // e.g. "Black / Large"
-  color     String  // e.g. "#000000"
-  colorName String  // e.g. "Black"
-  size      String  // e.g. "L"
-  price     Float   // override price if different from base
+  name      String
+  color     String
+  colorName String
+  size      String
+  price     Float
   stock     Int     @default(0)
-  image     String? // variant-specific mockup image
+  image     String?
   isActive  Boolean @default(true)
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   orderItems OrderItem[]
@@ -243,9 +243,9 @@ model Order {
   deliveryAddress String?
   deliveryCity    String?
   deliveryRegion String?
-  status         String   @default("pending") // pending, confirmed, processing, shipped, delivered, cancelled
-  paymentProvider String?  // "paystack", "hubtel", or null
-  paymentStatus  String   @default("pending") // pending, paid, failed
+  status         String   @default("pending")
+  paymentProvider String?
+  paymentStatus  String   @default("pending")
   paymentRef     String?
   totalAmount    Float
   currency       String   @default("GHS")
@@ -276,9 +276,9 @@ model CustomPage {
   id        String   @id @default(cuid())
   slug      String   @unique
   title     String
-  content   String   @default("") // HTML content from rich text editor
+  content   String   @default("")
   bannerImage String?
-  status    String   @default("draft") // "draft" or "published"
+  status    String   @default("draft")
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
