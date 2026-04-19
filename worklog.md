@@ -131,3 +131,31 @@ Stage Summary:
   - Christian Agbotah → /images/team/christian-agbotah.jpg
   - Theodora Boateng → /images/team/victoria-essuon.jpg
 - Environment now properly configured to use production MySQL database
+
+---
+Task ID: 3
+Agent: main
+Task: Resolve cPanel git pull conflict and finalize MySQL migration cleanup
+
+Work Log:
+- User reported git pull error on cPanel: local changes to prisma/schema.prisma blocking merge
+- Verified current state: schema.prisma already uses MySQL (provider = "mysql", url = env("DATABASE_URL"))
+- .env already has MySQL connection string for cPanel production database
+- Regenerated Prisma client for MySQL (v6.19.2)
+- Verified all API endpoints work correctly with MySQL:
+  - /api/settings: 19 settings including hero slider images
+  - /api/team: 4 members with correct photo paths
+  - /api/events: 9 events
+  - /api/artists: 2 artists
+- Cleaned up leftover SQLite artifacts:
+  - Deleted prisma/schema.sqlite.prisma
+  - Deleted prisma/schema.mysql.prisma (no longer needed, main schema is MySQL)
+  - Deleted outdated scripts: production-setup.sh, deploy-to-production.sh, build-production.sh
+- Updated deploy-cpanel.sh: handles git checkout before pull, removed schema swapping step
+- Fixed stale SQLite comment in src/app/api/auth/route.ts
+- Committed and pushed (77cd985)
+
+Stage Summary:
+- Project is fully MySQL — both local and production use the same database
+- Clean deployment script: deploy-cpanel.sh handles everything in 5 steps
+- User needs to run on cPanel: git checkout -- . && git pull && npx prisma generate, then restart app
