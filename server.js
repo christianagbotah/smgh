@@ -19,22 +19,16 @@ log('Node: ' + process.version);
 log('PORT: ' + process.env.PORT);
 log('DIR: ' + dir);
 
-// Test Prisma client before starting
-log('Testing Prisma client...');
-try {
-  const { PrismaClient } = require('@prisma/client');
-  const testDb = new PrismaClient();
-  log('Prisma client loaded OK');
-  testDb.$disconnect();
-} catch (e) {
-  log('ERROR: Prisma client failed to load: ' + e.message);
-  // Try to generate it
-  log('Attempting prisma generate...');
-  try {
+// Prisma generate helper — uses current Node.js binary (works even without npx in PATH)
+const prismaBinPath = path.join(dir, 'node_modules', 'prisma', 'build', 'index.js');
+const nodeBin = process.execPath;
+function runPrismaGenerate() {
+  if (fs.existsSync(prismaBinPath)) {
+    log('Running prisma generate via: ' + nodeBin + ' ' + prismaBinPath);
+    execSync('"' + nodeBin + '" "' + prismaBinPath + '" generate', { cwd: dir, stdio: 'inherit', timeout: 120000 });
+  } else {
+    log('WARNING: prisma binary not found at ' + prismaBinPath + ', trying npx...');
     execSync('npx prisma generate', { cwd: dir, stdio: 'inherit', timeout: 120000 });
-    log('Prisma generate succeeded');
-  } catch (e2) {
-    log('FATAL: Prisma generate also failed: ' + e2.message);
   }
 }
 
@@ -43,7 +37,7 @@ const prismaClientPath = path.join(dir, 'node_modules', '.prisma', 'client');
 if (!fs.existsSync(prismaClientPath)) {
   log('Prisma client dir missing, generating...');
   try {
-    execSync('npx prisma generate', { cwd: dir, stdio: 'inherit', timeout: 120000 });
+    runPrismaGenerate();
     log('Prisma client generated successfully');
   } catch (e) {
     log('WARNING: Prisma generate failed - ' + e.message);

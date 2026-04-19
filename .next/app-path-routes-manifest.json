@@ -42,6 +42,7 @@
   "/api/products/route": "/api/products",
   "/api/route": "/api",
   "/api/settings/route": "/api/settings",
+  "/api/setup-database/route": "/api/setup-database",
   "/api/shop/payment/route": "/api/shop/payment",
   "/api/stats/route": "/api/stats",
   "/api/team/route": "/api/team",

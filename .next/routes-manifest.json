@@ -300,6 +300,12 @@
       "namedRegex": "^/api/settings(?:/)?$"
     },
     {
+      "page": "/api/setup-database",
+      "regex": "^/api/setup\\-database(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/setup\\-database(?:/)?$"
+    },
+    {
       "page": "/api/shop/payment",
       "regex": "^/api/shop/payment(?:/)?$",
       "routeKeys": {},
