@@ -83,7 +83,7 @@ export default function DonatePage() {
   const { toast } = useToast()
 
   const [form, setForm] = useState({
-    name: '', email: '', phone: '', address: '', organization: '', message: '',
+    name: '', email: '', phone: '', network: 'mtn', address: '', organization: '', message: '',
   })
 
   const finalAmount = customAmount ? parseFloat(customAmount) : (selectedAmount || 0)
@@ -254,7 +254,7 @@ export default function DonatePage() {
         return
       }
 
-      // For Hubtel - initialize checkout and redirect
+      // For Hubtel - initialize Mobile Money payment
       if (paymentProvider === 'hubtel') {
         const initRes = await fetch('/api/hubtel', {
           method: 'POST',
@@ -264,19 +264,19 @@ export default function DonatePage() {
             amount: finalAmount,
             email: form.email,
             phone: form.phone,
+            name: form.name,
+            network: form.network,
             donationId: donation.id,
           }),
         })
 
         const initData = await initRes.json()
 
-        if (initData.success && initData.checkout_url) {
-          // Open Hubtel payment page in a new tab
-          window.open(initData.checkout_url, '_blank', 'noopener,noreferrer')
+        if (initData.success) {
           setSubmitted(true)
           toast({
-            title: 'Payment page opened!',
-            description: 'Complete your payment in the new tab. Thank you!',
+            title: 'Payment initiated!',
+            description: initData.message || 'Check your phone for the mobile money prompt. Thank you!',
           })
         } else {
           throw new Error(initData.error || 'Failed to initialize Hubtel payment')
@@ -300,7 +300,7 @@ export default function DonatePage() {
     setSelectedAmount(200)
     setCustomAmount('')
     setPaymentProvider(activeProvider === 'hubtel' ? 'hubtel' : 'paystack')
-    setForm({ name: '', email: '', phone: '', address: '', organization: '', message: '' })
+    setForm({ name: '', email: '', phone: '', network: 'mtn', address: '', organization: '', message: '' })
   }
 
   if (submitted) {
@@ -576,6 +576,35 @@ export default function DonatePage() {
                             />
                           </div>
                         </div>
+
+                        {/* Mobile Network - show when Hubtel is selected */}
+                        {paymentProvider === 'hubtel' && (
+                          <div>
+                            <label className="text-sm font-medium text-gray-700 mb-1.5 block">
+                              Mobile Network <span className="text-smgh-red">*</span>
+                            </label>
+                            <div className="grid grid-cols-2 gap-2">
+                              {[
+                                { value: 'mtn', label: 'MTN', color: 'border-yellow-400 text-yellow-700 bg-yellow-50' },
+                                { value: 'vodafone', label: 'Vodafone', color: 'border-red-400 text-red-700 bg-red-50' },
+                                { value: 'airteltigo', label: 'AirtelTigo', color: 'border-blue-400 text-blue-700 bg-blue-50' },
+                              ].map(nw => (
+                                <button
+                                  key={nw.value}
+                                  type="button"
+                                  onClick={() => updateForm('network', nw.value)}
+                                  className={`px-3 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${
+                                    form.network === nw.value
+                                      ? nw.color + ' ring-2 ring-offset-1 ring-gray-300'
+                                      : 'border-gray-200 text-gray-500 bg-white hover:bg-gray-50'
+                                  }`}
+                                >
+                                  {nw.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
 
                         {/* Email */}
                         <div>

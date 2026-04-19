@@ -66,9 +66,10 @@ export async function POST(request: NextRequest) {
     if (provider === 'hubtel') {
       const hubtelUsername = await db.siteSetting.findUnique({ where: { key: 'hubtel_username' } })
       const hubtelMerchantId = await db.siteSetting.findUnique({ where: { key: 'hubtel_merchant_id' } })
+      const hubtelMerchantNumber = await db.siteSetting.findUnique({ where: { key: 'hubtel_merchant_number' } })
       const hubtelSecret = await db.siteSetting.findUnique({ where: { key: 'hubtel_client_secret' } })
       const apiUser = hubtelUsername?.value || hubtelMerchantId?.value || ''
-      const merchant = hubtelMerchantId?.value || ''
+      const merchant = hubtelMerchantNumber?.value || hubtelMerchantId?.value || ''
       if (!apiUser || !hubtelSecret?.value || !merchant) {
         return NextResponse.json({ error: 'Hubtel not configured' }, { status: 500 })
       }
@@ -77,20 +78,39 @@ export async function POST(request: NextRequest) {
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || ''
 
       if (action === 'initialize') {
-        // Use Hubtel Unified Pay — redirect-based checkout
-        const params = new URLSearchParams({
-          amount: String(amount),
-          purchaseDescription: `SMGH Order - ₵${amount}`,
-          customerPhoneNumber: phone ? phone.replace(/^0/, '233') : '233240000000',
-          clientReference: orderId,
-          callbackUrl: `${baseUrl}/api/hubtel`,
-          returnUrl: `${baseUrl}/#/shop?status=success&order=${orderId}`,
-          cancellationUrl: `${baseUrl}/#/shop?status=cancelled`,
-          merchantAccount: merchant,
-          basicAuth: `Basic ${basicAuth}`,
+        // Hubtel Mobile Money Direct API
+        const { name, network } = body
+        const channel = (network === 'vodafone' || network === 'vodafone-gh') ? 'vodafone-gh'
+          : (network === 'airteltigo' || network === 'airteltigo-gh') ? 'airteltigo-gh'
+          : 'mtn-gh'
+
+        let msisdn = phone || '233240000000'
+        if (msisdn.startsWith('0')) msisdn = '233' + msisdn.substring(1)
+        else if (msisdn.startsWith('+')) msisdn = msisdn.substring(1)
+
+        const url = `https://api.hubtel.com/v1/merchantaccount/merchants/${merchant}/receive/mobilemoney`
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Basic ${basicAuth}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            CustomerName: name || 'Customer',
+            CustomerMsisdn: msisdn,
+            CustomerEmail: email || '',
+            Channel: channel,
+            Amount: String(amount),
+            PrimaryCallbackUrl: `${baseUrl}/api/hubtel`,
+            Description: `SMGH Order`,
+            ClientReference: orderId,
+          }),
         })
 
-        const checkoutUrl = `https://unified-pay.hubtel.com/pay?${params.toString()}`
+        const data = await response.json() as Record<string, unknown>
+        if (!response.ok) {
+          return NextResponse.json({ error: `Hubtel API error: ${(data as any).Message || 'Unknown'}` }, { status: response.status })
+        }
 
         await db.order.update({
           where: { id: orderId },
@@ -99,8 +119,9 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
           success: true,
-          checkout_url: checkoutUrl,
+          data,
           reference: orderId,
+          message: 'Mobile money payment initiated. Check your phone for the prompt.',
         })
       }
 

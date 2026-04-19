@@ -5,25 +5,57 @@ import { db } from '@/lib/db'
 async function getHubtelCredentials() {
   const username = await db.siteSetting.findUnique({ where: { key: 'hubtel_username' } })
   const clientSecret = await db.siteSetting.findUnique({ where: { key: 'hubtel_client_secret' } })
+  const merchantNumber = await db.siteSetting.findUnique({ where: { key: 'hubtel_merchant_number' } })
   const merchantId = await db.siteSetting.findUnique({ where: { key: 'hubtel_merchant_id' } })
 
-  const apiUser = username?.value || merchantId?.value || ''
-  const apiKey = clientSecret?.value || ''
-  const merchant = merchantId?.value || ''
+  // Use merchant_number if available, fallback to merchant_id
+  const merchant = merchantNumber?.value || merchantId?.value || ''
+  const clientId = username?.value || merchantId?.value || ''
+  const clientSecretVal = clientSecret?.value || ''
 
-  if (!apiUser || !apiKey || !merchant) return null
+  if (!clientId || !clientSecretVal || !merchant) return null
 
   return {
-    basicAuth: Buffer.from(`${apiUser}:${apiKey}`).toString('base64'),
-    merchantAccount: merchant,
+    basicAuth: Buffer.from(`${clientId}:${clientSecretVal}`).toString('base64'),
+    merchantNumber: merchant,
   }
 }
 
-// Hubtel Unified Pay — creates a checkout URL for redirect
+// Map user-friendly network names to Hubtel channel codes
+function getNetworkChannel(network: string): string {
+  const map: Record<string, string> = {
+    'mtn': 'mtn-gh',
+    'mtn-gh': 'mtn-gh',
+    'vodafone': 'vodafone-gh',
+    'vodafone-gh': 'vodafone-gh',
+    'airteltigo': 'airteltigo-gh',
+    'airteltigo-gh': 'airteltigo-gh',
+    'tigo': 'tigo-gh',
+    'tigo-gh': 'tigo-gh',
+    'atl': 'airteltigo-gh',
+  }
+  return map[network.toLowerCase()] || 'mtn-gh'
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { action, reference, amount, email, phone, donationId, orderId, Status, Data, ClientReference } = body
+    const {
+      action,
+      reference,
+      amount,
+      email,
+      phone,
+      name,
+      network,
+      donationId,
+      orderId,
+      Status,
+      Data,
+      ClientReference,
+    } = body
+
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || ''
 
     // ── Handle Hubtel webhook callback ──────────────────────────────
     if (!action && (Status || Data)) {
@@ -52,7 +84,6 @@ export async function POST(request: NextRequest) {
           })
         }
         if (ClientReference) {
-          // Try to find as order
           const order = await db.order.findUnique({ where: { id: ClientReference } })
           if (order) {
             await db.order.update({
@@ -60,7 +91,6 @@ export async function POST(request: NextRequest) {
               data: { paymentStatus: 'paid', status: 'confirmed' },
             })
           }
-          // Try to find as donation
           const donation = await db.donation.findUnique({ where: { id: ClientReference } })
           if (donation) {
             await db.donation.update({
@@ -74,7 +104,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ received: true })
     }
 
-    // ── Create checkout URL (redirect-based) ────────────────────────
+    // ── Initialize Mobile Money payment (direct API) ────────────────
     if (action === 'initialize') {
       if (!amount) {
         return NextResponse.json({ error: 'Amount is required' }, { status: 400 })
@@ -85,29 +115,55 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Hubtel not configured. Please contact the administrator.' }, { status: 500 })
       }
 
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || ''
       const clientRef = donationId || orderId || `smgh-${Date.now()}`
+      const description = donationId
+        ? 'SMGH Donation'
+        : `SMGH Order`
 
-      // Build the Hubtel Unified Pay URL
-      const params = new URLSearchParams({
-        amount: String(amount),
-        purchaseDescription: donationId
-          ? 'SMGH Donation'
-          : `SMGH Order - ₵${amount}`,
-        customerPhoneNumber: phone ? phone.replace(/^0/, '233') : '233240000000',
-        clientReference: clientRef,
-        callbackUrl: `${baseUrl}/api/hubtel`,
-        returnUrl: donationId
-          ? `${baseUrl}/#/donate?status=success`
-          : `${baseUrl}/#/shop?status=success&order=${orderId}`,
-        cancellationUrl: donationId
-          ? `${baseUrl}/#/donate?status=cancelled`
-          : `${baseUrl}/#/shop?status=cancelled`,
-        merchantAccount: creds.merchantAccount,
-        basicAuth: `Basic ${creds.basicAuth}`,
+      // Format phone number: remove leading 0, add 233 prefix
+      let msisdn = phone || '233240000000'
+      if (msisdn.startsWith('0')) {
+        msisdn = '233' + msisdn.substring(1)
+      } else if (msisdn.startsWith('+')) {
+        msisdn = msisdn.substring(1)
+      }
+
+      const channel = getNetworkChannel(network || 'mtn')
+
+      const url = `https://api.hubtel.com/v1/merchantaccount/merchants/${creds.merchantNumber}/receive/mobilemoney`
+
+      const fields = {
+        CustomerName: name || 'Donor',
+        CustomerMsisdn: msisdn,
+        CustomerEmail: email || '',
+        Channel: channel,
+        Amount: String(amount),
+        PrimaryCallbackUrl: `${baseUrl}/api/hubtel`,
+        Description: description,
+        ClientReference: clientRef,
+      }
+
+      console.log('Hubtel Mobile Money request:', JSON.stringify({ url, ...fields, merchantNumber: creds.merchantNumber }))
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${creds.basicAuth}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(fields),
       })
 
-      const checkoutUrl = `https://unified-pay.hubtel.com/pay?${params.toString()}`
+      const data = await response.json() as Record<string, unknown>
+      console.log('Hubtel Mobile Money response:', JSON.stringify({ status: response.status, data }))
+
+      if (!response.ok) {
+        console.error('Hubtel API error:', response.status, JSON.stringify(data))
+        return NextResponse.json(
+          { error: `Hubtel API error: ${data?.Message || data?.Description || data?.message || 'Unknown error'}` },
+          { status: response.status }
+        )
+      }
 
       // Save reference on donation/order
       if (donationId) {
@@ -125,8 +181,9 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        checkout_url: checkoutUrl,
+        data,
         reference: clientRef,
+        message: 'Mobile money payment initiated. Please check your phone for the prompt.',
       })
     }
 
