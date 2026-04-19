@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
         path: '/',
       })
 
-      // Store session in settings (simple approach for SQLite)
+      // Store session in settings
       await db.siteSetting.upsert({
         where: { key: `session_${token}` },
         update: { value: admin.id },
