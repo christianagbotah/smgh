@@ -15,3 +15,22 @@ Stage Summary:
 - Local dev now working: hero slider and events data available via APIs
 - Dev server binding fixed: `next dev -p 3000 -H 0.0.0.0`
 - Production site still needs MySQL Prisma client generation and database setup
+
+---
+Task ID: 2
+Agent: Main
+Task: Prepare production build with MySQL support and push to GitHub
+
+Work Log:
+- Created prisma/schema.mysql.prisma with MySQL provider and @db.Text annotations for long text fields
+- Switched schema to MySQL, generated MySQL Prisma client, built Next.js production
+- Restored SQLite schema for local dev
+- Created build-production.sh script for future production builds
+- Committed .next/ build (with MySQL Prisma client baked in) and pushed to GitHub
+- Dev server running with SQLite on localhost:3000
+
+Stage Summary:
+- Production build pushed to GitHub (commit ae98324)
+- On cPanel: needs to swap schema to MySQL, run `prisma db push`, `prisma seed`, restart app
+- Created prisma/schema.mysql.prisma for MySQL deployment
+- Key files: schema.prisma (SQLite), schema.mysql.prisma (MySQL), build-production.sh
