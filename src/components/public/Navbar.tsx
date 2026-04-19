@@ -20,8 +20,19 @@ const defaultNavLinks = [
   { href: '/track-order', label: 'Track Order', icon: Truck },
 ]
 
-// Icon lookup map
-const iconMap: Record<string, any> = { Home, Calendar, Award, Users, Image, Music, DollarSign, ShoppingBag, Phone, Truck }
+// Icon lookup by nav label (used when fetching links from API)
+const iconByLabel: Record<string, any> = {
+  'Home': Home,
+  'Events': Calendar,
+  'Foundation': Award,
+  'Team': Users,
+  'Gallery': Image,
+  'Artists': Music,
+  'Donate': DollarSign,
+  'Shop': ShoppingBag,
+  'Contact': Phone,
+  'Track Order': Truck,
+}
 
 export default function Navbar() {
   const { path } = useRouter()
@@ -38,7 +49,7 @@ export default function Navbar() {
           setNavLinks(parsed.map((link: {label: string, href: string}) => ({
             href: link.href,
             label: link.label,
-            icon: iconMap[link.label?.replace(/[^a-zA-Z]/g, '')] || Home,
+            icon: iconByLabel[link.label] || Home,
           })))
         }
       } catch {}
