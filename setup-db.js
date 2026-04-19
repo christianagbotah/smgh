@@ -532,22 +532,24 @@ CREATE TABLE OrderItem (
   console.log('  • Admin: /admin (admin / admin123)');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-} catch (err) {
+}
+
+main().catch(function(err) {
   console.error('');
-  console.error('❌ SETUP FAILED:', err.message);
+  console.error('SETUP FAILED:', err.message);
   console.error('');
   if (err.code === 'ECONNREFUSED') {
-    console.error('   Cannot connect to MySQL. Check:');
-    console.error('   1. Database host is correct in .env');
-    console.error('   2. Database exists in cPanel > MySQL Databases');
-    console.error('   3. User has permissions for the database');
+    console.error('Cannot connect to MySQL. Check:');
+    console.error('  1. Database host is correct in .env');
+    console.error('  2. Database exists in cPanel > MySQL Databases');
+    console.error('  3. User has permissions for the database');
   } else if (err.code === 'ER_ACCESS_DENIED_ERROR') {
-    console.error('   MySQL access denied. Check:');
-    console.error('   1. Username and password in .env');
-    console.error('   2. User is assigned to the database');
+    console.error('MySQL access denied. Check:');
+    console.error('  1. Username and password in .env');
+    console.error('  2. User is assigned to the database');
   } else if (err.code === 'ER_BAD_DB_ERROR') {
-    console.error('   Database does not exist! Create it in:');
-    console.error('   cPanel → MySQL Databases → Create Database');
+    console.error('Database does not exist! Create it in:');
+    console.error('  cPanel > MySQL Databases > Create Database');
   }
   process.exit(1);
-}
+});
