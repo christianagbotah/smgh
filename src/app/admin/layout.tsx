@@ -45,7 +45,7 @@ function renderSidebarContent(
       <div className="flex items-center justify-between p-4 border-b border-gray-800">
         <Link href="/admin" className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full gradient-green flex items-center justify-center overflow-hidden">
-            <img src="/favicon.png" alt="SMGH" className="w-full h-full object-cover rounded-full" />
+            <img src="/images/logo/smgh-logo.png" alt="SMGH" className="w-full h-full object-contain rounded-full" />
           </div>
           {sidebarOpen && <span className="text-white font-bold text-sm">SMGH Admin</span>}
         </Link>
@@ -177,7 +177,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         >
           <div className="text-center mb-8">
             <div className="w-16 h-16 rounded-full gradient-green mx-auto mb-4 flex items-center justify-center overflow-hidden">
-              <img src="/favicon.png" alt="SMGH" className="w-full h-full object-cover rounded-full" />
+              <img src="/images/logo/smgh-logo.png" alt="SMGH" className="w-full h-full object-contain rounded-full" />
             </div>
             <h1 className="text-2xl font-bold text-white">SMGH Admin</h1>
             <p className="text-gray-400 text-sm">Sign in to the CMS</p>
