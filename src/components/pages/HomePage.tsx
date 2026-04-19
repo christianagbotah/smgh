@@ -337,7 +337,7 @@ export default function HomePage() {
               <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4">
                 Our <span className="text-green-600">Mission</span>
               </h2>
-              <p className="text-gray-600 max-w-2xl mx-auto text-lg">
+              <p className="text-gray-600 max-w-2xl mx-auto text-lg text-justify">
                 A faith-based movement dedicated to celebrating mothers and uplifting those in need across Ghana
               </p>
             </div>
@@ -402,13 +402,13 @@ export default function HomePage() {
                   <div className="text-gray-600 leading-relaxed prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: settings.visionary_message }} />
                 ) : (
                   <>
-                    <p className="text-gray-600 leading-relaxed mb-4">
+                    <p className="text-gray-600 leading-relaxed mb-4 text-justify">
                       The love of God has led us to show that same Love, Care and Appreciation to our dear mothers and to encourage them to keep up with the task God has entrusted into their hands. Motherhood as you and I know, is not one of those regular responsibilities out there. Right from the inception of pregnancy to nurturing the child to become a responsible figure in the society.
                     </p>
-                    <p className="text-gray-600 leading-relaxed mb-4">
+                    <p className="text-gray-600 leading-relaxed mb-4 text-justify">
                       We don&apos;t just stop there, we also have a great passion for those of them who are finding it difficult to take care of their wards due to one reason and the other. Some are single parenting probably because they have lost their husbands, others due to broken homes etc. We see the need to assist such mothers as well so as to push harder and bring their children up properly.
                     </p>
-                    <p className="text-gray-600 leading-relaxed mb-6">
+                    <p className="text-gray-600 leading-relaxed mb-6 text-justify">
                       This is why we have the <strong className="text-green-700">SWEET MOTHERS FOUNDATION</strong> where we raise funds to support mothers who are in very heart-breaking situations.
                     </p>
                     <p className="text-gray-500 italic text-sm">
@@ -775,7 +775,7 @@ export default function HomePage() {
                           <div className={`flex items-center gap-3 mb-3 ${idx % 2 === 0 ? 'md:justify-end' : ''}`}>
                             <span className="text-3xl font-bold text-green-700">{record.year}</span>
                           </div>
-                          <p className="text-gray-600 text-sm leading-relaxed mb-4">
+                          <p className="text-gray-600 text-sm leading-relaxed mb-4 text-justify">
                             {record.description}
                           </p>
                           <div className="flex gap-4 flex-wrap">
@@ -861,13 +861,13 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 gap-6 md:gap-12">
             {/* Newsletter */}
-            <AnimatedSection>
-              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl md:rounded-3xl p-6 md:p-10 border border-green-100 h-full">
+            <AnimatedSection className="min-w-0">
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl md:rounded-3xl p-6 md:p-10 border border-green-100 h-full overflow-hidden">
                 <div className="w-11 h-11 md:w-14 md:h-14 rounded-lg md:rounded-xl bg-green-100 flex items-center justify-center mb-4 md:mb-5">
                   <Send className="w-5 h-5 md:w-7 md:h-7 text-green-600" />
                 </div>
                 <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-2 md:mb-3">Stay Updated</h3>
-                <p className="text-gray-600 mb-6 leading-relaxed">
+                <p className="text-gray-600 mb-6 leading-relaxed text-justify">
                   Subscribe to our newsletter and never miss an event update, foundation outreach report, or worship highlight. Join hundreds of supporters who stay connected with the SMGH family through regular updates delivered straight to your inbox.
                 </p>
                 <form
@@ -894,21 +894,22 @@ export default function HomePage() {
                     required
                     className="flex-1 px-4 py-3 rounded-xl bg-white border border-green-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all"
                   />
-                  <Button type="submit" className="bg-green-600 hover:bg-green-700 text-white px-6 rounded-xl transition-all">
-                    Subscribe
+                  <Button type="submit" className="bg-green-600 hover:bg-green-700 text-white px-3 sm:px-6 rounded-xl transition-all">
+                    <Send className="w-4 h-4 sm:hidden" />
+                    <span className="hidden sm:inline">Subscribe</span>
                   </Button>
                 </form>
               </div>
             </AnimatedSection>
 
             {/* Social Media */}
-            <AnimatedSection delay={0.15}>
-              <div className="bg-gradient-to-br from-red-50 to-pink-50 rounded-2xl md:rounded-3xl p-6 md:p-10 border border-red-100 h-full">
+            <AnimatedSection className="min-w-0" delay={0.15}>
+              <div className="bg-gradient-to-br from-red-50 to-pink-50 rounded-2xl md:rounded-3xl p-6 md:p-10 border border-red-100 h-full overflow-hidden">
                 <div className="w-11 h-11 md:w-14 md:h-14 rounded-lg md:rounded-xl bg-red-100 flex items-center justify-center mb-4 md:mb-5">
                   <Globe className="w-5 h-5 md:w-7 md:h-7 text-red-600" />
                 </div>
                 <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-2 md:mb-3">Connect With Us</h3>
-                <p className="text-gray-600 mb-6 leading-relaxed">
+                <p className="text-gray-600 mb-6 leading-relaxed text-justify">
                   Follow Sweet Mothers Ghana across all social media platforms for behind-the-scenes content, live event streams, inspiring stories from our foundation outreach, and daily inspiration from our ministry.
                 </p>
                 <div className="space-y-3">

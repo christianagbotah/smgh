@@ -359,15 +359,15 @@ export default function DonatePage() {
             {donorType === 'corporate' && <>Corporate <span className="text-gradient-green">Partnership</span></>}
             {donorType === 'church' && <>Church <span className="text-gradient-green">Partnership</span></>}
           </motion.h1>
-          <motion.p variants={item} className="text-white/70 text-lg max-w-2xl mx-auto mb-8">
+          <motion.p variants={item} className="text-white/70 text-lg max-w-2xl mx-auto mb-8 text-justify">
             {donorType === 'individual'
               ? 'Your generous donation helps us support widows, single mothers, and the less privileged across Ghana.'
               : 'Partner with SMGH Foundation to expand our reach and create lasting impact in communities across Ghana.'}
           </motion.p>
 
           {/* Donor Type Toggle */}
-          <motion.div variants={item} className="flex justify-center">
-            <div className="inline-flex bg-white/10 backdrop-blur-sm rounded-2xl p-1.5 border border-white/10">
+          <motion.div variants={item} className="flex justify-center min-w-0">
+            <div className="inline-flex flex-wrap justify-center bg-white/10 backdrop-blur-sm rounded-2xl p-1 sm:p-1.5 border border-white/10 gap-1">
               {([
                 { type: 'individual' as DonorType, label: 'Individual', icon: Heart },
                 { type: 'corporate' as DonorType, label: 'Corporate', icon: Building2 },
@@ -376,13 +376,13 @@ export default function DonatePage() {
                 <button
                   key={opt.type}
                   onClick={() => setDonorType(opt.type)}
-                  className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all ${
+                  className={`flex items-center gap-1 sm:gap-2 px-2.5 sm:px-5 py-1.5 sm:py-2.5 rounded-xl text-[11px] sm:text-sm font-medium transition-all ${
                     donorType === opt.type
                       ? 'bg-white text-smgh-dark shadow-lg'
                       : 'text-white/70 hover:text-white hover:bg-white/5'
                   }`}
                 >
-                  <opt.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <opt.icon className="w-3 h-3 sm:w-4 sm:h-4" />
                   {opt.label}
                 </button>
               ))}
@@ -507,7 +507,7 @@ export default function DonatePage() {
                           <p className="text-sm font-medium text-smgh-green mb-1 flex items-center gap-1.5">
                             <Sparkles className="w-4 h-4" /> Your Impact
                           </p>
-                          <p className="text-gray-600 text-sm">
+                          <p className="text-gray-600 text-sm text-justify">
                             {finalAmount >= 5000
                               ? 'Fund a full outreach program reaching multiple communities across Ghana'
                               : finalAmount >= 2000

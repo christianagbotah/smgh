@@ -197,10 +197,10 @@ export default function FoundationPage() {
             <div>
               <Badge className="bg-smgh-green/10 text-smgh-green border-0 mb-4">About Us</Badge>
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Our Foundation&apos;s Mission</h2>
-              <p className="text-gray-600 leading-relaxed mb-4">
+              <p className="text-gray-600 leading-relaxed mb-4 text-justify">
                 The SMGH Foundation was established in 2017 alongside the first Sweet Mothers Ghana worship night, with full charitable operations beginning in 2021. Our mission is rooted in the biblical principle of caring for widows and the less privileged.
               </p>
-              <p className="text-gray-600 leading-relaxed mb-6">
+              <p className="text-gray-600 leading-relaxed mb-6 text-justify">
                 We believe that every mother deserves dignity, support, and the opportunity to provide for her family. Through our programs, we empower women to become self-sufficient, break the cycle of poverty, and build better futures for their children.
               </p>
               <div className="flex items-center gap-4 text-sm">
@@ -365,7 +365,7 @@ export default function FoundationPage() {
                   <span className="absolute -top-2 -right-2 w-7 h-7 bg-smgh-green text-white text-xs font-bold rounded-full flex items-center justify-center shadow-md">{idx + 1}</span>
                 </div>
                 <h3 className="font-bold text-gray-900 text-lg mb-2">{step.title}</h3>
-                <p className="text-gray-600 text-sm leading-relaxed">{step.desc}</p>
+                <p className="text-gray-600 text-sm leading-relaxed text-justify">{step.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -407,7 +407,7 @@ export default function FoundationPage() {
                           </div>
                         </div>
                         <div className="px-6 pb-5">
-                          <p className="text-gray-600 text-sm leading-relaxed">
+                          <p className="text-gray-600 text-sm leading-relaxed text-justify">
                             {b.story && (isExpanded ? b.story : `${b.story.slice(0, 180)}...`)}
                           </p>
                           {b.story && b.story.length > 180 && (
@@ -447,7 +447,7 @@ export default function FoundationPage() {
                       <opt.icon className="w-8 h-8 text-smgh-green" />
                     </div>
                     <h3 className="font-bold text-gray-900 text-lg mb-2">{opt.title}</h3>
-                    <p className="text-gray-600 text-sm mb-6 leading-relaxed">{opt.desc}</p>
+                    <p className="text-gray-600 text-sm mb-6 leading-relaxed text-justify">{opt.desc}</p>
                     <Link to={opt.action}>
                       <Button className={`${opt.color} ${opt.textColor} rounded-xl shadow-md w-full`}>
                         {opt.actionLabel}
