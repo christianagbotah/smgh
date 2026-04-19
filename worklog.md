@@ -57,3 +57,26 @@ Stage Summary:
 - Deployment script created: deploy-to-production.sh
 - Production server needs: pull code, set DATABASE_URL, run prisma db push, seed database, restart
 - User needs to run deploy-to-production.sh on cPanel server via cPanel Terminal
+
+---
+Task ID: 4
+Agent: Main
+Task: Fix Prisma WASM OOM and .htaccess for production deployment
+
+Work Log:
+- Diagnosed root cause: `src/generated/prisma/` contained Debian-specific binary target (`libquery_engine-debian-openssl-3.0.x.so.node`), which fails on cPanel's CloudLinux/RHEL server
+- When Debian binary fails to load, Prisma falls back to WASM engine, which OOMs on 4GB virtual memory limit
+- Fixed `.htaccess`: added `RewriteRule` to proxy requests to Node.js on port 3000
+- Removed `src/generated/prisma/` from git tracking (26 files deleted including WASM and .so.node engine)
+- Added `src/generated/prisma/` to `.gitignore` — must be generated per-platform
+- Added `output = "../src/generated/prisma"` to both SQLite and MySQL schema files
+- Created `production-setup.sh` script that: removes old client, runs npm install, runs prisma generate
+- Rebuilt `.next` with MySQL schema, restored SQLite schema for local dev
+- Committed 268 files and pushed to GitHub (commit 4d07c6d)
+
+Stage Summary:
+- Root cause of WASM OOM: platform mismatch between Debian dev and RHEL/CloudLinux production
+- Fix: Prisma client must be generated on the production server (not committed from dev machine)
+- `.htaccess` now has proper rewrite rule for Node.js proxy
+- Production setup: pull code → run `bash production-setup.sh` → restart Node.js app in cPanel
+- Database is already seeded (all 21 tables, 9 events, artists, team, settings, hero slider data)
