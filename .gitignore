@@ -14,8 +14,10 @@ node_modules
 /coverage
 
 # next.js
-# /.next/ — build included for cPanel deployment (no build on server)
+# /.next/ — build included for cPanel deployment (server can't build)
 /.next/cache/
+# Prisma generated client — must be generated per-platform (not committed)
+src/generated/prisma/
 /out/
 
 # production
@@ -45,6 +47,7 @@ local-*
 .claude
 .z-ai-config
 *.log
+smgh-startup.log
 dev.log
 dev.out.log
 test
