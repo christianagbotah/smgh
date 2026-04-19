@@ -1,4 +1,5 @@
 import { config } from 'dotenv'
+import { join } from 'path'
 // Load .env explicitly to ensure correct DB path (system env vars may override)
 config({ path: process.cwd() + '/.env', override: true })
 
@@ -9,7 +10,13 @@ const globalForPrisma = globalThis as unknown as {
 }
 
 function createPrismaClient() {
-  const dbUrl = process.env.DATABASE_URL || ''
+  let dbUrl = process.env.DATABASE_URL || ''
+
+  // If DATABASE_URL doesn't start with file: or mysql:, it's invalid — fix it
+  if (!dbUrl.startsWith('file:') && !dbUrl.startsWith('mysql://')) {
+    // Default to SQLite relative to project root
+    dbUrl = `file:${join(process.cwd(), 'prisma', 'db', 'smgh.db')}`
+  }
 
   // Only add connection pool parameters for MySQL (remote databases)
   const isMySQL = dbUrl.startsWith('mysql://')
