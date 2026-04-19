@@ -2,7 +2,6 @@ const fs = require('fs');
 const path = require('path');
 const { createServer } = require('http');
 const { parse } = require('url');
-const { execSync } = require('child_process');
 const { lookup } = require('mime-types');
 
 const dir = __dirname;
@@ -19,33 +18,6 @@ log('Node: ' + process.version);
 log('PORT: ' + process.env.PORT);
 log('DIR: ' + dir);
 
-// Prisma generate helper — uses current Node.js binary (works even without npx in PATH)
-const prismaBinPath = path.join(dir, 'node_modules', 'prisma', 'build', 'index.js');
-const nodeBin = process.execPath;
-function runPrismaGenerate() {
-  if (fs.existsSync(prismaBinPath)) {
-    log('Running prisma generate via: ' + nodeBin + ' ' + prismaBinPath);
-    execSync('"' + nodeBin + '" "' + prismaBinPath + '" generate', { cwd: dir, stdio: 'inherit', timeout: 120000 });
-  } else {
-    log('WARNING: prisma binary not found at ' + prismaBinPath + ', trying npx...');
-    execSync('npx prisma generate', { cwd: dir, stdio: 'inherit', timeout: 120000 });
-  }
-}
-
-// Generate Prisma client if .prisma directory missing
-const prismaClientPath = path.join(dir, 'node_modules', '.prisma', 'client');
-if (!fs.existsSync(prismaClientPath)) {
-  log('Prisma client dir missing, generating...');
-  try {
-    runPrismaGenerate();
-    log('Prisma client generated successfully');
-  } catch (e) {
-    log('WARNING: Prisma generate failed - ' + e.message);
-  }
-} else {
-  log('Prisma client directory found at ' + prismaClientPath);
-}
-
 // Check .env exists
 if (!fs.existsSync(path.join(dir, '.env'))) {
   log('WARNING: .env file not found!');
@@ -54,6 +26,14 @@ if (!fs.existsSync(path.join(dir, '.env'))) {
   const envContent = fs.readFileSync(path.join(dir, '.env'), 'utf8');
   const hasDbUrl = envContent.includes('DATABASE_URL');
   log('DATABASE_URL in .env: ' + hasDbUrl);
+}
+
+// Check generated Prisma client exists in src/generated/prisma
+const generatedClient = path.join(dir, 'src', 'generated', 'prisma');
+if (fs.existsSync(generatedClient)) {
+  log('Prisma client found at src/generated/prisma');
+} else {
+  log('WARNING: Generated Prisma client not found at ' + generatedClient);
 }
 
 const dev = false;
