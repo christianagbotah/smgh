@@ -1,13 +1,17 @@
-import { config } from 'dotenv'
 import { join } from 'path'
-// Load .env explicitly to ensure correct DB path (system env vars may override)
-config({ path: process.cwd() + '/.env', override: true })
-
 import { PrismaClient } from '@/generated/prisma'
 
-// Force correct DATABASE_URL for SQLite regardless of env
-if (!process.env.DATABASE_URL?.startsWith('file:') && !process.env.DATABASE_URL?.startsWith('mysql://')) {
-  process.env.DATABASE_URL = `file:${join(process.cwd(), 'prisma', 'db', 'smgh.db')}`
+// Always use SQLite at this path — ignore any env DATABASE_URL for SQLite
+const SQLITE_PATH = `file:${join(process.cwd(), 'prisma', 'db', 'smgh.db')}`
+
+function getDatabaseUrl(): string {
+  // If DATABASE_URL is explicitly set to a remote MySQL, use it
+  const envUrl = process.env.DATABASE_URL || ''
+  if (envUrl.startsWith('mysql://')) {
+    return `${envUrl}${envUrl.includes('?') ? '&' : '?'}connection_limit=5&pool_timeout=30&connect_timeout=10`
+  }
+  // Otherwise always use SQLite at the correct relative path
+  return SQLITE_PATH
 }
 
 const globalForPrisma = globalThis as unknown as {
@@ -15,19 +19,11 @@ const globalForPrisma = globalThis as unknown as {
 }
 
 function createPrismaClient() {
-  const dbUrl = process.env.DATABASE_URL || `file:${join(process.cwd(), 'prisma', 'db', 'smgh.db')}`
-
-  // Only add connection pool parameters for MySQL (remote databases)
-  const isMySQL = dbUrl.startsWith('mysql://')
-  const finalUrl = isMySQL
-    ? `${dbUrl}${dbUrl.includes('?') ? '&' : '?'}connection_limit=5&pool_timeout=30&connect_timeout=10`
-    : dbUrl
-
   return new PrismaClient({
     log: process.env.NODE_ENV === 'development' ? ['error'] : [],
     datasources: {
       db: {
-        url: finalUrl,
+        url: getDatabaseUrl(),
       },
     },
   })

@@ -1,5 +1,5 @@
 var R=require("../../../../chunks/[turbopack]_runtime.js")("server/app/api/events/rsvp/route.js")
-R.c("server/chunks/[root-of-the-server]__889787f5._.js")
+R.c("server/chunks/[root-of-the-server]__bb6641a2._.js")
 R.c("server/chunks/_3adbf0dd._.js")
 R.c("server/chunks/[root-of-the-server]__f408c708._.js")
 R.c("server/chunks/src_generated_prisma_5b046586._.js")
