@@ -204,6 +204,12 @@
       "namedRegex": "^/api/custom\\-pages(?:/)?$"
     },
     {
+      "page": "/api/debug",
+      "regex": "^/api/debug(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/debug(?:/)?$"
+    },
+    {
       "page": "/api/donations",
       "regex": "^/api/donations(?:/)?$",
       "routeKeys": {},
