@@ -1,9 +1,39 @@
+const fs = require('fs');
+const path = require('path');
 const { createServer } = require('http');
 const { parse } = require('url');
-const next = require('next');
+const { execSync } = require('child_process');
+
+const dir = __dirname;
+
+function log(msg) {
+  const line = `[${new Date().toISOString()}] ${msg}`;
+  const logFile = path.join(dir, 'smgh-startup.log');
+  try { fs.appendFileSync(logFile, line + '\n'); } catch(e) {}
+  console.log(line);
+}
+
+log('=== SMGH Server Starting ===');
+log('Node: ' + process.version);
+log('PORT: ' + process.env.PORT);
+log('DIR: ' + dir);
+
+// Generate Prisma client if missing
+const prismaClientPath = path.join(dir, 'node_modules', '.prisma', 'client');
+if (!fs.existsSync(prismaClientPath)) {
+  log('Prisma client missing, generating...');
+  try {
+    execSync('npx prisma generate', { cwd: dir, stdio: 'inherit', timeout: 120000 });
+    log('Prisma client generated successfully');
+  } catch (e) {
+    log('WARNING: Prisma generate failed - ' + e.message);
+  }
+} else {
+  log('Prisma client found');
+}
 
 const dev = false;
-const dir = __dirname;
+const next = require('next');
 const app = next({ dev, dir });
 const handle = app.getRequestHandler();
 
@@ -14,9 +44,10 @@ app.prepare().then(() => {
     const parsedUrl = parse(req.url, true);
     handle(req, res, parsedUrl);
   }).listen(PORT, '0.0.0.0', () => {
-    console.log(`> SMGH ready on http://0.0.0.0:${PORT}`);
+    log('=== SMGH ready on http://0.0.0.0:' + PORT + ' ===');
   });
 }).catch((err) => {
-  console.error('Error starting server:', err);
+  log('ERROR starting server: ' + err.message);
+  log(err.stack);
   process.exit(1);
 });
