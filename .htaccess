@@ -1,12 +1,10 @@
-# SMGH - Pass all requests to Node.js app
+# SMGH - Pass all requests to Node.js app on port 3000
 <IfModule mod_rewrite.c>
   RewriteEngine On
 
   # Pass Authorization header to Node.js
   RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
-  # Proxy all requests to the Node.js app on port 3000
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
+  # Proxy ALL requests to the Node.js app (including static files)
   RewriteRule ^(.*)$ http://127.0.0.1:3000/$1 [P,L]
 </IfModule>
