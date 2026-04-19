@@ -24,7 +24,6 @@
   "/api/contact/route": "/api/contact",
   "/api/custom-pages/[id]/route": "/api/custom-pages/[id]",
   "/api/custom-pages/route": "/api/custom-pages",
-  "/api/debug/route": "/api/debug",
   "/api/donations/route": "/api/donations",
   "/api/events/route": "/api/events",
   "/api/events/rsvp/route": "/api/events/rsvp",

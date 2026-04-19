@@ -1,42 +1,32 @@
 import { NextResponse } from 'next/server'
-import { join } from 'path'
-import { PrismaClient } from '@/generated/prisma'
+import { db } from '@/lib/db'
 import { hash } from 'bcryptjs'
 
 export const dynamic = 'force-dynamic'
 
-// Create a fresh PrismaClient with correct SQLite path — bypass db.ts entirely
-const seedDb = new PrismaClient({
-  datasources: {
-    db: {
-      url: `file:${join(process.cwd(), 'prisma', 'db', 'smgh.db')}`,
-    },
-  },
-})
-
 // Helper: find or create (since some models have no unique fields)
 async function findOrCreateArtist(name: string, data: any) {
-  const existing = await seedDb.artist.findFirst({ where: { name } })
+  const existing = await db.artist.findFirst({ where: { name } })
   if (existing) return existing
-  return seedDb.artist.create({ data })
+  return db.artist.create({ data })
 }
 
 async function findOrCreateTeamMember(name: string, data: any) {
-  const existing = await seedDb.teamMember.findFirst({ where: { name } })
+  const existing = await db.teamMember.findFirst({ where: { name } })
   if (existing) return existing
-  return seedDb.teamMember.create({ data })
+  return db.teamMember.create({ data })
 }
 
 async function findOrCreateFoundationRecord(year: number, data: any) {
-  const existing = await seedDb.foundationRecord.findFirst({ where: { year } })
+  const existing = await db.foundationRecord.findFirst({ where: { year } })
   if (existing) return existing
-  return seedDb.foundationRecord.create({ data })
+  return db.foundationRecord.create({ data })
 }
 
 async function seed() {
   // 1. Admin User (username IS unique)
   const hashedPassword = await hash('admin123', 10)
-  await seedDb.adminUser.upsert({
+  await db.adminUser.upsert({
     where: { username: 'admin' },
     update: {},
     create: {
@@ -109,7 +99,7 @@ async function seed() {
     { title: 'SWEET MOTHERS GH – 2025', slug: 'smgh-2025', date: '2025-05-11', venue: 'TBD', city: 'Ghana', banner: '/images/events/2024/banner.jpg', status: 'upcoming', tags: 'upcoming', artistIdx: [0] },
   ]
   for (const ev of eventData) {
-    await seedDb.event.upsert({
+    await db.event.upsert({
       where: { slug: ev.slug },
       update: {},
       create: {
@@ -144,9 +134,9 @@ async function seed() {
     { title: 'SMGH Team', url: '/images/artists/minister-bob.jpg', year: 2023, category: 'team' },
   ]
   for (const g of galleryData) {
-    const exists = await seedDb.galleryItem.findFirst({ where: { title: g.title } })
+    const exists = await db.galleryItem.findFirst({ where: { title: g.title } })
     if (!exists) {
-      await seedDb.galleryItem.create({
+      await db.galleryItem.create({
         data: { ...g, thumbnail: g.url, type: 'image', sortOrder: 0 },
       })
     }
@@ -203,7 +193,7 @@ async function seed() {
     { key: 'whatsapp_link', value: 'https://wa.link/jdnvkt' },
   ]
   for (const s of settings) {
-    await seedDb.siteSetting.upsert({
+    await db.siteSetting.upsert({
       where: { key: s.key },
       update: { value: s.value },
       create: s,
@@ -220,6 +210,6 @@ export async function GET() {
   } catch (error: any) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 })
   } finally {
-    await seedDb.$disconnect()
+    await db.$disconnect()
   }
 }

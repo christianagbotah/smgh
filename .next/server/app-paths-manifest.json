@@ -24,7 +24,6 @@
   "/api/contact/route": "app/api/contact/route.js",
   "/api/custom-pages/[id]/route": "app/api/custom-pages/[id]/route.js",
   "/api/custom-pages/route": "app/api/custom-pages/route.js",
-  "/api/debug/route": "app/api/debug/route.js",
   "/api/donations/route": "app/api/donations/route.js",
   "/api/events/route": "app/api/events/route.js",
   "/api/events/rsvp/route": "app/api/events/rsvp/route.js",

@@ -1,9 +1,4 @@
-import { join } from 'path'
 import { PrismaClient } from '@/generated/prisma'
-
-// This project uses SQLite — always use the local database file
-// Ignore any DATABASE_URL env var (cPanel may set a MySQL one)
-const SQLITE_PATH = `file:${join(process.cwd(), 'prisma', 'db', 'smgh.db')}`
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
@@ -12,11 +7,6 @@ const globalForPrisma = globalThis as unknown as {
 function createPrismaClient() {
   return new PrismaClient({
     log: process.env.NODE_ENV === 'development' ? ['error'] : [],
-    datasources: {
-      db: {
-        url: SQLITE_PATH,
-      },
-    },
   })
 }
 

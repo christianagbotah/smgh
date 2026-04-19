@@ -88,6 +88,9 @@ Prisma.NullTypes = {
  * Enums
  */
 exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
+  ReadUncommitted: 'ReadUncommitted',
+  ReadCommitted: 'ReadCommitted',
+  RepeatableRead: 'RepeatableRead',
   Serializable: 'Serializable'
 });
 
@@ -360,6 +363,210 @@ exports.Prisma.NullsOrder = {
   last: 'last'
 };
 
+exports.Prisma.EventOrderByRelevanceFieldEnum = {
+  id: 'id',
+  title: 'title',
+  slug: 'slug',
+  time: 'time',
+  venue: 'venue',
+  city: 'city',
+  address: 'address',
+  description: 'description',
+  bannerImage: 'bannerImage',
+  status: 'status',
+  tags: 'tags',
+  youtubeUrls: 'youtubeUrls',
+  ticketCurrency: 'ticketCurrency'
+};
+
+exports.Prisma.EventArtistOrderByRelevanceFieldEnum = {
+  id: 'id',
+  eventId: 'eventId',
+  artistId: 'artistId'
+};
+
+exports.Prisma.EventGuestOrderByRelevanceFieldEnum = {
+  id: 'id',
+  eventId: 'eventId',
+  name: 'name',
+  title: 'title',
+  photo: 'photo',
+  description: 'description'
+};
+
+exports.Prisma.EventTestimonialOrderByRelevanceFieldEnum = {
+  id: 'id',
+  eventId: 'eventId',
+  quote: 'quote',
+  author: 'author',
+  photo: 'photo'
+};
+
+exports.Prisma.GalleryItemOrderByRelevanceFieldEnum = {
+  id: 'id',
+  title: 'title',
+  description: 'description',
+  type: 'type',
+  url: 'url',
+  thumbnail: 'thumbnail',
+  eventId: 'eventId',
+  foundationRecordId: 'foundationRecordId',
+  category: 'category'
+};
+
+exports.Prisma.ArtistOrderByRelevanceFieldEnum = {
+  id: 'id',
+  name: 'name',
+  location: 'location',
+  bio: 'bio',
+  image: 'image'
+};
+
+exports.Prisma.DonationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  name: 'name',
+  email: 'email',
+  phone: 'phone',
+  address: 'address',
+  currency: 'currency',
+  paymentMethod: 'paymentMethod',
+  paymentProvider: 'paymentProvider',
+  status: 'status',
+  reference: 'reference',
+  message: 'message',
+  donorType: 'donorType',
+  donationFrequency: 'donationFrequency',
+  organization: 'organization'
+};
+
+exports.Prisma.ContactMessageOrderByRelevanceFieldEnum = {
+  id: 'id',
+  name: 'name',
+  phone: 'phone',
+  email: 'email',
+  message: 'message'
+};
+
+exports.Prisma.NewsletterSubscriberOrderByRelevanceFieldEnum = {
+  id: 'id',
+  email: 'email'
+};
+
+exports.Prisma.SiteSettingOrderByRelevanceFieldEnum = {
+  id: 'id',
+  key: 'key',
+  value: 'value'
+};
+
+exports.Prisma.AdminUserOrderByRelevanceFieldEnum = {
+  id: 'id',
+  username: 'username',
+  password: 'password',
+  name: 'name',
+  role: 'role'
+};
+
+exports.Prisma.MediaFileOrderByRelevanceFieldEnum = {
+  id: 'id',
+  filename: 'filename',
+  url: 'url',
+  mimeType: 'mimeType',
+  alt: 'alt'
+};
+
+exports.Prisma.TeamMemberOrderByRelevanceFieldEnum = {
+  id: 'id',
+  name: 'name',
+  role: 'role',
+  photo: 'photo',
+  bio: 'bio',
+  email: 'email',
+  phone: 'phone',
+  socialLinks: 'socialLinks',
+  category: 'category'
+};
+
+exports.Prisma.FoundationRecordOrderByRelevanceFieldEnum = {
+  id: 'id',
+  description: 'description',
+  locations: 'locations'
+};
+
+exports.Prisma.EventRSVPOrderByRelevanceFieldEnum = {
+  id: 'id',
+  eventId: 'eventId',
+  name: 'name',
+  email: 'email',
+  phone: 'phone',
+  message: 'message'
+};
+
+exports.Prisma.ProductOrderByRelevanceFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  description: 'description',
+  currency: 'currency',
+  category: 'category',
+  eventId: 'eventId',
+  primaryImage: 'primaryImage'
+};
+
+exports.Prisma.ProductVariantOrderByRelevanceFieldEnum = {
+  id: 'id',
+  productId: 'productId',
+  name: 'name',
+  color: 'color',
+  colorName: 'colorName',
+  size: 'size',
+  image: 'image'
+};
+
+exports.Prisma.OrderOrderByRelevanceFieldEnum = {
+  id: 'id',
+  orderNumber: 'orderNumber',
+  customerName: 'customerName',
+  customerEmail: 'customerEmail',
+  customerPhone: 'customerPhone',
+  deliveryAddress: 'deliveryAddress',
+  deliveryCity: 'deliveryCity',
+  deliveryRegion: 'deliveryRegion',
+  status: 'status',
+  paymentProvider: 'paymentProvider',
+  paymentStatus: 'paymentStatus',
+  paymentRef: 'paymentRef',
+  currency: 'currency',
+  trackingNumber: 'trackingNumber',
+  notes: 'notes'
+};
+
+exports.Prisma.OrderItemOrderByRelevanceFieldEnum = {
+  id: 'id',
+  orderId: 'orderId',
+  productId: 'productId',
+  productVariantId: 'productVariantId',
+  productName: 'productName',
+  variantName: 'variantName'
+};
+
+exports.Prisma.CustomPageOrderByRelevanceFieldEnum = {
+  id: 'id',
+  slug: 'slug',
+  title: 'title',
+  content: 'content',
+  bannerImage: 'bannerImage',
+  status: 'status'
+};
+
+exports.Prisma.BeneficiaryOrderByRelevanceFieldEnum = {
+  id: 'id',
+  name: 'name',
+  story: 'story',
+  photo: 'photo',
+  category: 'category',
+  location: 'location'
+};
+
 
 exports.Prisma.ModelName = {
   Event: 'Event',
@@ -406,6 +613,10 @@ const config = {
         "fromEnvVar": null,
         "value": "debian-openssl-3.0.x",
         "native": true
+      },
+      {
+        "fromEnvVar": null,
+        "value": "debian-openssl-1.0.x"
       }
     ],
     "previewFeatures": [],
@@ -422,17 +633,18 @@ const config = {
   "datasourceNames": [
     "db"
   ],
-  "activeProvider": "sqlite",
+  "activeProvider": "mysql",
+  "postinstall": false,
   "inlineDatasources": {
     "db": {
       "url": {
-        "fromEnvVar": null,
-        "value": "file:./db/smgh.db"
+        "fromEnvVar": "DATABASE_URL",
+        "value": null
       }
     }
   },
-  "inlineSchema": "generator client {\n  provider = \"prisma-client-js\"\n  output   = \"../src/generated/prisma\"\n}\n\ndatasource db {\n  provider = \"sqlite\"\n  url      = \"file:./db/smgh.db\"\n}\n\nmodel Event {\n  id              String   @id @default(cuid())\n  title           String\n  slug            String   @unique\n  date            DateTime\n  time            String?\n  venue           String\n  city            String\n  address         String?\n  description     String?\n  bannerImage     String?\n  status          String   @default(\"upcoming\")\n  tags            String?\n  youtubeUrls     String?\n  attendanceCount Int      @default(0)\n  ticketPrice     Float?\n  ticketCurrency  String   @default(\"GHS\")\n  createdAt       DateTime @default(now())\n  updatedAt       DateTime @updatedAt\n\n  artists      EventArtist[]\n  guests       EventGuest[]\n  testimonials EventTestimonial[]\n  galleryItems GalleryItem[]\n  rsvps        EventRSVP[]\n  products     Product[]\n}\n\nmodel EventArtist {\n  id        String @id @default(cuid())\n  eventId   String\n  artistId  String\n  event     Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)\n  artist    Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)\n  sortOrder Int    @default(0)\n\n  @@unique([eventId, artistId])\n}\n\nmodel EventGuest {\n  id          String  @id @default(cuid())\n  eventId     String\n  name        String\n  title       String?\n  photo       String?\n  description String?\n  sortOrder   Int     @default(0)\n  event       Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)\n}\n\nmodel EventTestimonial {\n  id      String  @id @default(cuid())\n  eventId String\n  quote   String\n  author  String\n  photo   String?\n  event   Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)\n}\n\nmodel GalleryItem {\n  id                 String            @id @default(cuid())\n  title              String?\n  description        String?\n  type               String            @default(\"image\")\n  url                String\n  thumbnail          String?\n  eventId            String?\n  event              Event?            @relation(fields: [eventId], references: [id], onDelete: SetNull)\n  foundationRecordId String?\n  foundationRecord   FoundationRecord? @relation(fields: [foundationRecordId], references: [id], onDelete: SetNull)\n  year               Int?\n  category           String?\n  sortOrder          Int               @default(0)\n  createdAt          DateTime          @default(now())\n}\n\nmodel Artist {\n  id        String        @id @default(cuid())\n  name      String\n  location  String?\n  bio       String?\n  image     String?\n  featured  Boolean       @default(false)\n  events    EventArtist[]\n  createdAt DateTime      @default(now())\n  updatedAt DateTime      @updatedAt\n}\n\nmodel Donation {\n  id                String   @id @default(cuid())\n  name              String\n  email             String?\n  phone             String?\n  address           String?\n  amount            Float\n  currency          String   @default(\"GHS\")\n  paymentMethod     String   @default(\"manual\")\n  paymentProvider   String?\n  status            String   @default(\"pending\")\n  reference         String?\n  message           String?\n  donorType         String   @default(\"individual\")\n  donationFrequency String?\n  organization      String?\n  createdAt         DateTime @default(now())\n}\n\nmodel ContactMessage {\n  id        String   @id @default(cuid())\n  name      String\n  phone     String\n  email     String?\n  message   String\n  read      Boolean  @default(false)\n  createdAt DateTime @default(now())\n}\n\nmodel NewsletterSubscriber {\n  id        String   @id @default(cuid())\n  email     String   @unique\n  active    Boolean  @default(true)\n  createdAt DateTime @default(now())\n}\n\nmodel SiteSetting {\n  id    String @id @default(cuid())\n  key   String @unique\n  value String\n}\n\nmodel AdminUser {\n  id        String   @id @default(cuid())\n  username  String   @unique\n  password  String\n  name      String\n  role      String   @default(\"editor\")\n  active    Boolean  @default(true)\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n}\n\nmodel MediaFile {\n  id        String   @id @default(cuid())\n  filename  String\n  url       String\n  mimeType  String\n  size      Int\n  alt       String?\n  createdAt DateTime @default(now())\n}\n\nmodel TeamMember {\n  id          String   @id @default(cuid())\n  name        String\n  role        String\n  photo       String?\n  bio         String?\n  email       String?\n  phone       String?\n  socialLinks String?\n  category    String   @default(\"leadership\")\n  sortOrder   Int      @default(0)\n  active      Boolean  @default(true)\n  createdAt   DateTime @default(now())\n  updatedAt   DateTime @updatedAt\n}\n\nmodel FoundationRecord {\n  id                 String        @id @default(cuid())\n  year               Int\n  description        String\n  amountRaised       Float?\n  amountSpent        Float?\n  beneficiariesCount Int?\n  locations          String?\n  galleryItems       GalleryItem[]\n  createdAt          DateTime      @default(now())\n  updatedAt          DateTime      @updatedAt\n}\n\nmodel EventRSVP {\n  id        String   @id @default(cuid())\n  eventId   String\n  name      String\n  email     String?\n  phone     String?\n  guests    Int      @default(1)\n  message   String?\n  createdAt DateTime @default(now())\n  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)\n}\n\nmodel Product {\n  id           String   @id @default(cuid())\n  name         String\n  slug         String   @unique\n  description  String?\n  basePrice    Float\n  currency     String   @default(\"GHS\")\n  category     String   @default(\"tshirt\")\n  eventId      String?\n  event        Event?   @relation(fields: [eventId], references: [id], onDelete: SetNull)\n  primaryImage String?\n  isActive     Boolean  @default(true)\n  createdAt    DateTime @default(now())\n  updatedAt    DateTime @updatedAt\n\n  variants   ProductVariant[]\n  orderItems OrderItem[]\n}\n\nmodel ProductVariant {\n  id         String      @id @default(cuid())\n  productId  String\n  name       String\n  color      String\n  colorName  String\n  size       String\n  price      Float\n  stock      Int         @default(0)\n  image      String?\n  isActive   Boolean     @default(true)\n  product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)\n  orderItems OrderItem[]\n\n  @@unique([productId, colorName, size])\n}\n\nmodel Order {\n  id              String   @id @default(cuid())\n  orderNumber     String   @unique\n  customerName    String\n  customerEmail   String?\n  customerPhone   String\n  deliveryAddress String?\n  deliveryCity    String?\n  deliveryRegion  String?\n  status          String   @default(\"pending\")\n  paymentProvider String?\n  paymentStatus   String   @default(\"pending\")\n  paymentRef      String?\n  totalAmount     Float\n  currency        String   @default(\"GHS\")\n  trackingNumber  String?\n  notes           String?\n  createdAt       DateTime @default(now())\n  updatedAt       DateTime @updatedAt\n\n  items OrderItem[]\n}\n\nmodel OrderItem {\n  id               String          @id @default(cuid())\n  orderId          String\n  productId        String?\n  productVariantId String?\n  productName      String\n  variantName      String?\n  quantity         Int\n  unitPrice        Float\n  totalPrice       Float\n  order            Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)\n  product          Product?        @relation(fields: [productId], references: [id], onDelete: SetNull)\n  productVariant   ProductVariant? @relation(fields: [productVariantId], references: [id], onDelete: SetNull)\n}\n\nmodel CustomPage {\n  id          String   @id @default(cuid())\n  slug        String   @unique\n  title       String\n  content     String   @default(\"\")\n  bannerImage String?\n  status      String   @default(\"draft\")\n  sortOrder   Int      @default(0)\n  createdAt   DateTime @default(now())\n  updatedAt   DateTime @updatedAt\n}\n\nmodel Beneficiary {\n  id         String   @id @default(cuid())\n  name       String\n  story      String?\n  photo      String?\n  category   String?\n  location   String?\n  yearHelped Int?\n  active     Boolean  @default(true)\n  createdAt  DateTime @default(now())\n}\n",
-  "inlineSchemaHash": "e450669f945fdbeed778193a430d6e5147a594627d06be59e7250700c919179c",
+  "inlineSchema": "generator client {\n  provider      = \"prisma-client-js\"\n  output        = \"../src/generated/prisma\"\n  binaryTargets = [\"native\", \"debian-openssl-1.0.x\"]\n}\n\ndatasource db {\n  provider = \"mysql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel Event {\n  id              String   @id @default(cuid())\n  title           String\n  slug            String   @unique\n  date            DateTime\n  time            String?\n  venue           String\n  city            String\n  address         String?\n  description     String?\n  bannerImage     String?\n  status          String   @default(\"upcoming\")\n  tags            String?\n  youtubeUrls     String?\n  attendanceCount Int      @default(0)\n  ticketPrice     Float?\n  ticketCurrency  String   @default(\"GHS\")\n  createdAt       DateTime @default(now())\n  updatedAt       DateTime @updatedAt\n\n  artists      EventArtist[]\n  guests       EventGuest[]\n  testimonials EventTestimonial[]\n  galleryItems GalleryItem[]\n  rsvps        EventRSVP[]\n  products     Product[]\n}\n\nmodel EventArtist {\n  id        String @id @default(cuid())\n  eventId   String\n  artistId  String\n  event     Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)\n  artist    Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)\n  sortOrder Int    @default(0)\n\n  @@unique([eventId, artistId])\n}\n\nmodel EventGuest {\n  id          String  @id @default(cuid())\n  eventId     String\n  name        String\n  title       String?\n  photo       String?\n  description String?\n  sortOrder   Int     @default(0)\n  event       Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)\n}\n\nmodel EventTestimonial {\n  id      String  @id @default(cuid())\n  eventId String\n  quote   String\n  author  String\n  photo   String?\n  event   Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)\n}\n\nmodel GalleryItem {\n  id                 String            @id @default(cuid())\n  title              String?\n  description        String?\n  type               String            @default(\"image\")\n  url                String\n  thumbnail          String?\n  eventId            String?\n  event              Event?            @relation(fields: [eventId], references: [id], onDelete: SetNull)\n  foundationRecordId String?\n  foundationRecord   FoundationRecord? @relation(fields: [foundationRecordId], references: [id], onDelete: SetNull)\n  year               Int?\n  category           String?\n  sortOrder          Int               @default(0)\n  createdAt          DateTime          @default(now())\n}\n\nmodel Artist {\n  id        String        @id @default(cuid())\n  name      String\n  location  String?\n  bio       String?\n  image     String?\n  featured  Boolean       @default(false)\n  events    EventArtist[]\n  createdAt DateTime      @default(now())\n  updatedAt DateTime      @updatedAt\n}\n\nmodel Donation {\n  id                String   @id @default(cuid())\n  name              String\n  email             String?\n  phone             String?\n  address           String?\n  amount            Float\n  currency          String   @default(\"GHS\")\n  paymentMethod     String   @default(\"manual\")\n  paymentProvider   String?\n  status            String   @default(\"pending\")\n  reference         String?\n  message           String?\n  donorType         String   @default(\"individual\")\n  donationFrequency String?\n  organization      String?\n  createdAt         DateTime @default(now())\n}\n\nmodel ContactMessage {\n  id        String   @id @default(cuid())\n  name      String\n  phone     String\n  email     String?\n  message   String\n  read      Boolean  @default(false)\n  createdAt DateTime @default(now())\n}\n\nmodel NewsletterSubscriber {\n  id        String   @id @default(cuid())\n  email     String   @unique\n  active    Boolean  @default(true)\n  createdAt DateTime @default(now())\n}\n\nmodel SiteSetting {\n  id    String @id @default(cuid())\n  key   String @unique\n  value String\n}\n\nmodel AdminUser {\n  id        String   @id @default(cuid())\n  username  String   @unique\n  password  String\n  name      String\n  role      String   @default(\"editor\")\n  active    Boolean  @default(true)\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n}\n\nmodel MediaFile {\n  id        String   @id @default(cuid())\n  filename  String\n  url       String\n  mimeType  String\n  size      Int\n  alt       String?\n  createdAt DateTime @default(now())\n}\n\nmodel TeamMember {\n  id          String   @id @default(cuid())\n  name        String\n  role        String\n  photo       String?\n  bio         String?\n  email       String?\n  phone       String?\n  socialLinks String?\n  category    String   @default(\"leadership\")\n  sortOrder   Int      @default(0)\n  active      Boolean  @default(true)\n  createdAt   DateTime @default(now())\n  updatedAt   DateTime @updatedAt\n}\n\nmodel FoundationRecord {\n  id                 String        @id @default(cuid())\n  year               Int\n  description        String\n  amountRaised       Float?\n  amountSpent        Float?\n  beneficiariesCount Int?\n  locations          String?\n  galleryItems       GalleryItem[]\n  createdAt          DateTime      @default(now())\n  updatedAt          DateTime      @updatedAt\n}\n\nmodel EventRSVP {\n  id        String   @id @default(cuid())\n  eventId   String\n  name      String\n  email     String?\n  phone     String?\n  guests    Int      @default(1)\n  message   String?\n  createdAt DateTime @default(now())\n  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)\n}\n\nmodel Product {\n  id           String   @id @default(cuid())\n  name         String\n  slug         String   @unique\n  description  String?\n  basePrice    Float\n  currency     String   @default(\"GHS\")\n  category     String   @default(\"tshirt\")\n  eventId      String?\n  event        Event?   @relation(fields: [eventId], references: [id], onDelete: SetNull)\n  primaryImage String?\n  isActive     Boolean  @default(true)\n  createdAt    DateTime @default(now())\n  updatedAt    DateTime @updatedAt\n\n  variants   ProductVariant[]\n  orderItems OrderItem[]\n}\n\nmodel ProductVariant {\n  id         String      @id @default(cuid())\n  productId  String\n  name       String\n  color      String\n  colorName  String\n  size       String\n  price      Float\n  stock      Int         @default(0)\n  image      String?\n  isActive   Boolean     @default(true)\n  product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)\n  orderItems OrderItem[]\n\n  @@unique([productId, colorName, size])\n}\n\nmodel Order {\n  id              String   @id @default(cuid())\n  orderNumber     String   @unique\n  customerName    String\n  customerEmail   String?\n  customerPhone   String\n  deliveryAddress String?\n  deliveryCity    String?\n  deliveryRegion  String?\n  status          String   @default(\"pending\")\n  paymentProvider String?\n  paymentStatus   String   @default(\"pending\")\n  paymentRef      String?\n  totalAmount     Float\n  currency        String   @default(\"GHS\")\n  trackingNumber  String?\n  notes           String?\n  createdAt       DateTime @default(now())\n  updatedAt       DateTime @updatedAt\n\n  items OrderItem[]\n}\n\nmodel OrderItem {\n  id               String          @id @default(cuid())\n  orderId          String\n  productId        String?\n  productVariantId String?\n  productName      String\n  variantName      String?\n  quantity         Int\n  unitPrice        Float\n  totalPrice       Float\n  order            Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)\n  product          Product?        @relation(fields: [productId], references: [id], onDelete: SetNull)\n  productVariant   ProductVariant? @relation(fields: [productVariantId], references: [id], onDelete: SetNull)\n}\n\nmodel CustomPage {\n  id          String   @id @default(cuid())\n  slug        String   @unique\n  title       String\n  content     String   @default(\"\")\n  bannerImage String?\n  status      String   @default(\"draft\")\n  sortOrder   Int      @default(0)\n  createdAt   DateTime @default(now())\n  updatedAt   DateTime @updatedAt\n}\n\nmodel Beneficiary {\n  id         String   @id @default(cuid())\n  name       String\n  story      String?\n  photo      String?\n  category   String?\n  location   String?\n  yearHelped Int?\n  active     Boolean  @default(true)\n  createdAt  DateTime @default(now())\n}\n",
+  "inlineSchemaHash": "a63480392c5bda7c07446bb09e06a4fcb43c8602501ccadf920ecfb94b209126",
   "copyEngine": true
 }
 
@@ -473,6 +685,10 @@ Object.assign(exports, Prisma)
 // file annotations for bundling tools to include these files
 path.join(__dirname, "libquery_engine-debian-openssl-3.0.x.so.node");
 path.join(process.cwd(), "src/generated/prisma/libquery_engine-debian-openssl-3.0.x.so.node")
+
+// file annotations for bundling tools to include these files
+path.join(__dirname, "libquery_engine-debian-openssl-1.0.x.so.node");
+path.join(process.cwd(), "src/generated/prisma/libquery_engine-debian-openssl-1.0.x.so.node")
 // file annotations for bundling tools to include these files
 path.join(__dirname, "schema.prisma");
 path.join(process.cwd(), "src/generated/prisma/schema.prisma")
