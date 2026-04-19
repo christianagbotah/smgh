@@ -16,8 +16,8 @@ node_modules
 # next.js
 # /.next/ — build included for cPanel deployment (server can't build)
 /.next/cache/
-# Prisma generated client — must be generated per-platform (not committed)
-src/generated/prisma/
+# Prisma generated client — committed with correct binary target for production
+# src/generated/prisma/
 /out/
 
 # production
