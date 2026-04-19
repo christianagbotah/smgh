@@ -14,8 +14,27 @@ const seedDb = new PrismaClient({
   },
 })
 
+// Helper: find or create (since some models have no unique fields)
+async function findOrCreateArtist(name: string, data: any) {
+  const existing = await seedDb.artist.findFirst({ where: { name } })
+  if (existing) return existing
+  return seedDb.artist.create({ data })
+}
+
+async function findOrCreateTeamMember(name: string, data: any) {
+  const existing = await seedDb.teamMember.findFirst({ where: { name } })
+  if (existing) return existing
+  return seedDb.teamMember.create({ data })
+}
+
+async function findOrCreateFoundationRecord(year: number, data: any) {
+  const existing = await seedDb.foundationRecord.findFirst({ where: { year } })
+  if (existing) return existing
+  return seedDb.foundationRecord.create({ data })
+}
+
 async function seed() {
-  // 1. Admin User
+  // 1. Admin User (username IS unique)
   const hashedPassword = await hash('admin123', 10)
   await seedDb.adminUser.upsert({
     where: { username: 'admin' },
@@ -28,29 +47,20 @@ async function seed() {
   })
 
   // 2. Artists
-  const artist1 = await seedDb.artist.upsert({
-    where: { name: 'Minister Bob' },
-    update: {},
-    create: {
-      name: 'Minister Bob',
-      location: 'Abokobi, Ghana',
-      bio: 'Minister Bobby Essuon, widely known as Minister Bob, is the founder and visionary behind Sweet Mothers Ghana. An anointed Ghanaian gospel minister and songwriter, he is known for his soul-lifting worship songs and powerful ministrations.',
-      image: '/images/artists/minister-bob.jpg',
-      featured: true,
-    },
+  const artist1 = await findOrCreateArtist('Minister Bob', {
+    name: 'Minister Bob',
+    location: 'Abokobi, Ghana',
+    bio: 'Minister Bobby Essuon, widely known as Minister Bob, is the founder and visionary behind Sweet Mothers Ghana. An anointed Ghanaian gospel minister and songwriter, he is known for his soul-lifting worship songs and powerful ministrations.',
+    image: '/images/artists/minister-bob.jpg',
+    featured: true,
   })
-  const artist2 = await seedDb.artist.upsert({
-    where: { name: 'Minister Debby' },
-    update: {},
-    create: {
-      name: 'Minister Debby',
-      location: 'Kumasi, Ghana',
-      bio: 'Minister Debby is a gifted Ghanaian gospel artist from Kumasi with a passion for worship and a voice that captivates audiences.',
-      image: '/images/artists/minister-debby.jpg',
-      featured: true,
-    },
+  const artist2 = await findOrCreateArtist('Minister Debby', {
+    name: 'Minister Debby',
+    location: 'Kumasi, Ghana',
+    bio: 'Minister Debby is a gifted Ghanaian gospel artist from Kumasi with a passion for worship and a voice that captivates audiences.',
+    image: '/images/artists/minister-debby.jpg',
+    featured: true,
   })
-
   const artists = [artist1, artist2]
 
   // 3. Team Members
@@ -61,17 +71,13 @@ async function seed() {
     { name: 'Theodora Boateng', role: 'Public Relations Officer', photo: '/images/team/victoria-essuon.jpg', sortOrder: 3 },
   ]
   for (const t of teamData) {
-    await seedDb.teamMember.upsert({
-      where: { name: t.name },
-      update: {},
-      create: {
-        ...t,
-        bio: `Bio for ${t.name}`,
-        email: 'bobby@sweetmothersgh.org',
-        phone: '+233 247 612 799',
-        socialLinks: JSON.stringify({}),
-        category: 'leadership',
-      },
+    await findOrCreateTeamMember(t.name, {
+      ...t,
+      bio: `Bio for ${t.name}`,
+      email: 'bobby@sweetmothersgh.org',
+      phone: '+233 247 612 799',
+      socialLinks: JSON.stringify({}),
+      category: 'leadership',
     })
   }
 
@@ -83,18 +89,14 @@ async function seed() {
     { year: 2024, amountRaised: 50000, amountSpent: 45000, beneficiariesCount: 130, locations: ['Cape Coast', 'Winneba', 'Accra', 'Tema', 'Kumasi'] },
   ]
   for (const f of foundationData) {
-    await seedDb.foundationRecord.upsert({
-      where: { year: f.year },
-      update: {},
-      create: {
-        ...f,
-        description: `SMGH Foundation ${f.year} outreach.`,
-        locations: JSON.stringify(f.locations),
-      },
+    await findOrCreateFoundationRecord(f.year, {
+      ...f,
+      description: `SMGH Foundation ${f.year} outreach.`,
+      locations: JSON.stringify(f.locations),
     })
   }
 
-  // 5. Events
+  // 5. Events (slug IS unique)
   const eventData = [
     { title: 'SWEET MOTHERS GH – 2017', slug: 'smgh-2017', date: '2017-05-07', venue: 'The Latter Glory Outreach Church', city: 'Winneba', banner: '/images/events/2017/banner.jpg', status: 'completed', tags: 'inaugural', artistIdx: [0] },
     { title: 'SWEET MOTHERS GH – 2018', slug: 'smgh-2018', date: '2018-05-06', venue: 'Presbyterian Church', city: 'Gbawe', banner: '/images/events/2018/banner.jpg', status: 'completed', tags: 'mother-day', artistIdx: [1] },
@@ -134,7 +136,7 @@ async function seed() {
     })
   }
 
-  // 6. Gallery Items
+  // 6. Gallery Items (idempotent — skip if title exists)
   const galleryData = [
     { title: 'SMGH 2023 Worship', url: '/images/events/2023/gallery-2.jpg', year: 2023, category: 'event' },
     { title: 'SMGH 2024 Event', url: '/images/events/2024/banner.jpg', year: 2024, category: 'event' },
@@ -142,12 +144,15 @@ async function seed() {
     { title: 'SMGH Team', url: '/images/artists/minister-bob.jpg', year: 2023, category: 'team' },
   ]
   for (const g of galleryData) {
-    await seedDb.galleryItem.create({
-      data: { ...g, thumbnail: g.url, type: 'image', sortOrder: 0 },
-    })
+    const exists = await seedDb.galleryItem.findFirst({ where: { title: g.title } })
+    if (!exists) {
+      await seedDb.galleryItem.create({
+        data: { ...g, thumbnail: g.url, type: 'image', sortOrder: 0 },
+      })
+    }
   }
 
-  // 7. Site Settings
+  // 7. Site Settings (key IS unique)
   const settings = [
     { key: 'about_content', value: 'Sweet Mothers Ghana (SMGH) is a faith-based organization founded in 2017 by Minister Bobby Essuon. Our mission is to honour and support mothers, especially single mothers, widows, and the less privileged in Ghana.' },
     { key: 'visionary_message', value: 'The love of God has led us to show that same Love, Care and Appreciation to our dear mothers. ~Minister Bobby Essuon.' },
