@@ -439,7 +439,7 @@ CREATE TABLE OrderItem (
 
   for (const ev of events) {
     const eid = uid();
-    await q('INSERT INTO Event (id,title,slug,date,time,venue,city,address,description,bannerImage,status,tags,youtubeUrls,attendanceCount,ticketCurrency,createdAt,updatedAt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,0,\'GHS\',?,?)',
+    await q('INSERT INTO Event (id,title,slug,date,time,venue,city,address,description,bannerImage,status,tags,youtubeUrls,createdAt,updatedAt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
       [eid, ev.t, ev.s, ev.d+' 00:00:00', ev.tm, ev.v, ev.c, ev.a, ev.ds, ev.b, ev.st, ev.tg, '[]', now, now]);
 
     for (let i = 0; i < ev.ai.length; i++) {
