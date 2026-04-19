@@ -294,6 +294,12 @@
       "namedRegex": "^/api/products(?:/)?$"
     },
     {
+      "page": "/api/seed",
+      "regex": "^/api/seed(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/seed(?:/)?$"
+    },
+    {
       "page": "/api/settings",
       "regex": "^/api/settings(?:/)?$",
       "routeKeys": {},
