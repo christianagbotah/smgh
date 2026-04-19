@@ -366,25 +366,27 @@ export default function DonatePage() {
           </motion.p>
 
           {/* Donor Type Toggle */}
-          <motion.div variants={item} className="inline-flex bg-white/10 backdrop-blur-sm rounded-2xl p-1.5 border border-white/10">
-            {([
-              { type: 'individual' as DonorType, label: 'Individual', icon: Heart },
-              { type: 'corporate' as DonorType, label: 'Corporate', icon: Building2 },
-              { type: 'church' as DonorType, label: 'Church', icon: Gift },
-            ]).map(opt => (
-              <button
-                key={opt.type}
-                onClick={() => setDonorType(opt.type)}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                  donorType === opt.type
-                    ? 'bg-white text-smgh-dark shadow-lg'
-                    : 'text-white/70 hover:text-white hover:bg-white/5'
-                }`}
-              >
-                <opt.icon className="w-4 h-4" />
-                {opt.label}
-              </button>
-            ))}
+          <motion.div variants={item} className="flex justify-center">
+            <div className="inline-flex bg-white/10 backdrop-blur-sm rounded-2xl p-1.5 border border-white/10">
+              {([
+                { type: 'individual' as DonorType, label: 'Individual', icon: Heart },
+                { type: 'corporate' as DonorType, label: 'Corporate', icon: Building2 },
+                { type: 'church' as DonorType, label: 'Church', icon: Gift },
+              ]).map(opt => (
+                <button
+                  key={opt.type}
+                  onClick={() => setDonorType(opt.type)}
+                  className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all ${
+                    donorType === opt.type
+                      ? 'bg-white text-smgh-dark shadow-lg'
+                      : 'text-white/70 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <opt.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  {opt.label}
+                </button>
+              ))}
+            </div>
           </motion.div>
         </div>
       </section>

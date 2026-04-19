@@ -369,8 +369,10 @@ async function seed() {
   ]
 
   for (const ev of eventData) {
-    const event = await db.event.create({
-      data: {
+    const event = await db.event.upsert({
+      where: { slug: ev.slug },
+      update: {},
+      create: {
         title: ev.title,
         slug: ev.slug,
         date: ev.date,

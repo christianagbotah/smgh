@@ -1,3 +1,7 @@
+import { config } from 'dotenv'
+// Load .env explicitly to ensure correct DB path (system env vars may override)
+config({ path: process.cwd() + '/.env', override: true })
+
 import { PrismaClient } from '@/generated/prisma'
 
 const globalForPrisma = globalThis as unknown as {
@@ -7,21 +11,23 @@ const globalForPrisma = globalThis as unknown as {
 function createPrismaClient() {
   const dbUrl = process.env.DATABASE_URL || ''
 
-  // Add connection pool parameters for remote MySQL
-  const separator = dbUrl.includes('?') ? '&' : '?'
-  const poolUrl = `${dbUrl}${separator}connection_limit=5&pool_timeout=30&connect_timeout=10`
+  // Only add connection pool parameters for MySQL (remote databases)
+  const isMySQL = dbUrl.startsWith('mysql://')
+  const finalUrl = isMySQL
+    ? `${dbUrl}${dbUrl.includes('?') ? '&' : '?'}connection_limit=5&pool_timeout=30&connect_timeout=10`
+    : dbUrl
 
   return new PrismaClient({
     log: process.env.NODE_ENV === 'development' ? ['error'] : [],
     datasources: {
       db: {
-        url: poolUrl,
+        url: finalUrl,
       },
     },
   })
 }
 
-// Prevent process crashes from MySQL disconnects
+// Prevent process crashes from DB disconnects
 process.on('unhandledRejection', (reason) => {
   console.error('Unhandled Rejection:', reason)
 })

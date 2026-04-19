@@ -859,14 +859,14 @@ export default function HomePage() {
       {/* ─── NEWSLETTER & SOCIAL ─── */}
       <section className="py-24 px-4 bg-white">
         <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-12">
+          <div className="grid md:grid-cols-2 gap-6 md:gap-12">
             {/* Newsletter */}
             <AnimatedSection>
-              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-3xl p-8 md:p-10 border border-green-100 h-full">
-                <div className="w-14 h-14 rounded-xl bg-green-100 flex items-center justify-center mb-5">
-                  <Send className="w-7 h-7 text-green-600" />
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl md:rounded-3xl p-6 md:p-10 border border-green-100 h-full">
+                <div className="w-11 h-11 md:w-14 md:h-14 rounded-lg md:rounded-xl bg-green-100 flex items-center justify-center mb-4 md:mb-5">
+                  <Send className="w-5 h-5 md:w-7 md:h-7 text-green-600" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">Stay Updated</h3>
+                <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-2 md:mb-3">Stay Updated</h3>
                 <p className="text-gray-600 mb-6 leading-relaxed">
                   Subscribe to our newsletter and never miss an event update, foundation outreach report, or worship highlight. Join hundreds of supporters who stay connected with the SMGH family through regular updates delivered straight to your inbox.
                 </p>
@@ -903,11 +903,11 @@ export default function HomePage() {
 
             {/* Social Media */}
             <AnimatedSection delay={0.15}>
-              <div className="bg-gradient-to-br from-red-50 to-pink-50 rounded-3xl p-8 md:p-10 border border-red-100 h-full">
-                <div className="w-14 h-14 rounded-xl bg-red-100 flex items-center justify-center mb-5">
-                  <Globe className="w-7 h-7 text-red-600" />
+              <div className="bg-gradient-to-br from-red-50 to-pink-50 rounded-2xl md:rounded-3xl p-6 md:p-10 border border-red-100 h-full">
+                <div className="w-11 h-11 md:w-14 md:h-14 rounded-lg md:rounded-xl bg-red-100 flex items-center justify-center mb-4 md:mb-5">
+                  <Globe className="w-5 h-5 md:w-7 md:h-7 text-red-600" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">Connect With Us</h3>
+                <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-2 md:mb-3">Connect With Us</h3>
                 <p className="text-gray-600 mb-6 leading-relaxed">
                   Follow Sweet Mothers Ghana across all social media platforms for behind-the-scenes content, live event streams, inspiring stories from our foundation outreach, and daily inspiration from our ministry.
                 </p>
