@@ -275,6 +275,42 @@
   justify-content: center;
 }
 
+/* Admin theme — override CSS variables for dark UI */
+.admin-theme {
+  --background: #101010;
+  --foreground: #f0f0f0;
+  --card: #1a1a1a;
+  --card-foreground: #f0f0f0;
+  --popover: #1a1a1a;
+  --popover-foreground: #f0f0f0;
+  --primary: #2E7D32;
+  --primary-foreground: #FFFFFF;
+  --secondary: #1e3a1f;
+  --secondary-foreground: #a5d6a7;
+  --muted: #1a1a1a;
+  --muted-foreground: #9ca3af;
+  --accent: #1f1f1f;
+  --accent-foreground: #f0f0f0;
+  --destructive: #D32F2F;
+  --border: #333333;
+  --input: #333333;
+  --ring: #2E7D32;
+}
+
+/* Ensure all clickable elements in admin have pointer cursor */
+.admin-theme [role="button"],
+.admin-theme [role="tab"],
+.admin-theme [role="option"],
+.admin-theme [role="switch"],
+.admin-theme button,
+.admin-theme a,
+.admin-theme select,
+.admin-theme label,
+.admin-theme input[type="submit"],
+.admin-theme summary {
+  cursor: pointer;
+}
+
 /* Custom admin scrollbar */
 .admin-scrollbar::-webkit-scrollbar {
   width: 6px;

@@ -169,7 +169,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (!authed) {
     return (
-      <div className="min-h-screen bg-[#101010] flex items-center justify-center px-4">
+      <div className="min-h-screen bg-[#101010] flex items-center justify-center px-4 admin-theme">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -225,7 +225,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const sidebar = renderSidebarContent(pathname, sidebarOpen, user, closeMobile, toggleSidebar, handleLogout)
 
   return (
-    <div className="min-h-screen bg-[#101010] flex">
+    <div className="min-h-screen bg-[#101010] flex admin-theme">
       {/* Desktop Sidebar */}
       <motion.aside
         animate={{ width: sidebarOpen ? 256 : 72 }}
