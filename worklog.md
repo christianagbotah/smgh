@@ -216,3 +216,20 @@ Stage Summary:
 - DB schema push was applied directly to production MySQL from local
 - User still needs to visit `/api/seed` to re-save the full message (upsert will update)
 - No need for `prisma generate` or `prisma db push` on cPanel
+---
+Task ID: 4
+Agent: Main
+Task: Add drag-and-drop reordering for hero slider and gallery images
+
+Work Log:
+- Fixed dnd-kit version mismatch: removed incompatible @dnd-kit/sortable@10, installed compatible set (core@6.3.1, sortable@8.0.0, utilities@3.2.2)
+- Updated MultiMediaPicker component: replaced up/down chevron buttons with dnd-kit drag handles (GripVertical icon), added DndContext + SortableContext with rectSortingStrategy
+- Updated Gallery admin page: added SortableGalleryItem component with drag handle, optimistic reorder with error rollback, drag disabled when filters active
+- Created new API endpoint /api/gallery/reorder (POST) that accepts { orderedIds: string[] } and updates all sortOrder values in a single transaction
+- Built and pushed to origin/main
+
+Stage Summary:
+- Hero slider images in admin settings: drag-and-drop reordering via grip handle
+- Gallery admin: drag-and-drop reordering with persistent sortOrder, hint text, saving indicator
+- Both use dnd-kit v6 with smooth CSS transitions
+- Gallery reorder persists to database immediately via batch API
