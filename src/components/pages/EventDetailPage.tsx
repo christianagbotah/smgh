@@ -492,24 +492,32 @@ export default function EventDetailPage() {
 
   useEffect(() => {
     if (!params.slug) return
-    fetch(`/api/events?slug=${params.slug}`)
-      .then(r => r.json())
+    setLoading(true)
+    setEvent(null)
+    fetch(`/api/events?slug=${encodeURIComponent(params.slug)}`)
+      .then(async r => {
+        if (!r.ok) throw new Error(`API returned ${r.status}`)
+        return r.json()
+      })
       .then(data => {
         if (data && !data.error) {
           const ev = Array.isArray(data) ? data[0] : data
           setEvent(ev)
           setLocalAttendanceCount(ev?.attendanceCount || 0)
         }
-        setLoading(false)
       })
-      .catch(() => setLoading(false))
+      .catch(err => {
+        console.error('Failed to fetch event:', err)
+      })
+      .finally(() => setLoading(false))
 
     fetch('/api/events?limit=50')
       .then(r => r.json())
       .then(data => {
-        const related = data.filter((e: { slug: string }) => e.slug !== params.slug).slice(0, 3)
+        const related = (Array.isArray(data) ? data : []).filter((e: { slug: string }) => e.slug !== params.slug).slice(0, 3)
         setRelatedEvents(related)
       })
+      .catch(() => {})
   }, [params.slug])
 
   // Fetch merchandise when event is loaded

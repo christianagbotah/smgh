@@ -10,15 +10,36 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50')
 
     if (slug) {
-      const event = await db.event.findFirst({
-        where: { slug },
-        include: {
-          artists: { include: { artist: true }, orderBy: { sortOrder: 'asc' } },
-          guests: { orderBy: { sortOrder: 'asc' } },
-          testimonials: true,
-          galleryItems: { orderBy: { sortOrder: 'asc' } },
-        },
-      })
+      // Try full query with relations first
+      let event = null
+      try {
+        event = await db.event.findFirst({
+          where: { slug },
+          include: {
+            artists: { include: { artist: true }, orderBy: { sortOrder: 'asc' } },
+            guests: { orderBy: { sortOrder: 'asc' } },
+            testimonials: true,
+            galleryItems: { orderBy: { sortOrder: 'asc' } },
+          },
+        })
+      } catch {
+        // Fallback: try without relations if schema is out of sync
+        console.warn('Event detail query failed, trying without relations')
+        try {
+          event = await db.event.findFirst({
+            where: { slug },
+            include: {
+              artists: { include: { artist: true } },
+              guests: true,
+              testimonials: true,
+              galleryItems: true,
+            },
+          })
+        } catch {
+          // Final fallback: basic query without any relations
+          event = await db.event.findFirst({ where: { slug } })
+        }
+      }
       if (!event) return NextResponse.json({ error: 'Event not found' }, { status: 404 })
       return NextResponse.json(event)
     }
