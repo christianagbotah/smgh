@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ConfirmProvider } from '@/hooks/useConfirm'
+import { fetchWrite } from '@/lib/fetch-helpers'
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
@@ -155,7 +156,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   const handleLogout = async () => {
-    await fetch('/api/auth', { method: 'DELETE' })
+    try {
+      await fetchWrite('/api/auth', { method: 'DELETE' })
+    } catch {
+      // Silently handle logout errors
+    }
     setAuthed(false)
     setUser(null)
   }

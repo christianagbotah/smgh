@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
 import { useConfirm } from '@/hooks/useConfirm'
+import { fetchWrite, ensureArray } from '@/lib/fetch-helpers'
 
 interface Subscriber {
   id: string
@@ -23,8 +24,8 @@ export default function AdminNewsletter() {
 
   const fetchSubscribers = () => {
     fetch('/api/newsletter')
-      .then(res => res.json())
-      .then(data => { setSubscribers(data); setLoading(false) })
+      .then(res => { if (!res.ok) throw new Error(); return res.json() })
+      .then(data => { setSubscribers(ensureArray(data)); setLoading(false) })
       .catch(() => setLoading(false))
   }
 
@@ -36,11 +37,12 @@ export default function AdminNewsletter() {
       return
     }
     try {
-      await fetch('/api/newsletter', {
+      const result = await fetchWrite('/api/newsletter', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: addEmail }),
       })
+      if (!result.ok) throw new Error()
       toast({ title: 'Subscriber added' })
       setAddEmail('')
       fetchSubscribers()
@@ -58,7 +60,8 @@ export default function AdminNewsletter() {
     })
     if (!ok) return
     try {
-      await fetch(`/api/newsletter?id=${id}`, { method: 'DELETE' })
+      const result = await fetchWrite(`/api/newsletter?id=${id}`, { method: 'DELETE' })
+      if (!result.ok) throw new Error()
       toast({ title: 'Removed' })
       fetchSubscribers()
     } catch {

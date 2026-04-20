@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast'
 import { useConfirm } from '@/hooks/useConfirm'
 import PageLoadingOverlay from '@/components/admin/PageLoadingOverlay'
 import MediaPicker from '@/components/MediaPicker'
+import { fetchJSON, fetchWrite, ensureArray } from '@/lib/fetch-helpers'
 
 interface Artist {
   id: string
@@ -33,9 +34,8 @@ export default function AdminArtists() {
   const { confirm } = useConfirm()
 
   const fetchArtists = () => {
-    fetch('/api/artists')
-      .then(res => res.json())
-      .then(data => { setArtists(Array.isArray(data) ? data : []); setLoading(false) })
+    fetchJSON('/api/artists')
+      .then(data => { setArtists(ensureArray(data)); setLoading(false) })
       .catch(() => setLoading(false))
   }
 
@@ -50,12 +50,12 @@ export default function AdminArtists() {
     if (!form.name) { toast({ title: 'Name is required', variant: 'destructive' }); return }
     setSaving(true)
     try {
-      const res = await fetch('/api/artists', {
+      const { ok, data } = await fetchWrite('/api/artists', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       })
-      if (!res.ok) { const d = await res.json(); toast({ title: d.error || 'Failed', variant: 'destructive' }); return }
+      if (!ok) { toast({ title: data?.error || 'Failed', variant: 'destructive' }); return }
       toast({ title: 'Artist added' })
       setShowForm(false)
       setForm(emptyForm)
@@ -83,12 +83,12 @@ export default function AdminArtists() {
     if (!editForm.name) { toast({ title: 'Name is required', variant: 'destructive' }); return }
     setSaving(true)
     try {
-      const res = await fetch('/api/artists', {
+      const { ok, data } = await fetchWrite('/api/artists', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: editing, ...editForm }),
       })
-      if (!res.ok) { const d = await res.json(); toast({ title: d.error || 'Failed', variant: 'destructive' }); return }
+      if (!ok) { toast({ title: data?.error || 'Failed', variant: 'destructive' }); return }
       toast({ title: 'Artist updated' })
       setEditing(null)
       fetchArtists()
@@ -108,7 +108,8 @@ export default function AdminArtists() {
     })
     if (!ok) return
     try {
-      await fetch(`/api/artists?id=${id}`, { method: 'DELETE' })
+      const { ok } = await fetchWrite(`/api/artists?id=${id}`, { method: 'DELETE' })
+      if (!ok) { toast({ title: 'Failed to delete', variant: 'destructive' }); return }
       toast({ title: 'Deleted' })
       fetchArtists()
     } catch {
@@ -118,11 +119,12 @@ export default function AdminArtists() {
 
   const toggleFeatured = async (artist: Artist) => {
     try {
-      await fetch('/api/artists', {
+      const { ok } = await fetchWrite('/api/artists', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: artist.id, featured: !artist.featured }),
       })
+      if (!ok) { toast({ title: 'Failed to update', variant: 'destructive' }); return }
       toast({ title: artist.featured ? 'Removed from featured' : 'Marked as featured' })
       fetchArtists()
     } catch {

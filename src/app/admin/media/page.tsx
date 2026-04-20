@@ -5,6 +5,7 @@ import { Upload, Copy, Trash2, Image as ImageIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 import { useConfirm } from '@/hooks/useConfirm'
+import { fetchWrite } from '@/lib/fetch-helpers'
 import PageLoadingOverlay from '@/components/admin/PageLoadingOverlay'
 import MediaPicker from '@/components/MediaPicker'
 
@@ -26,8 +27,9 @@ export default function AdminMedia() {
 
   const fetchFiles = useCallback(() => {
     fetch('/api/media?limit=100')
-      .then(r => r.json())
+      .then(r => { if (!r.ok) throw new Error(); return r.json() })
       .then(data => setFiles(data.files || []))
+      .catch(() => setFiles([]))
   }, [])
 
   useEffect(() => { fetchFiles() }, [fetchFiles])
@@ -68,7 +70,8 @@ export default function AdminMedia() {
     })
     if (!ok) return
     try {
-      await fetch(`/api/media?id=${id}`, { method: 'DELETE' })
+      const result = await fetchWrite(`/api/media?id=${id}`, { method: 'DELETE' })
+      if (!result.ok) throw new Error()
       toast({ title: 'File deleted' })
       fetchFiles()
     } catch {

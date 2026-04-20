@@ -5,6 +5,7 @@ import { Heart, DollarSign, Search, CheckCircle, Clock, XCircle, Building2, User
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
+import { fetchWrite, ensureArray } from '@/lib/fetch-helpers'
 
 interface Donation {
   id: string
@@ -89,8 +90,8 @@ export default function AdminDonations() {
     if (donorTypeFilter !== 'all') params.set('donorType', donorTypeFilter)
 
     fetch(`/api/donations?${params.toString()}`)
-      .then(res => res.json())
-      .then(data => { setDonations(data); setLoading(false) })
+      .then(res => { if (!res.ok) throw new Error(); return res.json() })
+      .then(data => { setDonations(ensureArray(data)); setLoading(false) })
       .catch(() => {
         toast({ title: 'Failed to load donations', variant: 'destructive' })
         setLoading(false)
@@ -124,12 +125,12 @@ export default function AdminDonations() {
   const handleStatusUpdate = async (id: string, newStatus: string) => {
     setUpdatingId(id)
     try {
-      const res = await fetch(`/api/donations?id=${id}`, {
+      const result = await fetchWrite(`/api/donations?id=${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),
       })
-      if (!res.ok) throw new Error()
+      if (!result.ok) throw new Error()
       toast({ title: `Marked as ${newStatus}` })
       fetchDonations()
     } catch {

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Save, CreditCard, Phone, ImagePlus, X, GripVertical, Lock, Globe, MapPin, Menu, Trash2, Plus, ChevronUp, ChevronDown, Search, FileText, Palette } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
+import { fetchWrite } from '@/lib/fetch-helpers'
 import PageLoadingOverlay from '@/components/admin/PageLoadingOverlay'
 import MediaPicker from '@/components/MediaPicker'
 import MultiMediaPicker from '@/components/MultiMediaPicker'
@@ -50,7 +51,7 @@ export default function AdminSettings() {
 
   useEffect(() => {
     fetch('/api/settings')
-      .then(res => res.json())
+      .then(res => { if (!res.ok) throw new Error(); return res.json() })
       .then(data => { setSettings(data); setLoading(false) })
       .catch(() => setLoading(false))
   }, [])
@@ -58,11 +59,12 @@ export default function AdminSettings() {
   const handleSave = async () => {
     setSaving(true)
     try {
-      await fetch('/api/settings', {
+      const result = await fetchWrite('/api/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ settings }),
       })
+      if (!result.ok) throw new Error()
       toast({ title: 'Settings saved' })
     } catch {
       toast({ title: 'Failed to save', variant: 'destructive' })

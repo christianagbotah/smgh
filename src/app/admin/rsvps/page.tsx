@@ -5,6 +5,7 @@ import { Users, Search, Trash2, Mail, Phone, MessageSquare, Calendar, ChevronDow
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
+import { fetchWrite, ensureArray } from '@/lib/fetch-helpers'
 
 interface RSVPEvent {
   id: string
@@ -96,15 +97,15 @@ export default function AdminRSVPs() {
       ? '/api/events/rsvp'
       : `/api/events/rsvp?eventId=${eventFilter}`
     fetch(url)
-      .then(r => r.json())
-      .then(data => { setRsvps(data); setLoading(false) })
+      .then(r => { if (!r.ok) throw new Error(); return r.json() })
+      .then(data => { setRsvps(ensureArray(data)); setLoading(false) })
       .catch(() => { setLoading(false) })
   }
 
   const fetchEvents = () => {
     fetch('/api/events?limit=50')
-      .then(r => r.json())
-      .then(data => setEvents(data))
+      .then(r => { if (!r.ok) throw new Error(); return r.json() })
+      .then(data => setEvents(ensureArray(data)))
       .catch(() => {})
   }
 
@@ -133,8 +134,8 @@ export default function AdminRSVPs() {
   const handleDelete = async (id: string) => {
     setDeleting(true)
     try {
-      const res = await fetch(`/api/events/rsvp?id=${id}`, { method: 'DELETE' })
-      if (res.ok) {
+      const result = await fetchWrite(`/api/events/rsvp?id=${id}`, { method: 'DELETE' })
+      if (result.ok) {
         toast({ title: 'RSVP deleted successfully' })
         fetchRSVPs()
         setExpandedId(null)

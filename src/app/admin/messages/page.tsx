@@ -5,6 +5,7 @@ import { MessageSquare, Trash2, Eye, Mail, Phone } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 import { useConfirm } from '@/hooks/useConfirm'
+import { fetchWrite, ensureArray } from '@/lib/fetch-helpers'
 
 interface ContactMessage {
   id: string
@@ -25,8 +26,8 @@ export default function AdminMessages() {
 
   const fetchMessages = () => {
     fetch('/api/contact')
-      .then(res => res.json())
-      .then(data => { setMessages(data); setLoading(false) })
+      .then(res => { if (!res.ok) throw new Error(); return res.json() })
+      .then(data => { setMessages(ensureArray(data)); setLoading(false) })
       .catch(() => setLoading(false))
   }
 
@@ -34,11 +35,12 @@ export default function AdminMessages() {
 
   const handleMarkRead = async (id: string) => {
     try {
-      await fetch('/api/contact', {
+      const result = await fetchWrite('/api/contact', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, read: true }),
       })
+      if (!result.ok) throw new Error()
       setMessages(prev => prev.map(m => m.id === id ? { ...m, read: true } : m))
       if (selected?.id === id) setSelected(prev => prev ? { ...prev, read: true } : null)
     } catch {
@@ -55,7 +57,8 @@ export default function AdminMessages() {
     })
     if (!ok) return
     try {
-      await fetch(`/api/contact?id=${id}`, { method: 'DELETE' })
+      const result = await fetchWrite(`/api/contact?id=${id}`, { method: 'DELETE' })
+      if (!result.ok) throw new Error()
       toast({ title: 'Deleted' })
       fetchMessages()
       if (selected?.id === id) setSelected(null)

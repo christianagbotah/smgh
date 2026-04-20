@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Users, UserPlus, Shield, ShieldCheck, Trash2, Loader2, AlertTriangle, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
+import { ensureArray } from '@/lib/fetch-helpers'
 
 interface AdminUser {
   id: string
@@ -40,7 +41,7 @@ export default function AdminUsersPage() {
       const res = await fetch('/api/users')
       if (res.ok) {
         const data = await res.json()
-        setUsers(data)
+        setUsers(ensureArray(data))
       } else if (res.status === 403) {
         // Not authorized — user is not super_admin
         setCurrentUser((await fetch('/api/auth').then(r => r.ok ? r.json() : null))?.user || null)

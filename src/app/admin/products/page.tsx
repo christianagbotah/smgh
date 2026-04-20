@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
 import { useConfirm } from '@/hooks/useConfirm'
 import PageLoadingOverlay from '@/components/admin/PageLoadingOverlay'
+import { ensureArray } from '@/lib/fetch-helpers'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -138,7 +139,7 @@ export default function AdminProducts() {
         return r.json()
       })
       .then((data) => {
-        setProducts(Array.isArray(data) ? data : [])
+        setProducts(ensureArray(data))
         setLoading(false)
       })
       .catch(() => {

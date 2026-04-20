@@ -8,6 +8,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
+import { ensureArray } from '@/lib/fetch-helpers'
 
 // ─── Types ──────────────────────────────────────────────────────────
 interface OrderItem {
@@ -454,7 +455,7 @@ export default function AdminOrdersPage() {
       const res = await fetch(`/api/orders?${params.toString()}`)
       if (!res.ok) throw new Error('Failed to fetch orders')
       const data = await res.json()
-      setOrders(data)
+      setOrders(ensureArray(data))
     } catch {
       toast({ title: 'Failed to load orders', variant: 'destructive' })
     } finally {

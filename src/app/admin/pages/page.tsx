@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Save, RotateCcw, MessageSquare, Trash2, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
+import { fetchWrite } from '@/lib/fetch-helpers'
 import PageLoadingOverlay from '@/components/admin/PageLoadingOverlay'
 import RichTextEditor from '@/components/RichTextEditor'
 
@@ -21,7 +22,7 @@ export default function AdminPages() {
 
   useEffect(() => {
     fetch('/api/settings')
-      .then(res => res.json())
+      .then(res => { if (!res.ok) throw new Error(); return res.json() })
       .then(data => {
         setSettings(data)
         setOriginal(data)
@@ -39,11 +40,12 @@ export default function AdminPages() {
     setSaving(true)
     try {
       const settingsWithFaqs = { ...settings, faqs: JSON.stringify(faqs) }
-      await fetch('/api/settings', {
+      const result = await fetchWrite('/api/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ settings: settingsWithFaqs }),
       })
+      if (!result.ok) throw new Error()
       toast({ title: 'Settings saved successfully' })
       setOriginal({ ...settingsWithFaqs })
     } catch {

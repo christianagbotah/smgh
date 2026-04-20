@@ -5,6 +5,7 @@ import {
   Calendar, Image, Music, MessageSquare, Mail, Heart, DollarSign,
   TrendingUp, ShoppingBag, UserPlus, Download,
 } from 'lucide-react'
+import { ensureArray } from '@/lib/fetch-helpers'
 
 interface Stats {
   events: number
@@ -99,7 +100,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetch('/api/stats')
-      .then(res => res.json())
+      .then(res => { if (!res.ok) throw new Error(); return res.json() })
       .then(data => { setStats(data); setLoading(false) })
       .catch(() => setLoading(false))
   }, [])

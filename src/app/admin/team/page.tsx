@@ -17,6 +17,7 @@ import {
 import { useToast } from '@/hooks/use-toast'
 import { useConfirm } from '@/hooks/useConfirm'
 import PageLoadingOverlay from '@/components/admin/PageLoadingOverlay'
+import { fetchJSON, fetchWrite, ensureArray } from '@/lib/fetch-helpers'
 
 interface TeamMember {
   id: string; name: string; role: string; photo: string | null; bio: string | null
@@ -42,9 +43,8 @@ export default function AdminTeam() {
   const { confirm } = useConfirm()
 
   const fetchMembers = () => {
-    fetch('/api/team')
-      .then(r => r.json())
-      .then(data => { setMembers(data); setLoading(false) })
+    fetchJSON('/api/team')
+      .then(data => { setMembers(ensureArray(data)); setLoading(false) })
       .catch(() => setLoading(false))
   }
 
@@ -72,19 +72,21 @@ export default function AdminTeam() {
       }
 
       if (editing) {
-        await fetch('/api/team', {
+        const { ok } = await fetchWrite('/api/team', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id: editing, ...body }),
         })
+        if (!ok) { toast({ title: 'Failed to update member', variant: 'destructive' }); return }
         toast({ title: 'Member updated' })
         setEditing(null)
       } else {
-        await fetch('/api/team', {
+        const { ok } = await fetchWrite('/api/team', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
         })
+        if (!ok) { toast({ title: 'Failed to create member', variant: 'destructive' }); return }
         toast({ title: 'Member created' })
       }
       setDialogOpen(false)
@@ -106,7 +108,8 @@ export default function AdminTeam() {
     })
     if (!ok) return
     try {
-      await fetch(`/api/team?id=${id}`, { method: 'DELETE' })
+      const { ok } = await fetchWrite(`/api/team?id=${id}`, { method: 'DELETE' })
+      if (!ok) { toast({ title: 'Failed to delete', variant: 'destructive' }); return }
       toast({ title: 'Deleted' })
       fetchMembers()
     } catch {

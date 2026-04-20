@@ -24,6 +24,7 @@ import { useConfirm } from '@/hooks/useConfirm'
 import PageLoadingOverlay from '@/components/admin/PageLoadingOverlay'
 import MediaPicker from '@/components/MediaPicker'
 import MultiMediaPicker from '@/components/MultiMediaPicker'
+import { fetchJSON, fetchWrite, ensureArray } from '@/lib/fetch-helpers'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -264,9 +265,8 @@ export default function AdminGallery() {
 
   const fetchItems = useCallback(async () => {
     try {
-      const res = await fetch('/api/gallery?limit=200')
-      const data = await res.json()
-      setItems(Array.isArray(data) ? data : [])
+      const data = await fetchJSON('/api/gallery?limit=200')
+      setItems(ensureArray(data))
     } catch {
       toast({ title: 'Failed to load gallery items', variant: 'destructive' })
     } finally {
@@ -276,9 +276,8 @@ export default function AdminGallery() {
 
   const fetchEvents = useCallback(async () => {
     try {
-      const res = await fetch('/api/events?limit=50')
-      const data = await res.json()
-      setEvents(Array.isArray(data) ? data : [])
+      const data = await fetchJSON('/api/events?limit=50')
+      setEvents(ensureArray(data))
     } catch {
       // Silent fail - events dropdown is optional
     }
@@ -395,12 +394,12 @@ export default function AdminGallery() {
         if (form.category !== (editingItem.category || 'general')) body.category = form.category
         if (form.eventId !== (editingItem.eventId || '')) body.eventId = form.eventId || null
 
-        const res = await fetch('/api/gallery', {
+        const { ok } = await fetchWrite('/api/gallery', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
         })
-        if (!res.ok) throw new Error('Update failed')
+        if (!ok) throw new Error('Update failed')
         toast({ title: 'Gallery item updated' })
       } else {
         // Create
@@ -413,8 +412,8 @@ export default function AdminGallery() {
         formData.append('category', form.category)
         if (form.eventId) formData.append('eventId', form.eventId)
 
-        const res = await fetch('/api/gallery', { method: 'POST', body: formData })
-        if (!res.ok) throw new Error('Create failed')
+        const { ok } = await fetchWrite('/api/gallery', { method: 'POST', body: formData })
+        if (!ok) throw new Error('Create failed')
         toast({ title: 'Gallery item created' })
       }
 
@@ -440,8 +439,8 @@ export default function AdminGallery() {
     })
     if (!ok) return
     try {
-      const res = await fetch(`/api/gallery?id=${id}`, { method: 'DELETE' })
-      if (!res.ok) throw new Error('Delete failed')
+      const { ok } = await fetchWrite(`/api/gallery?id=${id}`, { method: 'DELETE' })
+      if (!ok) throw new Error('Delete failed')
       toast({ title: 'Item deleted' })
       setSelectedIds(prev => {
         const next = new Set(prev)
@@ -471,8 +470,8 @@ export default function AdminGallery() {
         formData.append('year', new Date().getFullYear().toString())
         formData.append('category', 'general')
 
-        const res = await fetch('/api/gallery', { method: 'POST', body: formData })
-        if (res.ok) {
+        const { ok } = await fetchWrite('/api/gallery', { method: 'POST', body: formData })
+        if (ok) {
           success++
         } else {
           failed++
@@ -517,8 +516,8 @@ export default function AdminGallery() {
 
     for (const id of selectedIds) {
       try {
-        const res = await fetch(`/api/gallery?id=${id}`, { method: 'DELETE' })
-        if (res.ok) success++
+        const { ok } = await fetchWrite(`/api/gallery?id=${id}`, { method: 'DELETE' })
+        if (ok) success++
         else failed++
       } catch {
         failed++
@@ -546,12 +545,12 @@ export default function AdminGallery() {
         if (field === 'category') body.category = value
         else body.year = value ? parseInt(value) : null
 
-        const res = await fetch('/api/gallery', {
+        const { ok } = await fetchWrite('/api/gallery', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
         })
-        if (res.ok) success++
+        if (ok) success++
         else failed++
       } catch {
         failed++
@@ -584,12 +583,12 @@ export default function AdminGallery() {
     // Persist the new order
     setSavingOrder(true)
     try {
-      const res = await fetch('/api/gallery/reorder', {
+      const { ok } = await fetchWrite('/api/gallery/reorder', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orderedIds: newItems.map(i => i.id) }),
       })
-      if (!res.ok) throw new Error('Reorder failed')
+      if (!ok) throw new Error('Reorder failed')
       toast({ title: 'Order updated' })
     } catch {
       toast({ title: 'Failed to save order', variant: 'destructive' })

@@ -14,6 +14,7 @@ import { useConfirm } from '@/hooks/useConfirm'
 import PageLoadingOverlay from '@/components/admin/PageLoadingOverlay'
 import RichTextEditor from '@/components/RichTextEditor'
 import MediaPicker from '@/components/MediaPicker'
+import { fetchJSON, fetchWrite, ensureArray } from '@/lib/fetch-helpers'
 
 interface CustomPage {
   id: string
@@ -49,14 +50,16 @@ export default function AdminCustomPages() {
   const { confirm } = useConfirm()
 
   const fetchPages = useCallback(() => {
-    fetch('/api/custom-pages')
-      .then(r => r.json())
+    fetchJSON('/api/custom-pages')
       .then(data => {
-        setPages(data)
+        setPages(ensureArray(data))
         setLoading(false)
       })
-      .catch(() => setLoading(false))
-  }, [])
+      .catch(() => {
+        toast({ title: 'Failed to load pages', variant: 'destructive' })
+        setLoading(false)
+      })
+  }, [toast])
 
   useEffect(() => {
     fetchPages()
@@ -73,27 +76,25 @@ export default function AdminCustomPages() {
     setSaving(true)
     try {
       if (editing) {
-        const res = await fetch(`/api/custom-pages/${editing}`, {
+        const { ok, data } = await fetchWrite(`/api/custom-pages/${editing}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(form),
         })
-        if (!res.ok) {
-          const data = await res.json()
-          toast({ title: data.error || 'Failed to update page', variant: 'destructive' })
+        if (!ok) {
+          toast({ title: data?.error || 'Failed to update page', variant: 'destructive' })
           return
         }
         toast({ title: 'Page updated' })
         setEditing(null)
       } else {
-        const res = await fetch('/api/custom-pages', {
+        const { ok, data } = await fetchWrite('/api/custom-pages', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(form),
         })
-        if (!res.ok) {
-          const data = await res.json()
-          toast({ title: data.error || 'Failed to create page', variant: 'destructive' })
+        if (!ok) {
+          toast({ title: data?.error || 'Failed to create page', variant: 'destructive' })
           return
         }
         toast({ title: 'Page created' })
@@ -117,8 +118,8 @@ export default function AdminCustomPages() {
     })
     if (!ok) return
     try {
-      const res = await fetch(`/api/custom-pages/${id}`, { method: 'DELETE' })
-      if (!res.ok) {
+      const { ok } = await fetchWrite(`/api/custom-pages/${id}`, { method: 'DELETE' })
+      if (!ok) {
         toast({ title: 'Failed to delete page', variant: 'destructive' })
         return
       }
@@ -137,14 +138,16 @@ export default function AdminCustomPages() {
   const handleToggleStatus = async (page: CustomPage) => {
     const newStatus = page.status === 'published' ? 'draft' : 'published'
     try {
-      const res = await fetch(`/api/custom-pages/${page.id}`, {
+      const { ok } = await fetchWrite(`/api/custom-pages/${page.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),
       })
-      if (res.ok) {
+      if (ok) {
         toast({ title: `Page ${newStatus === 'published' ? 'published' : 'unpublished'}` })
         fetchPages()
+      } else {
+        toast({ title: 'Failed to update status', variant: 'destructive' })
       }
     } catch {
       toast({ title: 'Failed to update status', variant: 'destructive' })
@@ -154,8 +157,7 @@ export default function AdminCustomPages() {
   const startEdit = async (page: CustomPage) => {
     // Fetch full page data including content
     try {
-      const res = await fetch(`/api/custom-pages/${page.id}`)
-      const data = await res.json()
+      const data = await fetchJSON(`/api/custom-pages/${page.id}`)
       setEditing(page.id)
       setForm({
         title: data.title,

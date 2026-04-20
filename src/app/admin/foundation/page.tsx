@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast'
 import { useConfirm } from '@/hooks/useConfirm'
 import PageLoadingOverlay from '@/components/admin/PageLoadingOverlay'
 import RichTextEditor from '@/components/RichTextEditor'
+import { fetchJSON, fetchWrite, ensureArray } from '@/lib/fetch-helpers'
 
 interface FoundationRecord {
   id: string; year: number; description: string
@@ -57,14 +58,12 @@ export default function AdminFoundation() {
 
   const fetchData = async () => {
     try {
-      const [recRes, benRes] = await Promise.all([
-        fetch('/api/foundation'),
-        fetch('/api/beneficiaries'),
+      const [recData, benData] = await Promise.all([
+        fetchJSON('/api/foundation'),
+        fetchJSON('/api/beneficiaries'),
       ])
-      const recData = await recRes.json()
-      const benData = await benRes.json()
-      setRecords(recData.records || recData)
-      setBeneficiaries(benData)
+      setRecords(ensureArray(recData.records || recData))
+      setBeneficiaries(ensureArray(benData))
     } catch {
       // handle error
     } finally {
@@ -111,19 +110,21 @@ export default function AdminFoundation() {
       }
 
       if (editingRecord) {
-        await fetch('/api/foundation', {
+        const { ok } = await fetchWrite('/api/foundation', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id: editingRecord, ...body }),
         })
+        if (!ok) { toast({ title: 'Failed to update record', variant: 'destructive' }); return }
         toast({ title: 'Record updated' })
         setEditingRecord(null)
       } else {
-        await fetch('/api/foundation', {
+        const { ok } = await fetchWrite('/api/foundation', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
         })
+        if (!ok) { toast({ title: 'Failed to create record', variant: 'destructive' }); return }
         toast({ title: 'Record created' })
         setShowRecordForm(false)
       }
@@ -145,7 +146,8 @@ export default function AdminFoundation() {
     })
     if (!ok) return
     try {
-      await fetch(`/api/foundation?id=${id}`, { method: 'DELETE' })
+      const { ok } = await fetchWrite(`/api/foundation?id=${id}`, { method: 'DELETE' })
+      if (!ok) { toast({ title: 'Failed to delete record', variant: 'destructive' }); return }
       toast({ title: 'Record deleted' })
       fetchData()
     } catch {
@@ -193,19 +195,21 @@ export default function AdminFoundation() {
       }
 
       if (editingBeneficiary) {
-        await fetch('/api/beneficiaries', {
+        const { ok } = await fetchWrite('/api/beneficiaries', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id: editingBeneficiary, ...body }),
         })
+        if (!ok) { toast({ title: 'Failed to update beneficiary', variant: 'destructive' }); return }
         toast({ title: 'Beneficiary updated' })
         setEditingBeneficiary(null)
       } else {
-        await fetch('/api/beneficiaries', {
+        const { ok } = await fetchWrite('/api/beneficiaries', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
         })
+        if (!ok) { toast({ title: 'Failed to create beneficiary', variant: 'destructive' }); return }
         toast({ title: 'Beneficiary created' })
         setShowBeneficiaryForm(false)
       }
@@ -227,7 +231,8 @@ export default function AdminFoundation() {
     })
     if (!ok) return
     try {
-      await fetch(`/api/beneficiaries?id=${id}`, { method: 'DELETE' })
+      const { ok } = await fetchWrite(`/api/beneficiaries?id=${id}`, { method: 'DELETE' })
+      if (!ok) { toast({ title: 'Failed to delete beneficiary', variant: 'destructive' }); return }
       toast({ title: 'Beneficiary deleted' })
       fetchData()
     } catch {

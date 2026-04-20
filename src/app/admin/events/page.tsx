@@ -13,6 +13,7 @@ import PageLoadingOverlay from '@/components/admin/PageLoadingOverlay'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import MediaPicker from '@/components/MediaPicker'
 import RichTextEditor from '@/components/RichTextEditor'
+import { fetchJSON, fetchWrite, ensureArray, safeJSONParse } from '@/lib/fetch-helpers'
 
 interface EventArtist { artistId: string; sortOrder: number; artist?: { id: string; name: string } }
 interface EventGuest { name: string; title?: string; photo?: string; description?: string; sortOrder: number }
@@ -47,16 +48,16 @@ export default function AdminEvents() {
 
   const fetchEvents = () => {
     fetch('/api/events?limit=50')
-      .then(r => r.json())
-      .then(data => { setEvents(data); setLoading(false) })
-      .catch(() => setLoading(false))
+      .then(r => { if (!r.ok) throw new Error(); return r.json() })
+      .then(data => { setEvents(ensureArray(data)); setLoading(false) })
+      .catch(() => { setEvents([]); setLoading(false) })
   }
 
   const fetchArtists = () => {
     fetch('/api/artists')
-      .then(r => r.json())
-      .then(data => setArtists(data))
-      .catch(() => {})
+      .then(r => { if (!r.ok) throw new Error(); return r.json() })
+      .then(data => setArtists(ensureArray(data)))
+      .catch(() => setArtists([]))
   }
 
   useEffect(() => { fetchEvents(); fetchArtists() }, [])
@@ -78,24 +79,35 @@ export default function AdminEvents() {
       }
 
       if (editing) {
-        await fetch('/api/events', {
+        const { ok } = await fetchWrite('/api/events', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id: editing, ...body }),
         })
-        toast({ title: 'Event updated' })
-        setEditing(null)
+        if (ok) {
+          toast({ title: 'Event updated' })
+          setEditing(null)
+          setForm(emptyForm)
+          setShowForm(false)
+          fetchEvents()
+        } else {
+          toast({ title: 'Failed to update event', variant: 'destructive' })
+        }
       } else {
-        await fetch('/api/events', {
+        const { ok } = await fetchWrite('/api/events', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
         })
-        toast({ title: 'Event created' })
-        setShowForm(false)
+        if (ok) {
+          toast({ title: 'Event created' })
+          setForm(emptyForm)
+          setShowForm(false)
+          fetchEvents()
+        } else {
+          toast({ title: 'Failed to create event', variant: 'destructive' })
+        }
       }
-      setForm(emptyForm)
-      fetchEvents()
     } catch {
       toast({ title: 'Failed to save event', variant: 'destructive' })
     } finally {
@@ -112,52 +124,61 @@ export default function AdminEvents() {
     })
     if (!ok) return
     try {
-      await fetch(`/api/events?id=${id}`, { method: 'DELETE' })
-      toast({ title: 'Event deleted' })
-      fetchEvents()
+      const { ok: success } = await fetchWrite(`/api/events?id=${id}`, { method: 'DELETE' })
+      if (success) {
+        toast({ title: 'Event deleted' })
+        fetchEvents()
+      } else {
+        toast({ title: 'Failed to delete event', variant: 'destructive' })
+      }
     } catch {
       toast({ title: 'Failed to delete', variant: 'destructive' })
     }
   }
 
   const startEdit = async (event: EventData) => {
-    setEditing(event.id)
-    // Fetch full event with relations
-    const res = await fetch(`/api/events?slug=${event.slug}`)
-    const fullEvent = await res.json()
-    const data = fullEvent && !fullEvent.error ? (Array.isArray(fullEvent) ? fullEvent[0] : fullEvent) : event
+    try {
+      setEditing(event.id)
+      // Fetch full event with relations
+      const fullEvent = await fetchJSON(`/api/events?slug=${event.slug}`).catch(() => null)
+      const data = fullEvent && !fullEvent.error ? (Array.isArray(fullEvent) ? fullEvent[0] : fullEvent) : event
 
-    setForm({
-      title: data.title,
-      slug: data.slug,
-      date: data.date.split('T')[0],
-      time: data.time || '',
-      venue: data.venue,
-      city: data.city,
-      address: data.address || '',
-      description: data.description || '',
-      bannerImage: data.bannerImage || '',
-      status: data.status,
-      tags: data.tags || '',
-      youtubeUrls: data.youtubeUrls ? JSON.parse(data.youtubeUrls).join('\n') : '',
-      artists: (data.artists || []).map((a: { artistId: string; artist: { id: string }; sortOrder: number }) => ({
-        artistId: a.artistId || a.artist?.id || '',
-        sortOrder: a.sortOrder || 0,
-      })),
-      guests: (data.guests || []).map((g: { name: string; title: string; photo: string; description: string; sortOrder: number }) => ({
-        name: g.name,
-        title: g.title || '',
-        photo: g.photo || '',
-        description: g.description || '',
-        sortOrder: g.sortOrder || 0,
-      })),
-      testimonials: (data.testimonials || []).map((t: { quote: string; author: string; photo: string }) => ({
-        quote: t.quote,
-        author: t.author,
-        photo: t.photo || '',
-      })),
-    })
-    setShowForm(true)
+      setForm({
+        title: data.title || '',
+        slug: data.slug || '',
+        date: (data.date || '').split('T')[0],
+        time: data.time || '',
+        venue: data.venue || '',
+        city: data.city || '',
+        address: data.address || '',
+        description: data.description || '',
+        bannerImage: data.bannerImage || '',
+        status: data.status || 'upcoming',
+        tags: data.tags || '',
+        youtubeUrls: safeJSONParse(data.youtubeUrls, []).join('\n'),
+        artists: ensureArray(data.artists).map((a: any) => ({
+          artistId: a.artistId || a.artist?.id || '',
+          sortOrder: a.sortOrder || 0,
+        })),
+        guests: ensureArray(data.guests).map((g: any) => ({
+          name: g.name || '',
+          title: g.title || '',
+          photo: g.photo || '',
+          description: g.description || '',
+          sortOrder: g.sortOrder || 0,
+        })),
+        testimonials: ensureArray(data.testimonials).map((t: any) => ({
+          quote: t.quote || '',
+          author: t.author || '',
+          photo: t.photo || '',
+        })),
+      })
+      setShowForm(true)
+    } catch (err) {
+      console.error('startEdit error:', err)
+      toast({ title: 'Failed to load event for editing', variant: 'destructive' })
+      setEditing(null)
+    }
   }
 
   const updateForm = (key: string, value: unknown) => {
