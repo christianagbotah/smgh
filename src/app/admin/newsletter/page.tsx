@@ -84,7 +84,7 @@ export default function AdminNewsletter() {
           onKeyDown={e => e.key === 'Enter' && handleAdd()}
           className="flex-1 bg-white/5 border-gray-700 text-white placeholder:text-gray-500"
         />
-        <Button onClick={handleAdd} className="gradient-teal text-black">
+        <Button onClick={handleAdd} variant="info">
           <UserPlus className="w-4 h-4 mr-2" />
           Add
         </Button>

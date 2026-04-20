@@ -211,7 +211,7 @@ export default function AdminSettings() {
           <h1 className="text-2xl font-bold text-white">Settings</h1>
           <p className="text-gray-400 text-sm">Payment configuration, hero slider and site settings</p>
         </div>
-        <Button onClick={handleSave} disabled={saving} className="gradient-teal text-black">
+        <Button onClick={handleSave} disabled={saving} variant="success">
           <Save className="w-4 h-4 mr-2" />
           {saving ? 'Saving...' : 'Save Settings'}
         </Button>

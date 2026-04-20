@@ -157,7 +157,7 @@ export default function AdminTeam() {
           <h1 className="text-2xl font-bold text-white">Team Members</h1>
           <p className="text-gray-400 text-sm">Manage team members, volunteers, and partners</p>
         </div>
-        <Button onClick={() => openDialog()} className="gradient-green text-white">
+        <Button onClick={() => openDialog()} variant="success">
           <Plus className="w-4 h-4 mr-2" />Add Member
         </Button>
       </div>
@@ -362,10 +362,10 @@ export default function AdminTeam() {
 
           {/* Dialog Actions */}
           <div className="flex gap-3 mt-6 pt-4 border-t border-gray-800">
-            <Button onClick={handleSave} disabled={saving} className="gradient-green text-white flex-1">
+            <Button onClick={handleSave} disabled={saving} variant="success" className="flex-1">
               {saving ? 'Saving...' : <><Save className="w-4 h-4 mr-2" />{editing ? 'Update Member' : 'Create Member'}</>}
             </Button>
-            <Button onClick={() => { setDialogOpen(false); setForm(emptyForm); setEditing(null) }} variant="outline" className="border-gray-700 text-gray-300">
+            <Button onClick={() => { setDialogOpen(false); setForm(emptyForm); setEditing(null) }} variant="outline" className="border-gray-700 text-gray-300 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30">
               Cancel
             </Button>
           </div>

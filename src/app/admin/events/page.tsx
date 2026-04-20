@@ -182,7 +182,7 @@ export default function AdminEvents() {
           <h1 className="text-2xl font-bold text-white">Events</h1>
           <p className="text-gray-400 text-sm">Manage worship night events</p>
         </div>
-        <Button onClick={() => { setShowForm(!showForm); if (showForm) { setForm(emptyForm); setEditing(null) } }} className="gradient-green text-white">
+        <Button onClick={() => { setShowForm(!showForm); if (showForm) { setForm(emptyForm); setEditing(null) } }} variant="success">
           <Plus className="w-4 h-4 mr-2" />
           {showForm ? 'Cancel' : 'Add Event'}
         </Button>
@@ -523,10 +523,10 @@ export default function AdminEvents() {
           </Tabs>
 
           <div className="flex gap-3 mt-6 pt-4 border-t border-gray-800">
-            <Button onClick={handleSave} disabled={saving} className="gradient-green text-white">
+            <Button onClick={handleSave} disabled={saving} variant="success">
               {saving ? 'Saving...' : <><Save className="w-3 h-3 mr-1" /> Save Event</>}
             </Button>
-            <Button onClick={() => { setShowForm(false); setForm(emptyForm); setEditing(null) }} variant="outline" className="border-gray-700 text-gray-300">Cancel</Button>
+            <Button onClick={() => { setShowForm(false); setForm(emptyForm); setEditing(null) }} variant="outline" className="border-gray-700 text-gray-300 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30">Cancel</Button>
           </div>
         </div>
       )}

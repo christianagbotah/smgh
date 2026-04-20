@@ -193,7 +193,7 @@ export default function AdminUsersPage() {
         </div>
         <Button
           onClick={() => setShowAddForm(!showAddForm)}
-          className="gradient-green text-white"
+          variant="success"
         >
           <UserPlus className="w-4 h-4 mr-2" />
           Add User
@@ -262,7 +262,7 @@ export default function AdminUsersPage() {
                   <option value="super_admin" className="bg-[#1a1a1a]">Super Admin</option>
                 </select>
               </div>
-              <Button type="submit" disabled={adding} className="gradient-green text-white px-6">
+              <Button type="submit" disabled={adding} variant="success" className="px-6">
                 {adding ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Create'}
               </Button>
             </div>

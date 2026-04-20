@@ -346,7 +346,7 @@ export default function AdminFoundation() {
         <TabsContent value="records">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-white font-semibold">Yearly Impact Records</h2>
-            <Button onClick={() => { setShowRecordForm(!showRecordForm); if (showRecordForm) { setRecordForm(emptyRecord); setEditingRecord(null) } }} className="gradient-green text-white text-sm">
+            <Button onClick={() => { setShowRecordForm(!showRecordForm); if (showRecordForm) { setRecordForm(emptyRecord); setEditingRecord(null) } }} variant="success" className="text-sm">
               <Plus className="w-4 h-4 mr-2" />{showRecordForm ? 'Cancel' : 'Add Record'}
             </Button>
           </div>
@@ -386,10 +386,10 @@ export default function AdminFoundation() {
                 </div>
               </div>
               <div className="flex gap-3 mt-4 pt-4 border-t border-gray-800">
-                <Button onClick={handleSaveRecord} disabled={saving} className="gradient-green text-white">
+                <Button onClick={handleSaveRecord} disabled={saving} variant="success">
                   {saving ? 'Saving...' : <><Save className="w-3 h-3 mr-1" /> Save Record</>}
                 </Button>
-                <Button onClick={() => { setShowRecordForm(false); setRecordForm(emptyRecord); setEditingRecord(null) }} variant="outline" className="border-gray-700 text-gray-300">Cancel</Button>
+                <Button onClick={() => { setShowRecordForm(false); setRecordForm(emptyRecord); setEditingRecord(null) }} variant="outline" className="border-gray-700 text-gray-300 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30">Cancel</Button>
               </div>
             </div>
           )}
@@ -494,7 +494,7 @@ export default function AdminFoundation() {
         <TabsContent value="beneficiaries">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-white font-semibold">Beneficiary Stories</h2>
-            <Button onClick={() => { setShowBeneficiaryForm(!showBeneficiaryForm); if (showBeneficiaryForm) { setBeneficiaryForm(emptyBeneficiary); setEditingBeneficiary(null) } }} className="gradient-green text-white text-sm">
+            <Button onClick={() => { setShowBeneficiaryForm(!showBeneficiaryForm); if (showBeneficiaryForm) { setBeneficiaryForm(emptyBeneficiary); setEditingBeneficiary(null) } }} variant="success" className="text-sm">
               <Plus className="w-4 h-4 mr-2" />{showBeneficiaryForm ? 'Cancel' : 'Add Beneficiary'}
             </Button>
           </div>
@@ -566,10 +566,10 @@ export default function AdminFoundation() {
                 </div>
               </div>
               <div className="flex gap-3 mt-4 pt-4 border-t border-gray-800">
-                <Button onClick={handleSaveBeneficiary} disabled={saving} className="gradient-green text-white">
+                <Button onClick={handleSaveBeneficiary} disabled={saving} variant="success">
                   {saving ? 'Saving...' : <><Save className="w-3 h-3 mr-1" /> Save Beneficiary</>}
                 </Button>
-                <Button onClick={() => { setShowBeneficiaryForm(false); setBeneficiaryForm(emptyBeneficiary); setEditingBeneficiary(null) }} variant="outline" className="border-gray-700 text-gray-300">Cancel</Button>
+                <Button onClick={() => { setShowBeneficiaryForm(false); setBeneficiaryForm(emptyBeneficiary); setEditingBeneficiary(null) }} variant="outline" className="border-gray-700 text-gray-300 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30">Cancel</Button>
               </div>
             </div>
           )}

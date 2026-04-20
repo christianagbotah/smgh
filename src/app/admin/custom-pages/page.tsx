@@ -209,7 +209,7 @@ export default function AdminCustomPages() {
               setShowForm(true)
             }
           }}
-          className="gradient-green text-white"
+          variant="success"
         >
           <Plus className="w-4 h-4 mr-2" />
           {showForm && !editing ? 'Cancel' : 'New Page'}
@@ -300,7 +300,7 @@ export default function AdminCustomPages() {
 
           {/* Action Buttons */}
           <div className="flex gap-3 mt-6 pt-4 border-t border-gray-800">
-            <Button onClick={handleSave} disabled={saving} className="gradient-green text-white">
+            <Button onClick={handleSave} disabled={saving} variant="success">
               {saving ? 'Saving...' : (
                 <>
                   <Save className="w-3 h-3 mr-1" />
@@ -315,7 +315,7 @@ export default function AdminCustomPages() {
                 setForm(emptyForm)
               }}
               variant="outline"
-              className="border-gray-700 text-gray-300"
+              className="border-gray-700 text-gray-300 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30"
             >
               Cancel
             </Button>

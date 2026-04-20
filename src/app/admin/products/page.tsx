@@ -428,7 +428,7 @@ export default function AdminProducts() {
           <h1 className="text-2xl font-bold text-white">Products</h1>
           <p className="text-gray-400 text-sm">Manage shop merchandise &amp; variants</p>
         </div>
-        <Button onClick={() => (showForm ? cancelForm() : openCreate())} className="gradient-green text-white">
+        <Button onClick={() => (showForm ? cancelForm() : openCreate())} variant="success">
           <Plus className="w-4 h-4 mr-2" />
           {showForm ? 'Cancel' : 'Add Product'}
         </Button>
@@ -538,7 +538,7 @@ export default function AdminProducts() {
 
           {/* Actions */}
           <div className="flex gap-3 mt-6 pt-4 border-t border-gray-800">
-            <Button onClick={handleSaveProduct} disabled={saving} className="gradient-green text-white">
+            <Button onClick={handleSaveProduct} disabled={saving} variant="success">
               {saving ? 'Saving…' : (
                 <>
                   <Save className="w-3 h-3 mr-1" />
@@ -546,7 +546,7 @@ export default function AdminProducts() {
                 </>
               )}
             </Button>
-            <Button onClick={cancelForm} variant="outline" className="border-gray-700 text-gray-300">
+            <Button onClick={cancelForm} variant="outline" className="border-gray-700 text-gray-300 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30">
               Cancel
             </Button>
           </div>
@@ -801,7 +801,8 @@ export default function AdminProducts() {
                             size="sm"
                             onClick={() => handleSaveVariant(product.id)}
                             disabled={variantSaving}
-                            className="gradient-green text-white h-7 text-xs px-3"
+                            variant="success"
+                            className="h-7 text-xs px-3"
                           >
                             {variantSaving ? 'Saving…' : (
                               <>

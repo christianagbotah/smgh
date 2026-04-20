@@ -233,3 +233,25 @@ Stage Summary:
 - Gallery admin: drag-and-drop reordering with persistent sortOrder, hint text, saving indicator
 - Both use dnd-kit v6 with smooth CSS transitions
 - Gallery reorder persists to database immediately via batch API
+---
+Task ID: 1
+Agent: Main Agent
+Task: Fix broken button backgrounds and implement enterprise-grade button styling across admin CMS
+
+Work Log:
+- Audited all admin CMS pages (13 pages) for button styling issues
+- Identified root cause: `.gradient-teal` CSS class used in 8 buttons but never defined in globals.css
+- Enhanced shadcn Button component with 4 new enterprise variants: success (emerald), danger (red), warning (amber), info (teal)
+- Added missing `.gradient-teal` CSS class to globals.css for public-facing components
+- Replaced all `gradient-green text-white` className hacks on `<Button>` with `variant="success"` across 11 admin pages
+- Replaced all `gradient-teal text-black` className hacks on `<Button>` with `variant="info"` across 5 admin pages
+- Updated Reset button to use `variant="warning"` (amber)
+- Updated all Cancel buttons with danger hover styling (hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30)
+- Verified: 0 remaining `gradient-green text-white` or `gradient-teal text-black` on admin Button components
+- Dev server compiled successfully with no errors
+
+Stage Summary:
+- Button component now has 10 variants: default, destructive, outline, secondary, ghost, link, success, danger, warning, info
+- 30+ button instances updated across 13 admin pages
+- Consistent semantic button system: Save=success(green), Cancel=danger(red hover), Reset=warning(amber), Upload/Add=info(teal)
+- All changes are backward-compatible (public components still use gradient-teal class which is now defined)

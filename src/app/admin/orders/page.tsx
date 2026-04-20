@@ -312,7 +312,7 @@ function OrderDetail({ order, onStatusChange, onTrackingSave, onNotesSave }: {
               size="sm"
               onClick={handleTrackingSave}
               disabled={savingTracking}
-              className="gradient-green text-white h-9 px-3 shrink-0"
+              variant="success" className="h-9 px-3 shrink-0"
             >
               <Save className={`w-3.5 h-3.5 ${savingTracking ? 'animate-spin' : ''}`} />
             </Button>
@@ -338,7 +338,7 @@ function OrderDetail({ order, onStatusChange, onTrackingSave, onNotesSave }: {
             size="sm"
             onClick={handleNotesSave}
             disabled={savingNotes}
-            className="gradient-green text-white h-8"
+            variant="success" className="h-8"
           >
             <Save className={`w-3.5 h-3.5 mr-1.5 ${savingNotes ? 'animate-spin' : ''}`} />
             Save Notes

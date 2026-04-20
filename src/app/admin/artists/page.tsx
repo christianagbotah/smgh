@@ -138,7 +138,7 @@ export default function AdminArtists() {
           <h1 className="text-2xl font-bold text-white">Artists</h1>
           <p className="text-gray-400 text-sm">Manage gospel artists and performers</p>
         </div>
-        <Button onClick={() => setShowForm(!showForm)} className="gradient-green text-white">
+        <Button onClick={() => setShowForm(!showForm)} variant="success">
           <Plus className="w-4 h-4 mr-2" />
           Add Artist
         </Button>
@@ -184,8 +184,8 @@ export default function AdminArtists() {
             />
           </div>
           <div className="flex gap-3 mt-4">
-            <Button onClick={handleCreate} className="gradient-green text-white">Save</Button>
-            <Button onClick={() => setShowForm(false)} variant="outline" className="border-gray-700 text-gray-300">Cancel</Button>
+            <Button onClick={handleCreate} variant="success">Save</Button>
+            <Button onClick={() => setShowForm(false)} variant="outline" className="border-gray-700 text-gray-300 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30">Cancel</Button>
           </div>
         </div>
       )}
@@ -218,8 +218,8 @@ export default function AdminArtists() {
                     previewHeight="h-24"
                   />
                   <div className="flex gap-2">
-                    <Button size="sm" onClick={handleUpdate} className="gradient-green text-white"><Save className="w-3 h-3 mr-1" />Save</Button>
-                    <Button size="sm" variant="outline" onClick={() => setEditing(null)} className="border-gray-700 text-gray-300"><X className="w-3 h-3 mr-1" />Cancel</Button>
+                    <Button size="sm" onClick={handleUpdate} variant="success"><Save className="w-3 h-3 mr-1" />Save</Button>
+                    <Button size="sm" variant="outline" onClick={() => setEditing(null)} className="border-gray-700 text-gray-300 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30"><X className="w-3 h-3 mr-1" />Cancel</Button>
                   </div>
                 </div>
               ) : (

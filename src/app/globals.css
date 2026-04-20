@@ -147,6 +147,10 @@
     background: linear-gradient(180deg, #0D1117, #161B22);
   }
 
+  .gradient-teal {
+    background: linear-gradient(135deg, #00695C, #00897B);
+  }
+
   .text-gradient-green {
     background: linear-gradient(135deg, #1B5E20, #81C784);
     -webkit-background-clip: text;

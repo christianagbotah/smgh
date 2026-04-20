@@ -629,7 +629,7 @@ export default function AdminGallery() {
             <Upload className="w-4 h-4 mr-2" />
             Bulk Upload
           </Button>
-          <Button onClick={openCreateForm} className="gradient-green text-white">
+          <Button onClick={openCreateForm} variant="success">
             <Plus className="w-4 h-4 mr-2" />
             Add Item
           </Button>
@@ -832,7 +832,7 @@ export default function AdminGallery() {
           </p>
           {!hasActiveFilters && (
             <div className="flex items-center gap-3">
-              <Button onClick={openCreateForm} className="gradient-green text-white">
+              <Button onClick={openCreateForm} variant="success">
                 <Plus className="w-4 h-4 mr-2" />
                 Add First Item
               </Button>
@@ -1106,14 +1106,14 @@ export default function AdminGallery() {
             <Button
               onClick={() => { setFormOpen(false); setEditingItem(null); setForm(emptyForm) }}
               variant="outline"
-              className="border-gray-700 text-gray-300 hover:text-white"
+              className="border-gray-700 text-gray-300 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30"
             >
               Cancel
             </Button>
             <Button
               onClick={handleSave}
               disabled={saving || !form.url}
-              className="gradient-green text-white"
+              variant="success"
             >
               {saving ? (
                 <span className="flex items-center gap-2">
@@ -1165,7 +1165,7 @@ export default function AdminGallery() {
             <Button
               onClick={() => setMultiUploadOpen(false)}
               variant="outline"
-              className="border-gray-700 text-gray-300 hover:text-white"
+              className="border-gray-700 text-gray-300 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30"
               disabled={autoSavingUrls}
             >
               Cancel
@@ -1173,7 +1173,7 @@ export default function AdminGallery() {
             <Button
               onClick={() => handleMultiUploadUrls(uploadedUrls)}
               disabled={autoSavingUrls || uploadedUrls.length === 0}
-              className="gradient-teal text-black"
+              variant="info"
             >
               {autoSavingUrls ? (
                 <span className="flex items-center gap-2">
@@ -1220,14 +1220,14 @@ export default function AdminGallery() {
             <Button
               onClick={() => setBatchCategoryOpen(false)}
               variant="outline"
-              className="border-gray-700 text-gray-300"
+              className="border-gray-700 text-gray-300 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30"
             >
               Cancel
             </Button>
             <Button
               onClick={() => handleBatchUpdate('category', batchCategory)}
               disabled={batchUpdating || !batchCategory}
-              className="gradient-green text-white"
+              variant="success"
             >
               {batchUpdating ? 'Updating...' : 'Apply'}
             </Button>
@@ -1258,14 +1258,14 @@ export default function AdminGallery() {
             <Button
               onClick={() => setBatchYearOpen(false)}
               variant="outline"
-              className="border-gray-700 text-gray-300"
+              className="border-gray-700 text-gray-300 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30"
             >
               Cancel
             </Button>
             <Button
               onClick={() => handleBatchUpdate('year', batchYear)}
               disabled={batchUpdating || !batchYear}
-              className="gradient-green text-white"
+              variant="success"
             >
               {batchUpdating ? 'Updating...' : 'Apply'}
             </Button>

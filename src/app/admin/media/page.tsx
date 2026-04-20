@@ -85,7 +85,7 @@ export default function AdminMedia() {
           <p className="text-gray-400 text-sm">Upload and manage media files</p>
         </div>
         <label className="cursor-pointer">
-          <Button asChild className="gradient-teal text-black">
+          <Button asChild variant="info">
             <span>
               <Upload className="w-4 h-4 mr-2" />
               {uploading ? 'Uploading...' : 'Upload'}

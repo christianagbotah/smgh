@@ -72,11 +72,11 @@ export default function AdminPages() {
           <p className="text-gray-400 text-sm">Edit website content and page text</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" onClick={handleReset} className="border-gray-700 text-gray-300">
+          <Button variant="warning" onClick={handleReset}>
             <RotateCcw className="w-4 h-4 mr-2" />
             Reset
           </Button>
-          <Button onClick={handleSave} disabled={saving} className="gradient-teal text-black">
+          <Button onClick={handleSave} disabled={saving} variant="success">
             <Save className="w-4 h-4 mr-2" />
             {saving ? 'Saving...' : 'Save All'}
           </Button>
