@@ -159,3 +159,23 @@ Stage Summary:
 - Project is fully MySQL — both local and production use the same database
 - Clean deployment script: deploy-cpanel.sh handles everything in 5 steps
 - User needs to run on cPanel: git checkout -- . && git pull && npx prisma generate, then restart app
+
+---
+Task ID: 4
+Agent: main
+Task: Fix image upload and add multi-upload support for hero slider and gallery
+
+Work Log:
+- Discovered root cause: /api/upload route did NOT exist — 4 components (MediaPicker, MultiMediaPicker, admin/media, admin/foundation) all POST to it
+- Created /api/upload/route.ts with: auth check, MIME type validation (images+videos), 10MB size limit, saves to public/uploads/, creates MediaFile DB record
+- Replaced single MediaPicker with MultiMediaPicker for hero slider in admin settings page
+- Hero slider now supports: upload multiple at once, drag & drop, browse media library, paste URLs, reorder slides, remove individual slides
+- Gallery page already had MultiMediaPicker via bulk upload dialog (was broken due to missing /api/upload, now fixed)
+- Added public/uploads/ to .gitignore (uploaded files are server-specific)
+- Built, committed (8b74cdc), and pushed
+
+Stage Summary:
+- Image upload now works across all admin pages: media library, hero slider, gallery, foundation
+- Hero slider supports multi-image upload with drag & drop
+- Gallery bulk upload works via MultiMediaPicker
+- Server-side validation: MIME types (JPG/PNG/GIF/WebP/SVG/MP4/WebM/MOV), 10MB max
