@@ -585,11 +585,11 @@ export default function DonatePage() {
                             <label className="text-sm font-medium text-gray-700 mb-1.5 block">
                               Mobile Network <span className="text-smgh-red">*</span>
                             </label>
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="grid grid-cols-3 gap-2">
                               {[
                                 { value: 'mtn', label: 'MTN', color: 'border-yellow-400 text-yellow-700 bg-yellow-50' },
-                                { value: 'vodafone', label: 'Vodafone', color: 'border-red-400 text-red-700 bg-red-50' },
-                                { value: 'airteltigo', label: 'AirtelTigo', color: 'border-blue-400 text-blue-700 bg-blue-50' },
+                                { value: 'telecel', label: 'Telecel', color: 'border-red-400 text-red-700 bg-red-50' },
+                                { value: 'airteltigo', label: 'AT', color: 'border-blue-400 text-blue-700 bg-blue-50' },
                               ].map(nw => (
                                 <button
                                   key={nw.value}
