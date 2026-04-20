@@ -198,3 +198,21 @@ Stage Summary:
 - All seed files now have consistent full visionary message text
 - User needs to: `git pull` on cPanel, then visit `/api/seed` to re-seed the database with the full message
 - Alternatively, the message can be edited via the admin CMS at `/admin/pages`
+---
+Task ID: 3
+Agent: Main
+Task: Fix visionary message showing only 2 lines (VARCHAR truncation)
+
+Work Log:
+- Root cause: `SiteSetting.value` was `String` (maps to VARCHAR(191) in MySQL) - the full message is ~800+ chars but got silently truncated at 191
+- Updated Prisma schema: changed `SiteSetting.value` from `String` to `String @db.Text`
+- Also changed other long text fields to TEXT: Event.description, EventGuest.description, Artist.bio, ContactMessage.message, FoundationRecord.description, TeamMember.bio, Product.description, Order.deliveryAddress, Order.notes, CustomPage.content, Beneficiary.story
+- Ran `prisma db push` with production DATABASE_URL to alter the MySQL columns
+- Ran `prisma generate` to update the Prisma client
+- Built and pushed to origin/main
+
+Stage Summary:
+- Database columns are now TEXT type (supports up to 65KB)
+- DB schema push was applied directly to production MySQL from local
+- User still needs to visit `/api/seed` to re-save the full message (upsert will update)
+- No need for `prisma generate` or `prisma db push` on cPanel
