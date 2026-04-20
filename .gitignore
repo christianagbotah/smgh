@@ -24,6 +24,9 @@ node_modules
 # production
 /build
 
+# uploaded files (user uploads via admin)
+/public/uploads/
+
 # misc
 .DS_Store
 *.pem

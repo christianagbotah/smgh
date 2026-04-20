@@ -49,6 +49,7 @@
   "/api/stats/route": "/api/stats",
   "/api/team/route": "/api/team",
   "/api/testimonials/route": "/api/testimonials",
+  "/api/upload/route": "/api/upload",
   "/api/users/[id]/route": "/api/users/[id]",
   "/api/users/route": "/api/users",
   "/page": "/",

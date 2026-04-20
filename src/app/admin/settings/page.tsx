@@ -5,6 +5,7 @@ import { Save, CreditCard, Phone, ImagePlus, X, GripVertical, Lock, Globe, MapPi
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 import MediaPicker from '@/components/MediaPicker'
+import MultiMediaPicker from '@/components/MultiMediaPicker'
 
 interface SiteSettings {
   [key: string]: string
@@ -108,25 +109,10 @@ export default function AdminSettings() {
 
   const update = (key: string, value: string) => setSettings(prev => ({ ...prev, [key]: value }))
 
-  // Add image to hero slider
-  const addHeroImage = useCallback((url: string) => {
-    const current = (() => {
-      try { return Array.isArray(JSON.parse(settings.hero_slider_images || '[]')) ? JSON.parse(settings.hero_slider_images || '[]') : [] }
-      catch { return [] }
-    })()
-    const updated = [...current, url]
-    update('hero_slider_images', JSON.stringify(updated))
-  }, [settings.hero_slider_images])
-
-  // Remove image from hero slider
-  const removeHeroImage = useCallback((index: number) => {
-    const current = (() => {
-      try { return Array.isArray(JSON.parse(settings.hero_slider_images || '[]')) ? JSON.parse(settings.hero_slider_images || '[]') : [] }
-      catch { return [] }
-    })()
-    const updated = current.filter((_, i) => i !== index)
-    update('hero_slider_images', JSON.stringify(updated))
-  }, [settings.hero_slider_images])
+  // Update hero slider images (add, remove, reorder)
+  const setHeroImages = useCallback((urls: string[]) => {
+    update('hero_slider_images', JSON.stringify(urls))
+  }, [])
 
   // Nav links helpers
   const updateNavLink = useCallback((index: number, field: 'label' | 'href', value: string) => {
@@ -291,36 +277,16 @@ export default function AdminSettings() {
             💡 Tip: Use the gallery page for bulk image uploads.
           </p>
 
-          {/* Current slides */}
-          {heroSlides.length > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 mb-5">
-              {heroSlides.map((url, idx) => (
-                <div key={idx} className="relative group rounded-xl overflow-hidden border border-gray-700 bg-white/5">
-                  <img src={url} alt={`Slide ${idx + 1}`} className="w-full h-24 object-cover" />
-                  <div className="absolute top-1 left-1">
-                    <span className="text-[10px] bg-black/70 text-white px-1.5 py-0.5 rounded-full">#{idx + 1}</span>
-                  </div>
-                  <button
-                    onClick={() => removeHeroImage(idx)}
-                    className="absolute top-1 right-1 w-5 h-5 bg-red-500/90 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Add new slide */}
-          <MediaPicker
-            value=""
-            onChange={(url) => addHeroImage(url)}
-            label="Add New Slide"
-            previewHeight="h-20"
+          {/* Hero slider images — multi picker */}
+          <MultiMediaPicker
+            value={heroSlides}
+            onChange={setHeroImages}
+            label="Hero Slider Images"
           />
 
           <p className="text-gray-500 text-xs mt-3">
             {heroSlides.length} slide{heroSlides.length !== 1 ? 's' : ''} configured.
+            Upload multiple images at once, reorder them, or remove individual slides.
             If empty, event banners will be used automatically.
           </p>
         </div>
