@@ -179,3 +179,22 @@ Stage Summary:
 - Hero slider supports multi-image upload with drag & drop
 - Gallery bulk upload works via MultiMediaPicker
 - Server-side validation: MIME types (JPG/PNG/GIF/WebP/SVG/MP4/WebM/MOV), 10MB max
+---
+Task ID: 2
+Agent: Main
+Task: Fix "A Word From The Visionary" full message not showing on cPanel live site
+
+Work Log:
+- Investigated the visionary message display flow: HomePage.tsx → /api/settings → SiteSetting DB
+- Found root cause: `/api/seed/route.ts` had a shortened one-line visionary_message while `prisma/seed.ts` had the full version
+- The cPanel database was seeded via `/api/seed` which had the short placeholder text
+- Updated all 3 seed files to use the full visionary message:
+  1. `src/app/api/seed/route.ts` - updated visionary_message and foundation_description
+  2. `src/app/api/setup-database/route.ts` - updated visionary_message and foundation_description
+  3. `setup-db.js` - updated visionary_message and foundation_description
+- Built and pushed to origin/main
+
+Stage Summary:
+- All seed files now have consistent full visionary message text
+- User needs to: `git pull` on cPanel, then visit `/api/seed` to re-seed the database with the full message
+- Alternatively, the message can be edited via the admin CMS at `/admin/pages`
