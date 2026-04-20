@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/hooks/use-toast'
+import { useConfirm } from '@/hooks/useConfirm'
+import PageLoadingOverlay from '@/components/admin/PageLoadingOverlay'
 import RichTextEditor from '@/components/RichTextEditor'
 import MediaPicker from '@/components/MediaPicker'
 
@@ -44,6 +46,7 @@ export default function AdminCustomPages() {
   const [filter, setFilter] = useState<'all' | 'published' | 'draft'>('all')
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const { toast } = useToast()
+  const { confirm } = useConfirm()
 
   const fetchPages = useCallback(() => {
     fetch('/api/custom-pages')
@@ -106,7 +109,13 @@ export default function AdminCustomPages() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this page? This cannot be undone.')) return
+    const ok = await confirm({
+      title: 'Delete Page',
+      description: 'Are you sure you want to delete this page? This cannot be undone.',
+      confirmText: 'Delete',
+      variant: 'danger',
+    })
+    if (!ok) return
     try {
       const res = await fetch(`/api/custom-pages/${id}`, { method: 'DELETE' })
       if (!res.ok) {
@@ -182,6 +191,7 @@ export default function AdminCustomPages() {
 
   return (
     <div>
+      <PageLoadingOverlay visible={saving} message="Saving..." />
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>

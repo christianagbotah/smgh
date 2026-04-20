@@ -20,6 +20,8 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog'
 import { useToast } from '@/hooks/use-toast'
+import { useConfirm } from '@/hooks/useConfirm'
+import PageLoadingOverlay from '@/components/admin/PageLoadingOverlay'
 import MediaPicker from '@/components/MediaPicker'
 import MultiMediaPicker from '@/components/MultiMediaPicker'
 
@@ -215,6 +217,7 @@ function SortableGalleryItem({ item, isSelected, isVideo, onToggleSelect, onEdit
 
 export default function AdminGallery() {
   const { toast } = useToast()
+  const { confirm } = useConfirm()
 
   // Data
   const [items, setItems] = useState<GalleryItem[]>([])
@@ -429,7 +432,13 @@ export default function AdminGallery() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this item?')) return
+    const ok = await confirm({
+      title: 'Delete Item',
+      description: 'Are you sure you want to delete this item? This action cannot be undone.',
+      confirmText: 'Delete',
+      variant: 'danger',
+    })
+    if (!ok) return
     try {
       const res = await fetch(`/api/gallery?id=${id}`, { method: 'DELETE' })
       if (!res.ok) throw new Error('Delete failed')
@@ -495,7 +504,13 @@ export default function AdminGallery() {
 
   const handleBatchDelete = async () => {
     if (selectedCount === 0) return
-    if (!confirm(`Delete ${selectedCount} selected item${selectedCount > 1 ? 's' : ''}?`)) return
+    const ok = await confirm({
+      title: 'Delete Selected Items',
+      description: `Are you sure you want to delete ${selectedCount} selected item${selectedCount > 1 ? 's' : ''}? This action cannot be undone.`,
+      confirmText: 'Delete',
+      variant: 'danger',
+    })
+    if (!ok) return
 
     let success = 0
     let failed = 0
@@ -597,6 +612,8 @@ export default function AdminGallery() {
 
   return (
     <div className="space-y-6">
+      <PageLoadingOverlay visible={saving || autoSavingUrls || batchUpdating || savingOrder} message={saving ? 'Saving...' : autoSavingUrls ? 'Uploading images...' : batchUpdating ? 'Updating items...' : 'Saving order...'} />
+
       {/* ─── Header ──────────────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>

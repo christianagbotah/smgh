@@ -10,6 +10,7 @@ import {
   Users, UserPlus, ShoppingBag, Package, DollarSign, FilePlus2, Shield
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { ConfirmProvider } from '@/hooks/useConfirm'
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
@@ -226,6 +227,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="min-h-screen bg-[#101010] flex admin-theme">
+      <ConfirmProvider>
       {/* Desktop Sidebar */}
       <motion.aside
         animate={{ width: sidebarOpen ? 256 : 72 }}
@@ -272,6 +274,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {children}
         </main>
       </div>
+      </ConfirmProvider>
     </div>
   )
 }

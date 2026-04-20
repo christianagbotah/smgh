@@ -5,6 +5,8 @@ import { Plus, Trash2, Edit3, Save, X, ShoppingBag, Search, Package, ToggleLeft,
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
+import { useConfirm } from '@/hooks/useConfirm'
+import PageLoadingOverlay from '@/components/admin/PageLoadingOverlay'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -123,6 +125,7 @@ export default function AdminProducts() {
   const [expandedProduct, setExpandedProduct] = useState<string | null>(null)
 
   const { toast } = useToast()
+  const { confirm } = useConfirm()
 
   /* -------------------------------------------------------------- */
   /*  Fetch                                                          */
@@ -243,7 +246,13 @@ export default function AdminProducts() {
   }
 
   const handleDeleteProduct = async (id: string, name: string) => {
-    if (!confirm(`Delete "${name}"? This will also delete all its variants and cannot be undone.`)) return
+    const ok = await confirm({
+      title: 'Delete Product',
+      description: `Delete "${name}"? This will also delete all its variants and cannot be undone.`,
+      confirmText: 'Delete',
+      variant: 'danger',
+    })
+    if (!ok) return
     try {
       const res = await fetch(`/api/products?id=${id}`, { method: 'DELETE' })
       if (!res.ok) throw new Error()
@@ -380,7 +389,13 @@ export default function AdminProducts() {
   }
 
   const handleDeleteVariant = async (variantId: string, label: string) => {
-    if (!confirm(`Delete variant "${label}"?`)) return
+    const ok = await confirm({
+      title: 'Delete Variant',
+      description: `Are you sure you want to delete variant "${label}"? This action cannot be undone.`,
+      confirmText: 'Delete',
+      variant: 'danger',
+    })
+    if (!ok) return
     try {
       const res = await fetch(`/api/products?variantId=${variantId}`, { method: 'DELETE' })
       if (!res.ok) throw new Error()
@@ -405,6 +420,8 @@ export default function AdminProducts() {
 
   return (
     <div>
+      <PageLoadingOverlay visible={saving || variantSaving} message="Saving..." />
+
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>

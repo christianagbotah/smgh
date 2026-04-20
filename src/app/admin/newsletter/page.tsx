@@ -5,6 +5,7 @@ import { Mail, Trash2, UserPlus, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
+import { useConfirm } from '@/hooks/useConfirm'
 
 interface Subscriber {
   id: string
@@ -18,6 +19,7 @@ export default function AdminNewsletter() {
   const [loading, setLoading] = useState(true)
   const [addEmail, setAddEmail] = useState('')
   const { toast } = useToast()
+  const { confirm } = useConfirm()
 
   const fetchSubscribers = () => {
     fetch('/api/newsletter')
@@ -48,7 +50,13 @@ export default function AdminNewsletter() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Remove this subscriber?')) return
+    const ok = await confirm({
+      title: 'Remove Subscriber',
+      description: 'Are you sure you want to remove this subscriber? This action cannot be undone.',
+      confirmText: 'Remove',
+      variant: 'danger',
+    })
+    if (!ok) return
     try {
       await fetch(`/api/newsletter?id=${id}`, { method: 'DELETE' })
       toast({ title: 'Removed' })

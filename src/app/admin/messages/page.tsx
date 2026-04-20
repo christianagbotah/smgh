@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { MessageSquare, Trash2, Eye, Mail, Phone } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
+import { useConfirm } from '@/hooks/useConfirm'
 
 interface ContactMessage {
   id: string
@@ -20,6 +21,7 @@ export default function AdminMessages() {
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<ContactMessage | null>(null)
   const { toast } = useToast()
+  const { confirm } = useConfirm()
 
   const fetchMessages = () => {
     fetch('/api/contact')
@@ -45,7 +47,13 @@ export default function AdminMessages() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this message?')) return
+    const ok = await confirm({
+      title: 'Delete Message',
+      description: 'Are you sure you want to delete this message? This action cannot be undone.',
+      confirmText: 'Delete',
+      variant: 'danger',
+    })
+    if (!ok) return
     try {
       await fetch(`/api/contact?id=${id}`, { method: 'DELETE' })
       toast({ title: 'Deleted' })

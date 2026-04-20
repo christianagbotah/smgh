@@ -5,6 +5,8 @@ import { Plus, Trash2, Edit3, Save, X, Music, MapPin, Star, Search } from 'lucid
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
+import { useConfirm } from '@/hooks/useConfirm'
+import PageLoadingOverlay from '@/components/admin/PageLoadingOverlay'
 import MediaPicker from '@/components/MediaPicker'
 
 interface Artist {
@@ -26,7 +28,9 @@ export default function AdminArtists() {
   const [form, setForm] = useState(emptyForm)
   const [editForm, setEditForm] = useState(emptyForm)
   const [search, setSearch] = useState('')
+  const [saving, setSaving] = useState(false)
   const { toast } = useToast()
+  const { confirm } = useConfirm()
 
   const fetchArtists = () => {
     fetch('/api/artists')
@@ -44,6 +48,7 @@ export default function AdminArtists() {
 
   const handleCreate = async () => {
     if (!form.name) { toast({ title: 'Name is required', variant: 'destructive' }); return }
+    setSaving(true)
     try {
       const res = await fetch('/api/artists', {
         method: 'POST',
@@ -57,6 +62,8 @@ export default function AdminArtists() {
       fetchArtists()
     } catch {
       toast({ title: 'Failed to add artist', variant: 'destructive' })
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -74,6 +81,7 @@ export default function AdminArtists() {
   const handleUpdate = async () => {
     if (!editing) return
     if (!editForm.name) { toast({ title: 'Name is required', variant: 'destructive' }); return }
+    setSaving(true)
     try {
       const res = await fetch('/api/artists', {
         method: 'PUT',
@@ -86,11 +94,19 @@ export default function AdminArtists() {
       fetchArtists()
     } catch {
       toast({ title: 'Failed to update', variant: 'destructive' })
+    } finally {
+      setSaving(false)
     }
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this artist?')) return
+    const ok = await confirm({
+      title: 'Delete Artist',
+      description: 'Are you sure you want to delete this artist? This action cannot be undone.',
+      confirmText: 'Delete',
+      variant: 'danger',
+    })
+    if (!ok) return
     try {
       await fetch(`/api/artists?id=${id}`, { method: 'DELETE' })
       toast({ title: 'Deleted' })
@@ -116,6 +132,7 @@ export default function AdminArtists() {
 
   return (
     <div>
+      <PageLoadingOverlay visible={saving} message="Saving..." />
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-white">Artists</h1>

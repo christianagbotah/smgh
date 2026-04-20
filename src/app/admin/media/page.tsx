@@ -4,6 +4,8 @@ import { useState, useCallback, useEffect } from 'react'
 import { Upload, Copy, Trash2, Image as ImageIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
+import { useConfirm } from '@/hooks/useConfirm'
+import PageLoadingOverlay from '@/components/admin/PageLoadingOverlay'
 import MediaPicker from '@/components/MediaPicker'
 
 interface MediaFile {
@@ -20,6 +22,7 @@ export default function AdminMedia() {
   const [files, setFiles] = useState<MediaFile[]>([])
   const [uploading, setUploading] = useState(false)
   const { toast } = useToast()
+  const { confirm } = useConfirm()
 
   const fetchFiles = useCallback(() => {
     fetch('/api/media?limit=100')
@@ -57,7 +60,13 @@ export default function AdminMedia() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this file?')) return
+    const ok = await confirm({
+      title: 'Delete File',
+      description: 'Are you sure you want to delete this file? This action cannot be undone.',
+      confirmText: 'Delete',
+      variant: 'danger',
+    })
+    if (!ok) return
     try {
       await fetch(`/api/media?id=${id}`, { method: 'DELETE' })
       toast({ title: 'File deleted' })
@@ -69,6 +78,7 @@ export default function AdminMedia() {
 
   return (
     <div>
+      <PageLoadingOverlay visible={uploading} message="Uploading..." />
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-white">Media Library</h1>

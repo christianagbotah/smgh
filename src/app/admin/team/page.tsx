@@ -15,6 +15,8 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog'
 import { useToast } from '@/hooks/use-toast'
+import { useConfirm } from '@/hooks/useConfirm'
+import PageLoadingOverlay from '@/components/admin/PageLoadingOverlay'
 
 interface TeamMember {
   id: string; name: string; role: string; photo: string | null; bio: string | null
@@ -37,6 +39,7 @@ export default function AdminTeam() {
   const [saving, setSaving] = useState(false)
   const [filterCategory, setFilterCategory] = useState('all')
   const { toast } = useToast()
+  const { confirm } = useConfirm()
 
   const fetchMembers = () => {
     fetch('/api/team')
@@ -95,7 +98,13 @@ export default function AdminTeam() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this team member?')) return
+    const ok = await confirm({
+      title: 'Delete Team Member',
+      description: 'Are you sure you want to delete this team member? This action cannot be undone.',
+      confirmText: 'Delete',
+      variant: 'danger',
+    })
+    if (!ok) return
     try {
       await fetch(`/api/team?id=${id}`, { method: 'DELETE' })
       toast({ title: 'Deleted' })
@@ -142,6 +151,7 @@ export default function AdminTeam() {
 
   return (
     <div>
+      <PageLoadingOverlay visible={saving} message="Saving..." />
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-white">Team Members</h1>

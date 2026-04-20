@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Save, CreditCard, Phone, ImagePlus, X, GripVertical, Lock, Globe, MapPin, Menu, Trash2, Plus, ChevronUp, ChevronDown, Search, FileText, Palette } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
+import PageLoadingOverlay from '@/components/admin/PageLoadingOverlay'
 import MediaPicker from '@/components/MediaPicker'
 import MultiMediaPicker from '@/components/MultiMediaPicker'
 
@@ -204,6 +205,7 @@ export default function AdminSettings() {
 
   return (
     <div>
+      <PageLoadingOverlay visible={saving} message="Saving settings..." />
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-white">Settings</h1>

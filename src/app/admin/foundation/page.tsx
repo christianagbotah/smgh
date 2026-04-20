@@ -12,6 +12,8 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/hooks/use-toast'
+import { useConfirm } from '@/hooks/useConfirm'
+import PageLoadingOverlay from '@/components/admin/PageLoadingOverlay'
 import RichTextEditor from '@/components/RichTextEditor'
 
 interface FoundationRecord {
@@ -51,6 +53,7 @@ export default function AdminFoundation() {
   const [uploading, setUploading] = useState(false)
   const [expandedRecord, setExpandedRecord] = useState<string | null>(null)
   const { toast } = useToast()
+  const { confirm } = useConfirm()
 
   const fetchData = async () => {
     try {
@@ -134,7 +137,13 @@ export default function AdminFoundation() {
   }
 
   const handleDeleteRecord = async (id: string) => {
-    if (!confirm('Delete this foundation record?')) return
+    const ok = await confirm({
+      title: 'Delete Record',
+      description: 'Are you sure you want to delete this foundation record? This action cannot be undone.',
+      confirmText: 'Delete',
+      variant: 'danger',
+    })
+    if (!ok) return
     try {
       await fetch(`/api/foundation?id=${id}`, { method: 'DELETE' })
       toast({ title: 'Record deleted' })
@@ -210,7 +219,13 @@ export default function AdminFoundation() {
   }
 
   const handleDeleteBeneficiary = async (id: string) => {
-    if (!confirm('Delete this beneficiary?')) return
+    const ok = await confirm({
+      title: 'Delete Beneficiary',
+      description: 'Are you sure you want to delete this beneficiary? This action cannot be undone.',
+      confirmText: 'Delete',
+      variant: 'danger',
+    })
+    if (!ok) return
     try {
       await fetch(`/api/beneficiaries?id=${id}`, { method: 'DELETE' })
       toast({ title: 'Beneficiary deleted' })
@@ -268,6 +283,7 @@ export default function AdminFoundation() {
 
   return (
     <div>
+      <PageLoadingOverlay visible={saving} message="Saving..." />
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-white">Foundation Management</h1>
         <p className="text-gray-400 text-sm">Manage foundation records and beneficiary stories</p>

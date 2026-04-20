@@ -8,6 +8,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/hooks/use-toast'
+import { useConfirm } from '@/hooks/useConfirm'
+import PageLoadingOverlay from '@/components/admin/PageLoadingOverlay'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import MediaPicker from '@/components/MediaPicker'
 import RichTextEditor from '@/components/RichTextEditor'
@@ -41,6 +43,7 @@ export default function AdminEvents() {
   const [form, setForm] = useState(emptyForm)
   const [saving, setSaving] = useState(false)
   const { toast } = useToast()
+  const { confirm } = useConfirm()
 
   const fetchEvents = () => {
     fetch('/api/events?limit=50')
@@ -101,7 +104,13 @@ export default function AdminEvents() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this event and all associated data?')) return
+    const ok = await confirm({
+      title: 'Delete Event',
+      description: 'Are you sure you want to delete this event and all associated data? This action cannot be undone.',
+      confirmText: 'Delete',
+      variant: 'danger',
+    })
+    if (!ok) return
     try {
       await fetch(`/api/events?id=${id}`, { method: 'DELETE' })
       toast({ title: 'Event deleted' })
@@ -167,6 +176,7 @@ export default function AdminEvents() {
 
   return (
     <div>
+      <PageLoadingOverlay visible={saving} message="Saving..." />
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-white">Events</h1>
