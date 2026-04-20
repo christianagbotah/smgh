@@ -145,16 +145,24 @@ export default function AdminFoundation() {
   }
 
   const startEditRecord = (r: FoundationRecord) => {
-    setEditingRecord(r.id)
-    setRecordForm({
-      year: r.year,
-      description: r.description,
-      amountRaised: r.amountRaised?.toString() || '',
-      amountSpent: r.amountSpent?.toString() || '',
-      beneficiariesCount: r.beneficiariesCount?.toString() || '',
-      locations: r.locations ? JSON.parse(r.locations).join(', ') : '',
-    })
-    setShowRecordForm(true)
+    try {
+      setEditingRecord(r.id)
+      setRecordForm({
+        year: r.year,
+        description: r.description,
+        amountRaised: r.amountRaised?.toString() || '',
+        amountSpent: r.amountSpent?.toString() || '',
+        beneficiariesCount: r.beneficiariesCount?.toString() || '',
+        locations: (() => {
+          try { return r.locations ? JSON.parse(r.locations).join(', ') : '' }
+          catch { return r.locations || '' }
+        })(),
+      })
+      setShowRecordForm(true)
+    } catch (err) {
+      console.error('startEditRecord error:', err)
+      toast({ title: 'Failed to edit record', variant: 'destructive' })
+    }
   }
 
   // Beneficiary CRUD
@@ -379,7 +387,7 @@ export default function AdminFoundation() {
           ) : (
             <div className="space-y-3">
               {records.sort((a, b) => b.year - a.year).map(record => {
-                const locations: string[] = record.locations ? JSON.parse(record.locations) : []
+                const locations: string[] = (() => { try { return record.locations ? JSON.parse(record.locations) : [] } catch { return [] } })()
                 const isExpanded = expandedRecord === record.id
                 return (
                   <div key={record.id} className="glass rounded-xl overflow-hidden">
@@ -486,7 +494,7 @@ export default function AdminFoundation() {
                 </div>
                 <div>
                   <label className="text-gray-400 text-xs mb-1 block">Category</label>
-                  <select value={beneficiaryForm.category} onChange={e => setBeneficiaryForm(p => ({ ...p, category: e.target.value }))} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-gray-700 text-white focus:outline-none focus:border-smgh-green">
+                  <select value={beneficiaryForm.category} onChange={e => setBeneficiaryForm(p => ({ ...p, category: e.target.value }))} className="w-full px-4 py-3 rounded-xl bg-[#1a1a1a] border border-gray-700 text-white focus:outline-none focus:border-smgh-green [&>option]:bg-[#1a1a1a] [&>option]:text-white">
                     <option value="widow">Widow</option>
                     <option value="single-mother">Single Mother</option>
                     <option value="pastor-wife">Pastor&apos;s Wife</option>

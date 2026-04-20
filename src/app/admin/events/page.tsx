@@ -220,7 +220,7 @@ export default function AdminEvents() {
                 </div>
                 <div>
                   <label className="text-gray-400 text-xs mb-1 block">Status</label>
-                  <select value={form.status} onChange={e => updateForm('status', e.target.value)} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-gray-700 text-white focus:outline-none focus:border-smgh-green">
+                  <select value={form.status} onChange={e => updateForm('status', e.target.value)} className="w-full px-4 py-3 rounded-xl bg-[#1a1a1a] [&>option]:bg-[#1a1a1a] [&>option]:text-white border border-gray-700 text-white focus:outline-none focus:border-smgh-green">
                     <option value="upcoming">Upcoming</option>
                     <option value="completed">Completed</option>
                     <option value="cancelled">Cancelled</option>
