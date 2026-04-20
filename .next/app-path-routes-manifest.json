@@ -33,6 +33,7 @@
   "/api/export/rsvps/route": "/api/export/rsvps",
   "/api/export/subscribers/route": "/api/export/subscribers",
   "/api/foundation/route": "/api/foundation",
+  "/api/gallery/reorder/route": "/api/gallery/reorder",
   "/api/gallery/route": "/api/gallery",
   "/api/hubtel/route": "/api/hubtel",
   "/api/media/route": "/api/media",

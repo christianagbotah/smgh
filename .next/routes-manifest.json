@@ -264,6 +264,12 @@
       "namedRegex": "^/api/gallery(?:/)?$"
     },
     {
+      "page": "/api/gallery/reorder",
+      "regex": "^/api/gallery/reorder(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/gallery/reorder(?:/)?$"
+    },
+    {
       "page": "/api/hubtel",
       "regex": "^/api/hubtel(?:/)?$",
       "routeKeys": {},

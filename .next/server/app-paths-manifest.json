@@ -33,6 +33,7 @@
   "/api/export/rsvps/route": "app/api/export/rsvps/route.js",
   "/api/export/subscribers/route": "app/api/export/subscribers/route.js",
   "/api/foundation/route": "app/api/foundation/route.js",
+  "/api/gallery/reorder/route": "app/api/gallery/reorder/route.js",
   "/api/gallery/route": "app/api/gallery/route.js",
   "/api/hubtel/route": "app/api/hubtel/route.js",
   "/api/media/route": "app/api/media/route.js",

@@ -3,8 +3,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   Upload, ImageIcon, Link2, X, Search, Grid3X3, Check,
-  FolderOpen, Loader2, AlertCircle, ChevronUp, ChevronDown, Plus
+  FolderOpen, Loader2, AlertCircle, GripVertical, Plus
 } from 'lucide-react'
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core'
+import { SortableContext, sortableKeyboardCoordinates, useSortable, rectSortingStrategy, arrayMove } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -32,6 +35,66 @@ interface MultiMediaPickerProps {
   onChange: (urls: string[]) => void
   label?: string
   accept?: string
+}
+
+function SortableImageItem({ url, index, onRemove }: { url: string; index: number; onRemove: () => void }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: `${url}-${index}` })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : undefined,
+    opacity: isDragging ? 0.8 : 1,
+  }
+
+  return (
+    <div ref={setNodeRef} style={style} className="relative group rounded-xl overflow-hidden border border-gray-700 bg-white/5">
+      <div className="aspect-square">
+        <img
+          src={url}
+          alt={`Image ${index + 1}`}
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            const el = e.target as HTMLImageElement
+            el.style.display = 'none'
+            const parent = el.parentElement
+            if (parent && !parent.querySelector('.fallback-icon')) {
+              const fallback = document.createElement('div')
+              fallback.className = 'fallback-icon flex items-center justify-center h-full text-gray-500'
+              fallback.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
+              parent.appendChild(fallback)
+            }
+          }}
+        />
+      </div>
+
+      {/* Remove button */}
+      <button
+        onClick={onRemove}
+        className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
+        title="Remove image"
+      >
+        <X className="w-3 h-3" />
+      </button>
+
+      {/* Index badge */}
+      <div className="absolute top-1.5 left-1.5 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center text-[10px] font-medium">
+        {index + 1}
+      </div>
+
+      {/* Drag handle */}
+      <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button
+          {...attributes}
+          {...listeners}
+          className="w-7 h-7 rounded-lg bg-black/60 text-white flex items-center justify-center hover:bg-white/20 transition-colors cursor-grab active:cursor-grabbing"
+          title="Drag to reorder"
+        >
+          <GripVertical className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  )
 }
 
 export default function MultiMediaPicker({
@@ -225,17 +288,6 @@ export default function MultiMediaPicker({
     setUrlInput('')
   }
 
-  // Reorder: move item up
-  const moveItem = (index: number, direction: 'up' | 'down') => {
-    const newIndex = direction === 'up' ? index - 1 : index + 1
-    if (newIndex < 0 || newIndex >= value.length) return
-    const newUrls = [...value]
-    const temp = newUrls[index]
-    newUrls[index] = newUrls[newIndex]
-    newUrls[newIndex] = temp
-    onChange(newUrls)
-  }
-
   // Remove item
   const removeItem = (index: number) => {
     const newUrls = [...value]
@@ -249,6 +301,23 @@ export default function MultiMediaPicker({
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
   }
 
+  // dnd-kit sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  )
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event
+    if (over && active.id !== over.id) {
+      const oldIndex = value.findIndex((_, i) => `${value[i]}-${i}` === active.id)
+      const newIndex = value.findIndex((_, i) => `${value[i]}-${i}` === over.id)
+      if (oldIndex !== -1 && newIndex !== -1) {
+        onChange(arrayMove(value, oldIndex, newIndex))
+      }
+    }
+  }
+
   return (
     <div>
       {/* Label */}
@@ -257,81 +326,34 @@ export default function MultiMediaPicker({
       )}
 
       {/* Preview Grid */}
-      <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mb-3">
-        {value.map((url, index) => (
-          <div
-            key={`${url}-${index}`}
-            className="relative group rounded-xl overflow-hidden border border-gray-700 bg-white/5"
-          >
-            <div className="aspect-square">
-              <img
-                src={url}
-                alt={`Image ${index + 1}`}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  const el = e.target as HTMLImageElement
-                  el.style.display = 'none'
-                  const parent = el.parentElement
-                  if (parent && !parent.querySelector('.fallback-icon')) {
-                    const fallback = document.createElement('div')
-                    fallback.className = 'fallback-icon flex items-center justify-center h-full text-gray-500'
-                    fallback.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
-                    parent.appendChild(fallback)
-                  }
-                }}
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={value.map((url, i) => `${url}-${i}`)} strategy={rectSortingStrategy}>
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mb-3">
+            {value.map((url, index) => (
+              <SortableImageItem
+                key={`${url}-${index}`}
+                url={url}
+                index={index}
+                onRemove={() => removeItem(index)}
               />
-            </div>
+            ))}
 
-            {/* Remove button */}
+            {/* Add button (not sortable) */}
             <button
-              onClick={() => removeItem(index)}
-              className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
-              title="Remove image"
+              onClick={() => {
+                setDialogOpen(true)
+                setUrlInput('')
+              }}
+              className="aspect-square rounded-xl border-2 border-dashed border-gray-700 hover:border-green-500/40 bg-white/5 flex flex-col items-center justify-center gap-1 transition-colors group"
             >
-              <X className="w-3 h-3" />
+              <Plus className="w-6 h-6 text-gray-500 group-hover:text-green-400 transition-colors" />
+              <span className="text-[10px] text-gray-500 group-hover:text-gray-300 transition-colors">
+                {value.length === 0 ? 'Add Images' : 'Add More'}
+              </span>
             </button>
-
-            {/* Index badge */}
-            <div className="absolute top-1.5 left-1.5 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center text-[10px] font-medium">
-              {index + 1}
-            </div>
-
-            {/* Reorder buttons */}
-            <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button
-                onClick={() => moveItem(index, 'up')}
-                disabled={index === 0}
-                className="w-5 h-5 rounded bg-black/60 text-white flex items-center justify-center disabled:opacity-30 hover:bg-white/20 transition-colors"
-                title="Move up"
-              >
-                <ChevronUp className="w-3 h-3" />
-              </button>
-              <button
-                onClick={() => moveItem(index, 'down')}
-                disabled={index === value.length - 1}
-                className="w-5 h-5 rounded bg-black/60 text-white flex items-center justify-center disabled:opacity-30 hover:bg-white/20 transition-colors"
-                title="Move down"
-              >
-                <ChevronDown className="w-3 h-3" />
-              </button>
-            </div>
           </div>
-        ))}
-
-        {/* Add button */}
-        <button
-          onClick={() => {
-            setDialogOpen(true)
-            setUrlInput('')
-          }}
-          className="aspect-square rounded-xl border-2 border-dashed border-gray-700 hover:border-green-500/40 bg-white/5 flex flex-col items-center justify-center gap-1 transition-colors group"
-        >
-          <Plus className="w-6 h-6 text-gray-500 group-hover:text-green-400 transition-colors" />
-          <span className="text-[10px] text-gray-500 group-hover:text-gray-300 transition-colors">
-            {value.length === 0 ? 'Add Images' : 'Add More'}
-          </span>
-        </button>
-      </div>
+        </SortableContext>
+      </DndContext>
 
       {/* Count */}
       {value.length > 0 && (

@@ -3,8 +3,11 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import {
   Plus, Trash2, Edit3, Search, Filter, Images, Video, X, Check,
-  ChevronDown, Download, Upload, ImageOff
+  ChevronDown, Download, Upload, ImageOff, GripVertical
 } from 'lucide-react'
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core'
+import { SortableContext, sortableKeyboardCoordinates, useSortable, rectSortingStrategy, arrayMove } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -74,6 +77,140 @@ const emptyForm: FormState = {
   eventId: '',
 }
 
+// ─── SortableGalleryItem ────────────────────────────────────────────────────
+
+function SortableGalleryItem({ item, isSelected, isVideo, onToggleSelect, onEdit, onDelete }: {
+  item: GalleryItem
+  isSelected: boolean
+  isVideo: boolean
+  onToggleSelect: () => void
+  onEdit: () => void
+  onDelete: () => void
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id })
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : undefined,
+    opacity: isDragging ? 0.7 : 1,
+    position: 'relative' as const,
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`group relative rounded-xl overflow-hidden cursor-pointer transition-all ${
+        isSelected
+          ? 'ring-2 ring-green-500 ring-offset-2 ring-offset-[#0a0a0a]'
+          : 'hover:ring-1 hover:ring-gray-600'
+      }`}
+      onClick={onToggleSelect}
+    >
+      {/* Thumbnail */}
+      <div className="aspect-square relative bg-gray-800">
+        {isVideo ? (
+          <div className="w-full h-full bg-gray-900 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center">
+              <Video className="w-6 h-6 text-gray-400" />
+            </div>
+          </div>
+        ) : (
+          <img
+            src={item.thumbnail || item.url}
+            alt={item.title || 'Gallery item'}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              const el = e.target as HTMLImageElement
+              el.style.display = 'none'
+              const parent = el.parentElement
+              if (parent && !parent.querySelector('.img-fallback')) {
+                const fb = document.createElement('div')
+                fb.className = 'img-fallback flex items-center justify-center w-full h-full bg-gray-800'
+                fb.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-600"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>'
+                parent.appendChild(fb)
+              }
+            }}
+          />
+        )}
+
+        {/* Checkbox overlay (top-left) */}
+        <div
+          className={`absolute top-2 left-2 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all z-10 ${
+            isSelected
+              ? 'bg-green-500 border-green-500'
+              : 'bg-black/40 border-white/30 opacity-0 group-hover:opacity-100'
+          }`}
+        >
+          {isSelected && <Check className="w-3 h-3 text-white" />}
+        </div>
+
+        {/* Type badge (top-right) */}
+        {isVideo && (
+          <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-purple-500/80 text-white text-[10px] font-medium z-10">
+            VIDEO
+          </div>
+        )}
+
+        {/* Hover overlay */}
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-all duration-200">
+          <div className="absolute inset-0 flex flex-col justify-between p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            {/* Top row: year & category badges */}
+            <div className="flex items-center justify-end gap-1.5">
+              {item.year && (
+                <Badge variant="secondary" className="bg-black/60 text-white text-[10px] border-0 backdrop-blur-sm">
+                  {item.year}
+                </Badge>
+              )}
+              {item.category && (
+                <Badge variant="secondary" className="bg-black/60 text-gray-300 text-[10px] border-0 backdrop-blur-sm capitalize">
+                  {item.category}
+                </Badge>
+              )}
+            </div>
+
+            {/* Bottom row: title + actions */}
+            <div>
+              <p className="text-white text-sm font-medium truncate mb-2">
+                {item.title || 'Untitled'}
+              </p>
+              <div className="flex items-center gap-1.5">
+                {/* Drag handle */}
+                <button
+                  {...attributes}
+                  {...listeners}
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex items-center justify-center w-7 h-7 rounded-lg bg-white/15 text-white hover:bg-white/25 transition-colors backdrop-blur-sm cursor-grab active:cursor-grabbing"
+                  title="Drag to reorder"
+                >
+                  <GripVertical className="w-3.5 h-3.5" />
+                </button>
+                {/* Edit button */}
+                <button
+                  onClick={(e) => { e.stopPropagation(); onEdit() }}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/15 text-white text-xs hover:bg-white/25 transition-colors backdrop-blur-sm"
+                >
+                  <Edit3 className="w-3 h-3" />
+                  Edit
+                </button>
+                {/* Delete button */}
+                <button
+                  onClick={(e) => { e.stopPropagation(); onDelete() }}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-red-500/20 text-red-300 text-xs hover:bg-red-500/30 transition-colors backdrop-blur-sm"
+                >
+                  <Trash2 className="w-3 h-3" />
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function AdminGallery() {
@@ -110,6 +247,15 @@ export default function AdminGallery() {
   const [batchCategory, setBatchCategory] = useState('')
   const [batchYear, setBatchYear] = useState('')
   const [batchUpdating, setBatchUpdating] = useState(false)
+
+  // Drag-and-drop reorder
+  const [savingOrder, setSavingOrder] = useState(false)
+
+  // dnd-kit sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  )
 
   // ─── Data Fetching ────────────────────────────────────────────────────────
 
@@ -408,6 +554,36 @@ export default function AdminGallery() {
     fetchItems()
   }
 
+  // ─── Drag-and-Drop Handler ────────────────────────────────────────────────
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+
+    // Only allow reorder when no filters are active
+    if (hasActiveFilters) return
+
+    const newItems = arrayMove(items, items.findIndex(i => i.id === active.id), items.findIndex(i => i.id === over.id))
+    setItems(newItems) // optimistic update
+
+    // Persist the new order
+    setSavingOrder(true)
+    try {
+      const res = await fetch('/api/gallery/reorder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderedIds: newItems.map(i => i.id) }),
+      })
+      if (!res.ok) throw new Error('Reorder failed')
+      toast({ title: 'Order updated' })
+    } catch {
+      toast({ title: 'Failed to save order', variant: 'destructive' })
+      fetchItems() // revert
+    } finally {
+      setSavingOrder(false)
+    }
+  }
+
   const clearFilters = () => {
     setSearchQuery('')
     setFilterYear('all')
@@ -554,6 +730,14 @@ export default function AdminGallery() {
           {/* Spacer */}
           <div className="flex-1" />
 
+          {/* Saving order indicator */}
+          {savingOrder && (
+            <span className="text-xs text-amber-400 flex items-center gap-1.5">
+              <span className="w-3 h-3 border-2 border-amber-400/30 border-t-amber-400 rounded-full animate-spin" />
+              Saving order...
+            </span>
+          )}
+
           {/* Count badge */}
           <Badge variant="secondary" className="bg-white/10 text-gray-300 border-0">
             {filteredItems.length} result{filteredItems.length !== 1 ? 's' : ''}
@@ -646,112 +830,144 @@ export default function AdminGallery() {
             </div>
           )}
         </div>
-      ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {filteredItems.map(item => {
-            const isSelected = selectedIds.has(item.id)
-            const isVideo = item.type === 'video'
+      ) : hasActiveFilters ? (
+        /* Filtered view: non-sortable grid */
+        <div className="space-y-3">
+          <p className="text-gray-500 text-xs flex items-center gap-1.5">
+            <Filter className="w-3 h-3" />
+            Filters active — drag-to-reorder is disabled. Clear filters to enable reordering.
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {filteredItems.map(item => {
+              const isSelected = selectedIds.has(item.id)
+              const isVideo = item.type === 'video'
 
-            return (
-              <div
-                key={item.id}
-                className={`group relative rounded-xl overflow-hidden cursor-pointer transition-all ${
-                  isSelected
-                    ? 'ring-2 ring-green-500 ring-offset-2 ring-offset-[#0a0a0a]'
-                    : 'hover:ring-1 hover:ring-gray-600'
-                }`}
-                onClick={() => toggleSelect(item.id)}
-              >
-                {/* Thumbnail */}
-                <div className="aspect-square relative bg-gray-800">
-                  {isVideo ? (
-                    <div className="w-full h-full bg-gray-900 flex items-center justify-center">
-                      <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center">
-                        <Video className="w-6 h-6 text-gray-400" />
+              return (
+                <div
+                  key={item.id}
+                  className={`group relative rounded-xl overflow-hidden cursor-pointer transition-all ${
+                    isSelected
+                      ? 'ring-2 ring-green-500 ring-offset-2 ring-offset-[#0a0a0a]'
+                      : 'hover:ring-1 hover:ring-gray-600'
+                  }`}
+                  onClick={() => toggleSelect(item.id)}
+                >
+                  {/* Thumbnail */}
+                  <div className="aspect-square relative bg-gray-800">
+                    {isVideo ? (
+                      <div className="w-full h-full bg-gray-900 flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center">
+                          <Video className="w-6 h-6 text-gray-400" />
+                        </div>
                       </div>
+                    ) : (
+                      <img
+                        src={item.thumbnail || item.url}
+                        alt={item.title || 'Gallery item'}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const el = e.target as HTMLImageElement
+                          el.style.display = 'none'
+                          const parent = el.parentElement
+                          if (parent && !parent.querySelector('.img-fallback')) {
+                            const fb = document.createElement('div')
+                            fb.className = 'img-fallback flex items-center justify-center w-full h-full bg-gray-800'
+                            fb.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-600"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>'
+                            parent.appendChild(fb)
+                          }
+                        }}
+                      />
+                    )}
+
+                    {/* Checkbox overlay (top-left) */}
+                    <div
+                      className={`absolute top-2 left-2 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all z-10 ${
+                        isSelected
+                          ? 'bg-green-500 border-green-500'
+                          : 'bg-black/40 border-white/30 opacity-0 group-hover:opacity-100'
+                      }`}
+                    >
+                      {isSelected && <Check className="w-3 h-3 text-white" />}
                     </div>
-                  ) : (
-                    <img
-                      src={item.thumbnail || item.url}
-                      alt={item.title || 'Gallery item'}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        const el = e.target as HTMLImageElement
-                        el.style.display = 'none'
-                        const parent = el.parentElement
-                        if (parent && !parent.querySelector('.img-fallback')) {
-                          const fb = document.createElement('div')
-                          fb.className = 'img-fallback flex items-center justify-center w-full h-full bg-gray-800'
-                          fb.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-600"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>'
-                          parent.appendChild(fb)
-                        }
-                      }}
-                    />
-                  )}
 
-                  {/* Checkbox overlay (top-left) */}
-                  <div
-                    className={`absolute top-2 left-2 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all z-10 ${
-                      isSelected
-                        ? 'bg-green-500 border-green-500'
-                        : 'bg-black/40 border-white/30 opacity-0 group-hover:opacity-100'
-                    }`}
-                  >
-                    {isSelected && <Check className="w-3 h-3 text-white" />}
-                  </div>
-
-                  {/* Type badge (top-right) */}
-                  {isVideo && (
-                    <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-purple-500/80 text-white text-[10px] font-medium z-10">
-                      VIDEO
-                    </div>
-                  )}
-
-                  {/* Hover overlay */}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-all duration-200">
-                    <div className="absolute inset-0 flex flex-col justify-between p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                      {/* Top row: year & category badges */}
-                      <div className="flex items-center justify-end gap-1.5">
-                        {item.year && (
-                          <Badge variant="secondary" className="bg-black/60 text-white text-[10px] border-0 backdrop-blur-sm">
-                            {item.year}
-                          </Badge>
-                        )}
-                        {item.category && (
-                          <Badge variant="secondary" className="bg-black/60 text-gray-300 text-[10px] border-0 backdrop-blur-sm capitalize">
-                            {item.category}
-                          </Badge>
-                        )}
+                    {/* Type badge (top-right) */}
+                    {isVideo && (
+                      <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-purple-500/80 text-white text-[10px] font-medium z-10">
+                        VIDEO
                       </div>
+                    )}
 
-                      {/* Bottom row: title + actions */}
-                      <div>
-                        <p className="text-white text-sm font-medium truncate mb-2">
-                          {item.title || 'Untitled'}
-                        </p>
-                        <div className="flex items-center gap-1.5">
-                          <button
-                            onClick={(e) => { e.stopPropagation(); openEditForm(item) }}
-                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/15 text-white text-xs hover:bg-white/25 transition-colors backdrop-blur-sm"
-                          >
-                            <Edit3 className="w-3 h-3" />
-                            Edit
-                          </button>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); handleDelete(item.id) }}
-                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-red-500/20 text-red-300 text-xs hover:bg-red-500/30 transition-colors backdrop-blur-sm"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                            Delete
-                          </button>
+                    {/* Hover overlay */}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-all duration-200">
+                      <div className="absolute inset-0 flex flex-col justify-between p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        {/* Top row: year & category badges */}
+                        <div className="flex items-center justify-end gap-1.5">
+                          {item.year && (
+                            <Badge variant="secondary" className="bg-black/60 text-white text-[10px] border-0 backdrop-blur-sm">
+                              {item.year}
+                            </Badge>
+                          )}
+                          {item.category && (
+                            <Badge variant="secondary" className="bg-black/60 text-gray-300 text-[10px] border-0 backdrop-blur-sm capitalize">
+                              {item.category}
+                            </Badge>
+                          )}
+                        </div>
+
+                        {/* Bottom row: title + actions */}
+                        <div>
+                          <p className="text-white text-sm font-medium truncate mb-2">
+                            {item.title || 'Untitled'}
+                          </p>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); openEditForm(item) }}
+                              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/15 text-white text-xs hover:bg-white/25 transition-colors backdrop-blur-sm"
+                            >
+                              <Edit3 className="w-3 h-3" />
+                              Edit
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleDelete(item.id) }}
+                              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-red-500/20 text-red-300 text-xs hover:bg-red-500/30 transition-colors backdrop-blur-sm"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                              Delete
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
+              )
+            })}
+          </div>
+        </div>
+      ) : (
+        /* Unfiltered view: sortable grid with drag-and-drop */
+        <div className="space-y-3">
+          <p className="text-gray-500 text-xs flex items-center gap-1.5">
+            <GripVertical className="w-3 h-3" />
+            Drag images to reorder their display position
+          </p>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={filteredItems.map(i => i.id)} strategy={rectSortingStrategy}>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                {filteredItems.map(item => (
+                  <SortableGalleryItem
+                    key={item.id}
+                    item={item}
+                    isSelected={selectedIds.has(item.id)}
+                    isVideo={item.type === 'video'}
+                    onToggleSelect={() => toggleSelect(item.id)}
+                    onEdit={() => openEditForm(item)}
+                    onDelete={() => handleDelete(item.id)}
+                  />
+                ))}
               </div>
-            )
-          })}
+            </SortableContext>
+          </DndContext>
         </div>
       )}
 
