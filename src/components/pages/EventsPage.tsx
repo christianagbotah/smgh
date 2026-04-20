@@ -27,9 +27,19 @@ export default function EventsPage() {
 
   useEffect(() => {
     fetch('/api/events?limit=50')
-      .then(r => r.json())
-      .then(data => { setEvents(data); setLoading(false) })
-      .catch(() => setLoading(false))
+      .then(async r => {
+        if (!r.ok) throw new Error(`API returned ${r.status}`)
+        return r.json()
+      })
+      .then(data => {
+        setEvents(Array.isArray(data) ? data : [])
+        setLoading(false)
+      })
+      .catch(err => {
+        console.error('Failed to fetch events:', err)
+        setEvents([])
+        setLoading(false)
+      })
   }, [])
 
   const years = ['all', ...Array.from(new Set(events.map(e => new Date(e.date).getFullYear()))).sort((a, b) => b - a)]

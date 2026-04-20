@@ -23,7 +23,7 @@ export default function EventsTimeline() {
   useEffect(() => {
     fetch('/api/events?status=completed&limit=20')
       .then(res => res.json())
-      .then(data => setEvents(data))
+      .then(data => setEvents(Array.isArray(data) ? data : []))
       .catch(() => {})
   }, [])
 

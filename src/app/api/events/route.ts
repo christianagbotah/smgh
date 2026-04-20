@@ -22,9 +22,9 @@ export async function GET(request: NextRequest) {
             galleryItems: { orderBy: { sortOrder: 'asc' } },
           },
         })
-      } catch {
+      } catch (err) {
         // Fallback: try without relations if schema is out of sync
-        console.warn('Event detail query failed, trying without relations')
+        console.warn('Event detail query failed, trying without relations:', err)
         try {
           event = await db.event.findFirst({
             where: { slug },
@@ -41,7 +41,15 @@ export async function GET(request: NextRequest) {
         }
       }
       if (!event) return NextResponse.json({ error: 'Event not found' }, { status: 404 })
-      return NextResponse.json(event)
+      // Ensure all relation arrays are present even if query fell back to no includes
+      const normalized = {
+        ...event,
+        artists: Array.isArray((event as any).artists) ? (event as any).artists : [],
+        guests: Array.isArray((event as any).guests) ? (event as any).guests : [],
+        testimonials: Array.isArray((event as any).testimonials) ? (event as any).testimonials : [],
+        galleryItems: Array.isArray((event as any).galleryItems) ? (event as any).galleryItems : [],
+      }
+      return NextResponse.json(normalized)
     }
 
     const events = await db.event.findMany({

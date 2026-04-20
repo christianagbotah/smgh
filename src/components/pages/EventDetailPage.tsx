@@ -414,10 +414,11 @@ function RSVPModal({
 
 /* ─── Merchandise Product Card ─── */
 function MerchProductCard({ product }: { product: Product }) {
-  const uniqueColors = product.variants
+  const variants = Array.isArray(product.variants) ? product.variants : []
+  const uniqueColors = variants
     .filter((v, i, arr) => arr.findIndex(a => a.colorName === v.colorName) === i)
-  const mainImage = product.image || (product.variants.length > 0 ? product.variants[0].image : null)
-  const firstVariant = product.variants.length > 0 ? product.variants[0] : null
+  const mainImage = product.image || (variants.length > 0 ? variants[0].image : null)
+  const firstVariant = variants.length > 0 ? variants[0] : null
   const displayPrice = firstVariant ? firstVariant.price : product.price
 
   return (
@@ -501,7 +502,15 @@ export default function EventDetailPage() {
       })
       .then(data => {
         if (data && !data.error) {
-          const ev = Array.isArray(data) ? data[0] : data
+          const raw = Array.isArray(data) ? data[0] : data
+          // Normalize: ensure all relation arrays exist
+          const ev: Event = {
+            ...raw,
+            artists: Array.isArray(raw.artists) ? raw.artists : [],
+            guests: Array.isArray(raw.guests) ? raw.guests : [],
+            testimonials: Array.isArray(raw.testimonials) ? raw.testimonials : [],
+            galleryItems: Array.isArray(raw.galleryItems) ? raw.galleryItems : [],
+          }
           setEvent(ev)
           setLocalAttendanceCount(ev?.attendanceCount || 0)
         }
@@ -533,7 +542,11 @@ export default function EventDetailPage() {
       .finally(() => setMerchLoading(false))
   }, [event?.id])
 
-  const youtubeUrls: string[] = event?.youtubeUrls ? JSON.parse(event.youtubeUrls) : []
+  const youtubeUrls: string[] = (() => {
+    if (!event?.youtubeUrls) return []
+    try { return JSON.parse(event.youtubeUrls) }
+    catch { return [] }
+  })()
 
   const getYoutubeId = useCallback((url: string) => {
     const match = url.match(/(?:v=|\/)([^&?/]+)/)

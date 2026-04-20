@@ -22,7 +22,7 @@ export default function ArtistsHub() {
   useEffect(() => {
     fetch('/api/artists')
       .then(res => res.json())
-      .then(data => setArtists(data))
+      .then(data => setArtists(Array.isArray(data) ? data : []))
       .catch(() => {})
   }, [])
 

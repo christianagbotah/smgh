@@ -62,7 +62,7 @@ export default function UpcomingEvents() {
   useEffect(() => {
     fetch('/api/events?status=upcoming&limit=5')
       .then(res => res.json())
-      .then(data => setEvents(data))
+      .then(data => setEvents(Array.isArray(data) ? data : []))
       .catch(() => {})
   }, [])
 
