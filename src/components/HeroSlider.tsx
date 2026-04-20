@@ -60,7 +60,7 @@ export default function HeroSlider({ slides, interval = 6000, children }: HeroSl
 
       {/* Slider Dots - Bottom Left */}
       {slides.length > 1 && (
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
+        <div className="absolute bottom-14 md:bottom-16 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
           {slides.map((slide, idx) => (
             <button
               key={idx}
@@ -81,7 +81,7 @@ export default function HeroSlider({ slides, interval = 6000, children }: HeroSl
       )}
 
       {/* Content Overlay */}
-      <div className="relative z-10 max-w-5xl mx-auto px-4 text-center pb-20 md:pb-24">
+      <div className="relative z-10 max-w-5xl mx-auto px-4 text-center pb-28 md:pb-36">
         {children}
       </div>
     </section>
