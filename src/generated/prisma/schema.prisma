@@ -18,7 +18,7 @@ model Event {
   venue           String
   city            String
   address         String?
-  description     String?
+  description     String?  @db.Text
   bannerImage     String?
   status          String   @default("upcoming")
   tags            String?
@@ -54,7 +54,7 @@ model EventGuest {
   name        String
   title       String?
   photo       String?
-  description String?
+  description String? @db.Text
   sortOrder   Int     @default(0)
   event       Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
 }
@@ -89,7 +89,7 @@ model Artist {
   id        String        @id @default(cuid())
   name      String
   location  String?
-  bio       String?
+  bio       String?       @db.Text
   image     String?
   featured  Boolean       @default(false)
   events    EventArtist[]
@@ -121,7 +121,7 @@ model ContactMessage {
   name      String
   phone     String
   email     String?
-  message   String
+  message   String   @db.Text
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
 }
@@ -136,7 +136,7 @@ model NewsletterSubscriber {
 model SiteSetting {
   id    String @id @default(cuid())
   key   String @unique
-  value String
+  value String @db.Text
 }
 
 model AdminUser {
@@ -165,7 +165,7 @@ model TeamMember {
   name        String
   role        String
   photo       String?
-  bio         String?
+  bio         String?  @db.Text
   email       String?
   phone       String?
   socialLinks String?
@@ -179,7 +179,7 @@ model TeamMember {
 model FoundationRecord {
   id                 String        @id @default(cuid())
   year               Int
-  description        String
+  description        String        @db.Text
   amountRaised       Float?
   amountSpent        Float?
   beneficiariesCount Int?
@@ -205,7 +205,7 @@ model Product {
   id           String   @id @default(cuid())
   name         String
   slug         String   @unique
-  description  String?
+  description  String?  @db.Text
   basePrice    Float
   currency     String   @default("GHS")
   category     String   @default("tshirt")
@@ -243,7 +243,7 @@ model Order {
   customerName    String
   customerEmail   String?
   customerPhone   String
-  deliveryAddress String?
+  deliveryAddress String?  @db.Text
   deliveryCity    String?
   deliveryRegion  String?
   status          String   @default("pending")
@@ -253,7 +253,7 @@ model Order {
   totalAmount     Float
   currency        String   @default("GHS")
   trackingNumber  String?
-  notes           String?
+  notes           String?  @db.Text
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -279,7 +279,7 @@ model CustomPage {
   id          String   @id @default(cuid())
   slug        String   @unique
   title       String
-  content     String   @default("")
+  content     String   @default("") @db.Text
   bannerImage String?
   status      String   @default("draft")
   sortOrder   Int      @default(0)
@@ -290,7 +290,7 @@ model CustomPage {
 model Beneficiary {
   id         String   @id @default(cuid())
   name       String
-  story      String?
+  story      String?  @db.Text
   photo      String?
   category   String?
   location   String?
