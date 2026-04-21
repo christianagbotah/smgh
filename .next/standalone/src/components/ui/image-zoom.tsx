@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { X, ZoomIn, ZoomOut, RotateCw } from 'lucide-react'
 
@@ -14,17 +14,28 @@ interface ImageZoomProps {
 export default function ImageZoom({ src, alt = 'Image', children, className = '' }: ImageZoomProps) {
   const [open, setOpen] = useState(false)
   const [scale, setScale] = useState(1)
+  const [fitScale, setFitScale] = useState(1)
   const [rotation, setRotation] = useState(0)
   const [offset, setOffset] = useState({ x: 0, y: 0 })
   const [dragging, setDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
+  const imgRef = useRef<HTMLImageElement>(null)
+
+  // Calculate the scale needed to fit image within the viewport (with padding)
+  const calcFitScale = useCallback((img: HTMLImageElement) => {
+    const vw = window.innerWidth * 0.88
+    const vh = (window.innerHeight - 120) * 0.88 // leave room for toolbar
+    const s = Math.min(vw / img.naturalWidth, vh / img.naturalHeight, 1)
+    setFitScale(s)
+    return s
+  }, [])
 
   const openZoom = useCallback((e?: React.MouseEvent) => {
     e?.stopPropagation()
     e?.preventDefault()
-    setScale(1)
     setRotation(0)
     setOffset({ x: 0, y: 0 })
+    setDragging(false)
     setOpen(true)
     document.body.style.overflow = 'hidden'
   }, [])
@@ -34,29 +45,55 @@ export default function ImageZoom({ src, alt = 'Image', children, className = ''
     document.body.style.overflow = ''
   }, [])
 
+  // Set scale when image loads
+  const handleImageLoad = useCallback(() => {
+    if (imgRef.current) {
+      const s = calcFitScale(imgRef.current)
+      setScale(s)
+    }
+  }, [calcFitScale])
+
+  // Recalculate fit scale on window resize
+  useEffect(() => {
+    if (!open) return
+    const handleResize = () => {
+      if (imgRef.current) {
+        const s = calcFitScale(imgRef.current)
+        setFitScale(s)
+        // Adjust current scale proportionally if it was at fitScale
+        if (Math.abs(scale / fitScale - 1) < 0.01) {
+          setScale(s)
+        }
+      }
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [open, calcFitScale, scale, fitScale])
+
   // Close on Escape
   useEffect(() => {
     if (!open) return
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') closeZoom()
-      if (e.key === '+' || e.key === '=') setScale(s => Math.min(s + 0.25, 4))
-      if (e.key === '-') setScale(s => Math.max(s - 0.25, 0.5))
+      if (e.key === '+' || e.key === '=') setScale(s => Math.min(s + fitScale * 0.25, fitScale * 4))
+      if (e.key === '-') setScale(s => Math.max(s - fitScale * 0.25, fitScale * 0.5))
       if (e.key === 'r') setRotation(r => (r + 90) % 360)
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [open, closeZoom])
+  }, [open, closeZoom, fitScale])
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault()
-    setScale(s => Math.min(Math.max(s - e.deltaY * 0.002, 0.5), 4))
-  }, [])
+    const step = fitScale * 0.05
+    setScale(s => Math.min(Math.max(s - e.deltaY * step / 5, fitScale * 0.5), fitScale * 4))
+  }, [fitScale])
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (scale <= 1) return
+    if (scale <= fitScale * 1.05) return // only drag when zoomed in
     setDragging(true)
     setDragStart({ x: e.clientX - offset.x, y: e.clientY - offset.y })
-  }, [scale, offset])
+  }, [scale, fitScale, offset])
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!dragging) return
@@ -65,10 +102,19 @@ export default function ImageZoom({ src, alt = 'Image', children, className = ''
 
   const handleMouseUp = useCallback(() => setDragging(false), [])
 
-  const zoomIn = () => setScale(s => Math.min(s + 0.5, 4))
-  const zoomOut = () => setScale(s => Math.max(s - 0.5, 0.5))
+  const zoomIn = () => setScale(s => Math.min(s + fitScale * 0.5, fitScale * 4))
+  const zoomOut = () => setScale(s => Math.max(s - fitScale * 0.5, fitScale * 0.5))
   const rotate = () => setRotation(r => (r + 90) % 360)
-  const resetView = () => { setScale(1); setRotation(0); setOffset({ x: 0, y: 0 }) }
+  const resetView = () => {
+    if (imgRef.current) {
+      const s = calcFitScale(imgRef.current)
+      setScale(s)
+    }
+    setRotation(0)
+    setOffset({ x: 0, y: 0 })
+  }
+
+  const percent = fitScale > 0 ? Math.round((scale / fitScale) * 100) : 100
 
   return (
     <>
@@ -114,7 +160,7 @@ export default function ImageZoom({ src, alt = 'Image', children, className = ''
             <button onClick={zoomOut} className="p-2 rounded-full hover:bg-white/10 text-white transition-colors" aria-label="Zoom out">
               <ZoomOut className="w-5 h-5" />
             </button>
-            <span className="text-white/70 text-xs font-mono min-w-[48px] text-center">{Math.round(scale * 100)}%</span>
+            <span className="text-white/70 text-xs font-mono min-w-[48px] text-center">{percent}%</span>
             <button onClick={zoomIn} className="p-2 rounded-full hover:bg-white/10 text-white transition-colors" aria-label="Zoom in">
               <ZoomIn className="w-5 h-5" />
             </button>
@@ -123,7 +169,7 @@ export default function ImageZoom({ src, alt = 'Image', children, className = ''
               <RotateCw className="w-5 h-5" />
             </button>
             <button onClick={resetView} className="p-2 rounded-full hover:bg-white/10 text-white/70 hover:text-white transition-colors text-xs font-medium">
-              Reset
+              Fit
             </button>
           </div>
 
@@ -135,8 +181,10 @@ export default function ImageZoom({ src, alt = 'Image', children, className = ''
             onMouseMove={handleMouseMove}
           >
             <img
+              ref={imgRef}
               src={src}
               alt={alt}
+              onLoad={handleImageLoad}
               className="absolute top-1/2 left-1/2 max-w-none select-none"
               style={{
                 transform: `translate(-50%, -50%) translate(${offset.x}px, ${offset.y}px) scale(${scale}) rotate(${rotation}deg)`,
