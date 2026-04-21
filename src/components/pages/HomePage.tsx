@@ -920,12 +920,12 @@ export default function HomePage() {
             </AnimatedSection>
             <AnimatedSection delay={0.2}>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-                {gallery.slice(0, 8).map((gi, idx) => (
-                  <div key={gi.id} className={`relative rounded-xl sm:rounded-2xl overflow-hidden group cursor-pointer bg-gray-200 ${idx === 0 ? 'md:col-span-2 md:row-span-2' : ''}`}>
+                {gallery.slice(0, 8).map((gi) => (
+                  <div key={gi.id} className="relative aspect-square rounded-xl sm:rounded-2xl overflow-hidden group cursor-pointer bg-gray-200">
                     <img
                       src={gi.thumbnail || gi.url}
                       alt={gi.title || 'Gallery'}
-                      className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-end p-4">
                       <div className="opacity-0 group-hover:opacity-100 transition-opacity">

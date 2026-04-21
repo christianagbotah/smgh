@@ -118,7 +118,7 @@ export default function GalleryPage() {
         <div className="max-w-7xl mx-auto">
           {loading ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-              {[...Array(12)].map((_, i) => <div key={i} className="aspect-[4/3] sm:aspect-square bg-gray-100 rounded-2xl animate-pulse" />)}
+              {[...Array(12)].map((_, i) => <div key={i} className="aspect-square bg-gray-100 rounded-xl sm:rounded-2xl animate-pulse" />)}
             </div>
           ) : filtered.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -126,13 +126,13 @@ export default function GalleryPage() {
                 <motion.div
                   key={gi.id}
                   variants={item}
-                  className="relative rounded-xl sm:rounded-2xl overflow-hidden group cursor-pointer bg-gray-100"
+                  className="relative aspect-square rounded-xl sm:rounded-2xl overflow-hidden group cursor-pointer bg-gray-100"
                   onClick={() => openLightbox(idx)}
                 >
                   <img
                     src={gi.thumbnail || gi.url}
                     alt={gi.title || 'Gallery'}
-                    className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-end p-3">
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity w-full">
