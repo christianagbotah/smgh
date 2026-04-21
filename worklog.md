@@ -370,3 +370,24 @@ Stage Summary:
 - Postbuild script ensures engine files are always present in standalone deployment
 - Build + push successful to https://github.com/christianagbotah/smgh.git
 - User should `git pull` on cPanel to get the fix
+---
+Task ID: 1
+Agent: main
+Task: Fix truncated right panel on site editor page - contents and buttons get cut off
+
+Work Log:
+- Analyzed the site editor layout structure in src/app/admin/editor/page.tsx
+- Identified the issue: the edit panel motion.div was missing h-full, causing inner h-full flex-col container to not compute height properly
+- Added h-full to the motion.div (line 878) so it stretches to full height of the flex row container
+- Added min-h-0 to the inner w-[420px] div (line 880) to allow proper flex shrinking
+- Added min-h-0 to the scrollable edit content area (line 904) to ensure proper overflow-y-auto behavior
+- Added min-h-0 to the preview+edit panel flex row container (line 841)
+- Verified no lint errors from source code changes
+- Confirmed CSS for select white-on-white was already in place (globals.css lines 318-337)
+
+Stage Summary:
+- Fixed right panel truncation by ensuring proper height propagation through the flex layout chain
+- The key fix was adding h-full to the framer-motion animated div so the inner column layout could compute heights correctly
+- Select dark theme CSS was already implemented - remaining issues are browser-specific native option rendering limitations
+- Files modified: src/app/admin/editor/page.tsx (4 small CSS class additions)
+
