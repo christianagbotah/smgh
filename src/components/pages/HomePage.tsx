@@ -504,7 +504,7 @@ export default function HomePage() {
                     <Link to={`/events/${event.slug}`}>
                       <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 cursor-pointer h-full">
                         {/* Banner Image */}
-                        <div className="relative aspect-[9/16] overflow-hidden">
+                        <div className="relative aspect-[3/4] overflow-hidden">
                           <img
                             src={event.bannerImage || '/images/events/2024/banner.jpg'}
                             alt={event.title}
@@ -801,7 +801,7 @@ export default function HomePage() {
                 {completedEvents.slice(0, 6).map(event => (
                   <Link key={event.id} to={`/events/${event.slug}`}>
                     <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 cursor-pointer h-full">
-                      <div className="relative aspect-[9/16] overflow-hidden">
+                      <div className="relative aspect-[3/4] overflow-hidden">
                         <img src={event.bannerImage} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                         <div className="absolute top-3 left-3">
