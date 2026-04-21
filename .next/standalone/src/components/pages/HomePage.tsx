@@ -188,6 +188,11 @@ export default function HomePage() {
     return new Date(d).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
   }
 
+  // Section settings helpers
+  const sectionVisible = (name: string) => settings[`section_${name}_visible`] !== '0'
+  const sectionTitle = (name: string, fallback: string) => settings[`section_${name}_title`] || fallback
+  const sectionSubtitle = (name: string, fallback: string) => settings[`section_${name}_subtitle`] || fallback
+
   // Countdown timer for next event
   const [countdown, setCountdown] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 })
   useEffect(() => {
@@ -206,7 +211,6 @@ export default function HomePage() {
     tick()
     const interval = setInterval(tick, 1000)
     return () => clearInterval(interval)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [upcomingEvents[0]?.date])
 
   const statEvents = useCountUp(completedEvents.length, 1800)
@@ -300,11 +304,14 @@ export default function HomePage() {
   return (
     <div>
       {/* ─── HERO SLIDER ─── */}
+      {sectionVisible('hero') && (
       <HeroSlider slides={heroSlides} interval={5000}>
         {heroContent}
       </HeroSlider>
+      )}
 
       {/* ─── STATS SECTION ─── */}
+      {sectionVisible('stats') && (
       <section className="relative -mt-10 md:-mt-12 z-20 max-w-6xl mx-auto px-4">
         <AnimatedSection>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -325,8 +332,10 @@ export default function HomePage() {
           </div>
         </AnimatedSection>
       </section>
+      )}
 
       {/* ─── ABOUT / MISSION SECTION ─── */}
+      {sectionVisible('mission') && (
       <section className="py-24 px-4 bg-white">
         <div className="max-w-6xl mx-auto">
           <AnimatedSection>
@@ -334,11 +343,9 @@ export default function HomePage() {
               <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-green-50 text-green-700 text-sm font-medium mb-4">
                 <Sparkles className="w-4 h-4" /> Who We Are
               </span>
-              <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4">
-                Our <span className="text-green-600">Mission</span>
-              </h2>
+              <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4" dangerouslySetInnerHTML={{ __html: sectionTitle('mission', 'Our <span class=\"text-green-600\">Mission</span>') }} />
               <p className="text-gray-600 max-w-2xl mx-auto text-lg text-justify">
-                A faith-based movement dedicated to celebrating mothers and uplifting those in need across Ghana
+                {sectionSubtitle('mission', 'A faith-based movement dedicated to celebrating mothers and uplifting those in need across Ghana')}
               </p>
             </div>
           </AnimatedSection>
@@ -377,15 +384,17 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* ─── VISIONARY MESSAGE ─── */}
+      {sectionVisible('visionary') && (
       <section className="py-24 px-4 bg-gradient-to-br from-gray-50 to-green-50/30">
         <div className="max-w-6xl mx-auto">
           <AnimatedSection>
             <div className="md:flex items-center gap-12">
               <div className="md:w-1/2 mb-8 md:mb-0">
                 <div className="relative rounded-3xl overflow-hidden shadow-2xl">
-                  <img src="/images/team/robert-essuon.jpg" alt="Minister Bobby Essuon - Founder" className="w-full aspect-[3/4] sm:aspect-[3/4] md:aspect-[3/4] object-cover object-top" />
+                  <img src={settings.visionary_photo || '/images/team/robert-essuon.jpg'} alt="Minister Bobby Essuon - Founder" className="w-full aspect-[3/4] sm:aspect-[3/4] md:aspect-[3/4] object-cover object-top" />
                   <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-green-900/90 to-transparent p-4 sm:p-6">
                     <p className="text-white font-bold text-base sm:text-xl">{settings.visionary_name || 'Minister Bobby Essuon'}</p>
                     <p className="text-green-200 text-xs sm:text-sm">Founder &amp; Visionary, Sweet Mothers Ghana</p>
@@ -433,9 +442,10 @@ export default function HomePage() {
           </AnimatedSection>
         </div>
       </section>
+      )}
 
       {/* ─── COUNTDOWN TO NEXT EVENT ─── */}
-      {upcomingEvents.length > 0 && (
+      {sectionVisible('countdown') && upcomingEvents.length > 0 && (
         <section className="py-20 px-4 bg-gradient-to-r from-green-700 via-green-600 to-emerald-600 relative overflow-hidden">
           {/* Decorative elements */}
           <div className="absolute inset-0 opacity-10">
@@ -484,7 +494,7 @@ export default function HomePage() {
       )}
 
       {/* ─── UPCOMING EVENT POST ─── */}
-      {upcomingEvents.length > 0 && (
+      {sectionVisible('upcoming') && upcomingEvents.length > 0 && (
         <section className="py-20 px-4 bg-white">
           <div className="max-w-6xl mx-auto">
             <AnimatedSection>
@@ -492,8 +502,8 @@ export default function HomePage() {
                 <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-green-50 text-green-700 text-sm font-medium mb-4">
                   <Calendar className="w-4 h-4" /> Upcoming Event
                 </span>
-                <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4">Coming <span className="text-green-600">Soon</span></h2>
-                <p className="text-gray-600 max-w-xl mx-auto">Our next worship night and celebration — save the date and join us</p>
+                <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4" dangerouslySetInnerHTML={{ __html: sectionTitle('upcoming', 'Coming <span class=\"text-green-600\">Soon</span>') }} />
+                <p className="text-gray-600 max-w-xl mx-auto">{sectionSubtitle('upcoming', 'Our next worship night and celebration \u2014 save the date and join us')}</p>
                 <div className="w-16 h-1 bg-green-600 mx-auto rounded-full mt-4" />
               </div>
             </AnimatedSection>
@@ -576,7 +586,7 @@ export default function HomePage() {
       )}
 
       {/* ─── FEATURED / LATEST EVENT ─── */}
-      {!upcomingEvents.length && latestEvent && (
+      {sectionVisible('featured_event') && !upcomingEvents.length && latestEvent && (
         <section className="py-20 px-4 bg-gray-50">
           <div className="max-w-6xl mx-auto">
             <AnimatedSection>
@@ -632,7 +642,7 @@ export default function HomePage() {
       )}
 
       {/* ─── TESTIMONIALS CAROUSEL ─── */}
-      {testimonials.length > 0 && (
+      {sectionVisible('testimonials') && testimonials.length > 0 && (
         <section className="py-24 px-4 bg-white">
           <div className="max-w-6xl mx-auto">
             <AnimatedSection>
@@ -640,10 +650,8 @@ export default function HomePage() {
                 <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-red-50 text-red-700 text-sm font-medium mb-4">
                   <Quote className="w-4 h-4" /> Testimonials
                 </span>
-                <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4">
-                  What People <span className="text-red-600">Say</span>
-                </h2>
-                <p className="text-gray-600 max-w-xl mx-auto">Hear from attendees and supporters of Sweet Mothers Ghana events</p>
+                <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4" dangerouslySetInnerHTML={{ __html: sectionTitle('testimonials', 'What People <span class=\"text-red-600\">Say</span>') }} />
+                <p className="text-gray-600 max-w-xl mx-auto">{sectionSubtitle('testimonials', 'Hear from attendees and supporters of Sweet Mothers Ghana events')}</p>
               </div>
             </AnimatedSection>
 
@@ -719,7 +727,7 @@ export default function HomePage() {
       )}
 
       {/* ─── FEATURED ARTISTS ─── */}
-      {artists.length > 0 && (
+      {sectionVisible('artists') && artists.length > 0 && (
         <section className="py-24 px-4 bg-gradient-to-br from-gray-900 via-gray-800 to-green-900 text-white relative overflow-hidden">
           <div className="absolute inset-0 opacity-5">
             <div className="absolute top-10 right-10 w-64 h-64 border border-white rounded-full" />
@@ -780,7 +788,7 @@ export default function HomePage() {
       )}
 
       {/* ─── PAST EVENTS GRID ─── */}
-      {completedEvents.length > 0 && (
+      {sectionVisible('past_events') && completedEvents.length > 0 && (
         <section className="py-24 px-4 bg-white">
           <div className="max-w-6xl mx-auto">
             <AnimatedSection>
@@ -788,8 +796,8 @@ export default function HomePage() {
                 <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-green-50 text-green-700 text-sm font-medium mb-4">
                   <Calendar className="w-4 h-4" /> Our History
                 </span>
-                <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4">Our Events</h2>
-                <p className="text-gray-600 max-w-xl mx-auto">Eight years of worship, celebration, and impact across Ghana</p>
+                <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4" dangerouslySetInnerHTML={{ __html: sectionTitle('past_events', 'Our Events') }} />
+                <p className="text-gray-600 max-w-xl mx-auto">{sectionSubtitle('past_events', 'Eight years of worship, celebration, and impact across Ghana')}</p>
                 <div className="w-16 h-1 bg-red-600 mx-auto rounded-full mt-4" />
               </div>
             </AnimatedSection>
@@ -839,7 +847,7 @@ export default function HomePage() {
       )}
 
       {/* ─── FOUNDATION IMPACT TIMELINE ─── */}
-      {foundation.length > 0 && (
+      {sectionVisible('foundation_timeline') && foundation.length > 0 && (
         <section className="py-24 px-4 bg-gradient-to-br from-red-50 via-white to-green-50">
           <div className="max-w-6xl mx-auto">
             <AnimatedSection>
@@ -847,10 +855,8 @@ export default function HomePage() {
                 <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-red-50 text-red-700 text-sm font-medium mb-4">
                   <Heart className="w-4 h-4" /> Our Impact
                 </span>
-                <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4">
-                  Foundation <span className="text-red-600">Impact</span>
-                </h2>
-                <p className="text-gray-600 max-w-xl mx-auto">Year after year, the SMGH Foundation expands its reach and deepens its impact on mothers and families in need across Ghana</p>
+                <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4" dangerouslySetInnerHTML={{ __html: sectionTitle('foundation_timeline', 'Foundation <span class=\"text-red-600\">Impact</span>') }} />
+                <p className="text-gray-600 max-w-xl mx-auto">{sectionSubtitle('foundation_timeline', 'Year after year, the SMGH Foundation expands its reach and deepens its impact on mothers and families in need across Ghana')}</p>
               </div>
             </AnimatedSection>
 
@@ -905,7 +911,7 @@ export default function HomePage() {
       )}
 
       {/* ─── GALLERY PREVIEW ─── */}
-      {gallery.length > 0 && (
+      {sectionVisible('gallery') && gallery.length > 0 && (
         <section className="py-24 px-4 bg-gray-50">
           <div className="max-w-6xl mx-auto">
             <AnimatedSection>
@@ -913,8 +919,8 @@ export default function HomePage() {
                 <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-50 text-purple-700 text-sm font-medium mb-4">
                   <Globe className="w-4 h-4" /> Moments
                 </span>
-                <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4">Gallery</h2>
-                <p className="text-gray-600">Captured moments from our events and outreach programs across Ghana</p>
+                <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4" dangerouslySetInnerHTML={{ __html: sectionTitle('gallery', 'Gallery') }} />
+                <p className="text-gray-600">{sectionSubtitle('gallery', 'Captured moments from our events and outreach programs across Ghana')}</p>
                 <div className="w-16 h-1 bg-red-600 mx-auto rounded-full mt-4" />
               </div>
             </AnimatedSection>
@@ -949,6 +955,7 @@ export default function HomePage() {
       )}
 
       {/* ─── NEWSLETTER & SOCIAL ─── */}
+      {sectionVisible('newsletter') && (
       <section className="py-24 px-4 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 gap-6 md:gap-12">
@@ -1033,8 +1040,10 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* ─── FOUNDATION CTA ─── */}
+      {sectionVisible('foundation_cta') && (
       <section className="py-24 px-4 relative overflow-hidden">
         {/* Background */}
         <div className="absolute inset-0">
@@ -1050,13 +1059,22 @@ export default function HomePage() {
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-500/20 backdrop-blur-sm mb-6">
               <Heart className="w-8 h-8 text-red-400" />
             </div>
-            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Support Our Mission</h2>
-            <p className="text-gray-300 text-lg max-w-2xl mx-auto mb-4 leading-relaxed">
-              SMGH Foundation was established in 2017 to provide support to less privileged widows and rural pastors&apos; wives. We make donations in cash, food stuffs and other consumables to bring hope and relief to those who need it most.
-            </p>
-            <p className="text-gray-400 text-sm max-w-xl mx-auto mb-10">
-              Full operations started from 2021, even though some donations were made annually from 2017 to 2020. Your generous contribution helps us reach more mothers and families every year.
-            </p>
+            {settings.section_foundation_cta_title || settings.section_foundation_cta_description ? (
+              <>
+                <h2 className="text-3xl md:text-5xl font-bold text-white mb-6" dangerouslySetInnerHTML={{ __html: sectionTitle('foundation_cta', 'Support Our Mission') }} />
+                <div className="text-gray-300 text-lg max-w-2xl mx-auto mb-4 leading-relaxed" dangerouslySetInnerHTML={{ __html: sectionSubtitle('foundation_cta', 'SMGH Foundation was established in 2017 to provide support to less privileged widows and rural pastors&apos; wives. We make donations in cash, food stuffs and other consumables to bring hope and relief to those who need it most.') }} />
+              </>
+            ) : (
+              <>
+                <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Support Our Mission</h2>
+                <p className="text-gray-300 text-lg max-w-2xl mx-auto mb-4 leading-relaxed">
+                  SMGH Foundation was established in 2017 to provide support to less privileged widows and rural pastors&apos; wives. We make donations in cash, food stuffs and other consumables to bring hope and relief to those who need it most.
+                </p>
+                <p className="text-gray-400 text-sm max-w-xl mx-auto mb-10">
+                  Full operations started from 2021, even though some donations were made annually from 2017 to 2020. Your generous contribution helps us reach more mothers and families every year.
+                </p>
+              </>
+            )}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link to="/donate">
                 <Button size="lg" className="bg-red-600 hover:bg-red-700 text-white px-8 py-6 text-base rounded-full shadow-lg shadow-red-600/25 transition-all hover:scale-105">
@@ -1072,6 +1090,7 @@ export default function HomePage() {
           </AnimatedSection>
         </div>
       </section>
+      )}
     </div>
   )
 }

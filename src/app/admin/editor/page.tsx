@@ -8,7 +8,8 @@ import {
   Phone, ShoppingBag, Truck, ChevronLeft, ChevronRight,
   X, Save, ArrowLeft, Monitor, Smartphone, Tablet,
   FileText, ExternalLink, Edit3, Loader2,
-  MessageSquare, Trash2, Plus, Eye, EyeOff, LayoutDashboard
+  MessageSquare, Trash2, Plus, Eye, EyeOff, LayoutDashboard,
+  Star, Target, BookOpen, Share2, ChevronDown, Globe
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -91,6 +92,33 @@ function PageSidebarItem({
   )
 }
 
+/* ── Home Section Definitions ── */
+const HOME_SECTIONS = [
+  { id: 'hero', label: 'Hero Banner & Text', canEditTitle: true },
+  { id: 'stats', label: 'Stats Numbers', canEditTitle: true },
+  { id: 'mission', label: 'Mission Cards', canEditTitle: true },
+  { id: 'visionary', label: 'Visionary Message', canEditTitle: true },
+  { id: 'countdown', label: 'Countdown Timer', canEditTitle: false },
+  { id: 'upcoming', label: 'Upcoming Event Post', canEditTitle: true },
+  { id: 'featured_event', label: 'Featured/Latest Event', canEditTitle: true },
+  { id: 'testimonials', label: 'Testimonials', canEditTitle: true },
+  { id: 'artists', label: 'Featured Artists', canEditTitle: true },
+  { id: 'past_events', label: 'Past Events Grid', canEditTitle: true },
+  { id: 'foundation_timeline', label: 'Foundation Timeline', canEditTitle: true },
+  { id: 'gallery', label: 'Gallery Preview', canEditTitle: true },
+  { id: 'newsletter', label: 'Newsletter & Social', canEditTitle: true },
+  { id: 'foundation_cta', label: 'Foundation CTA Banner', canEditTitle: true },
+]
+
+const SOCIAL_LINKS = [
+  { key: 'facebook_url', label: 'Facebook', placeholder: 'https://facebook.com/sweetmothersgh' },
+  { key: 'youtube_url', label: 'YouTube', placeholder: 'https://youtube.com/@sweetmothersgh' },
+  { key: 'instagram_url', label: 'Instagram', placeholder: 'https://instagram.com/sweetmothersgh' },
+  { key: 'social_tiktok', label: 'TikTok', placeholder: 'https://tiktok.com/@sweetmothersgh' },
+  { key: 'social_twitter', label: 'Twitter / X', placeholder: 'https://twitter.com/sweetmothersgh' },
+  { key: 'whatsapp_link', label: 'WhatsApp', placeholder: 'https://wa.link/jdnvkt' },
+]
+
 /* ────────────────────────── Edit Panel Content ────────────────────────── */
 
 function EntityEditPanel({ page }: { page: PageDef }) {
@@ -127,82 +155,167 @@ function StaticEditPanel() {
   )
 }
 
+function CollapsibleSection({ title, subtitle, icon, isOpen, onToggle, children }: {
+  title: string; subtitle: string; icon: React.ReactNode; isOpen: boolean; onToggle: () => void; children: React.ReactNode
+}) {
+  return (
+    <div className="border border-gray-700/50 rounded-xl overflow-hidden">
+      <button onClick={onToggle} className="w-full flex items-center gap-3 p-3 text-left hover:bg-white/[0.03] transition-colors">
+        <div className="w-8 h-8 rounded-lg bg-smgh-green/10 flex items-center justify-center flex-shrink-0 text-smgh-green">
+          {icon}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-white text-sm font-medium">{title}</p>
+          <p className="text-gray-500 text-xs truncate">{subtitle}</p>
+        </div>
+        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+      {isOpen && (
+        <div className="px-3 pb-3 border-t border-gray-700/30 pt-3">
+          {children}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function HomeEditPanel({
   draft, setDraft,
 }: {
   draft: Record<string, string>; setDraft: (fn: (p: Record<string, string>) => Record<string, string>) => void
 }) {
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    visibility: true,
+    hero: false,
+    visionary: false,
+    mission: false,
+    about: false,
+    foundation_cta: false,
+    social: false,
+  })
+
+  const toggleSection = (key: string) => setOpenSections(p => ({ ...p, [key]: !p[key] }))
+
   return (
-    <div className="space-y-4">
-      {/* Hero Description */}
-      <div>
-        <SectionLabel>Hero Description</SectionLabel>
-        <RichTextEditor
-          value={draft.hero_description || ''}
-          onChange={v => setDraft(p => ({ ...p, hero_description: v }))}
-          placeholder="Main paragraph below the Sweet Mothers Ghana title..."
-        />
-      </div>
+    <div className="space-y-3">
+      {/* ─── SECTION VISIBILITY & TITLES ─── */}
+      <CollapsibleSection title="Section Visibility & Titles" subtitle="Show/hide and rename all home sections" icon={<LayoutDashboard className="w-4 h-4" />} isOpen={openSections.visibility} onToggle={() => toggleSection('visibility')}>
+        <div className="space-y-2">
+          {HOME_SECTIONS.map(s => (
+            <div key={s.id} className="flex items-center gap-3 p-2.5 rounded-lg bg-white/[0.03] border border-gray-800/50">
+              <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                <input
+                  type="checkbox"
+                  checked={draft[`section_${s.id}_visible`] !== '0'}
+                  onChange={e => setDraft(p => ({ ...p, [`section_${s.id}_visible`]: e.target.checked ? '1' : '0' }))}
+                  className="sr-only peer"
+                />
+                <div className="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-smgh-green"></div>
+              </label>
+              <div className="flex-1 min-w-0">
+                <p className="text-white text-sm font-medium truncate">{s.label}</p>
+                {s.canEditTitle && (
+                  <input
+                    value={draft[`section_${s.id}_title`] || ''}
+                    onChange={e => setDraft(p => ({ ...p, [`section_${s.id}_title`]: e.target.value }))}
+                    placeholder={`Custom title (leave empty for default)`}
+                    className="w-full mt-1 px-2 py-1 rounded bg-white/5 border border-gray-800 text-gray-300 text-xs focus:outline-none focus:border-smgh-green/50 placeholder:text-gray-600"
+                  />
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </CollapsibleSection>
 
-      {/* Visionary */}
-      <div>
-        <SectionLabel>Visionary Name</SectionLabel>
-        <TextInput
-          value={draft.visionary_name || ''}
-          onChange={v => setDraft(p => ({ ...p, visionary_name: v }))}
-          placeholder="Minister Bobby Essuon"
-          className="mb-3"
-        />
-        <SectionLabel>Visionary&apos;s Message</SectionLabel>
-        <RichTextEditor
-          value={draft.visionary_message || ''}
-          onChange={v => setDraft(p => ({ ...p, visionary_message: v }))}
-          placeholder="The visionary's message to visitors..."
-        />
-      </div>
-
-      {/* Site Tagline */}
-      <div>
-        <SectionLabel>Site Tagline</SectionLabel>
-        <TextInput
-          value={draft.site_tagline || ''}
-          onChange={v => setDraft(p => ({ ...p, site_tagline: v }))}
-          placeholder="Celebrating Mothers Since 2017"
-        />
-      </div>
-
-      {/* Mission Cards */}
-      {[1, 2, 3].map(num => (
-        <div key={num} className="border border-gray-700/50 rounded-xl p-3">
-          <span className="text-gray-400 text-[10px] font-semibold uppercase tracking-wider">
-            Mission Card {num}
-          </span>
-          <div className="mt-2">
-            <TextInput
-              value={draft[`mission_card_${num}_title`] || ''}
-              onChange={v => setDraft(p => ({ ...p, [`mission_card_${num}_title`]: v }))}
-              placeholder={`Card ${num} title`}
-              className="mb-2"
+      {/* ─── HERO SECTION ─── */}
+      <CollapsibleSection title="Hero Section" subtitle="Main banner text and tagline" icon={<Image className="w-4 h-4" />} isOpen={openSections.hero} onToggle={() => toggleSection('hero')}>
+        <div className="space-y-3">
+          <div>
+            <SectionLabel>Site Tagline</SectionLabel>
+            <TextInput value={draft.site_tagline || ''} onChange={v => setDraft(p => ({ ...p, site_tagline: v }))} placeholder="Celebrating Mothers Since 2017" />
+          </div>
+          <div>
+            <SectionLabel>Hero Description</SectionLabel>
+            <RichTextEditor value={draft.hero_description || ''} onChange={v => setDraft(p => ({ ...p, hero_description: v }))} placeholder="Main paragraph below the Sweet Mothers Ghana title..." />
+          </div>
+          <div>
+            <SectionLabel>Hero Slider Images</SectionLabel>
+            <p className="text-gray-500 text-xs mb-2">One image URL per line</p>
+            <textarea
+              value={draft.hero_slider_images || ''}
+              onChange={e => setDraft(p => ({ ...p, hero_slider_images: e.target.value }))}
+              placeholder={'https://example.com/image1.jpg\nhttps://example.com/image2.jpg'}
+              rows={4}
+              className="w-full px-3 py-2 rounded-lg bg-white/5 border border-gray-700 text-white text-sm focus:outline-none focus:border-smgh-green resize-none placeholder:text-gray-600 font-mono"
             />
           </div>
-          <RichTextEditor
-            value={draft[`mission_card_${num}_desc`] || ''}
-            onChange={v => setDraft(p => ({ ...p, [`mission_card_${num}_desc`]: v }))}
-            placeholder="Card description..."
-            minHeight="min-h-[100px]"
-          />
         </div>
-      ))}
+      </CollapsibleSection>
 
-      {/* About Content */}
-      <div>
-        <SectionLabel>About Page Content</SectionLabel>
-        <RichTextEditor
-          value={draft.about_content || ''}
-          onChange={v => setDraft(p => ({ ...p, about_content: v }))}
-          placeholder="Write about Sweet Mothers Ghana..."
-        />
-      </div>
+      {/* ─── VISIONARY SECTION ─── */}
+      <CollapsibleSection title="Visionary Section" subtitle="Visionary name, message and photo" icon={<Star className="w-4 h-4" />} isOpen={openSections.visionary} onToggle={() => toggleSection('visionary')}>
+        <div className="space-y-3">
+          <div>
+            <SectionLabel>Visionary Name</SectionLabel>
+            <TextInput value={draft.visionary_name || ''} onChange={v => setDraft(p => ({ ...p, visionary_name: v }))} placeholder="Minister Bobby Essuon" />
+          </div>
+          <div>
+            <SectionLabel>Visionary Photo URL</SectionLabel>
+            <MediaPicker value={draft.visionary_photo || ''} onChange={v => setDraft(p => ({ ...p, visionary_photo: v }))} label="Choose visionary photo" previewHeight="h-32" />
+          </div>
+          <div>
+            <SectionLabel>Visionary&apos;s Message</SectionLabel>
+            <RichTextEditor value={draft.visionary_message || ''} onChange={v => setDraft(p => ({ ...p, visionary_message: v }))} placeholder="The visionary's message to visitors..." />
+          </div>
+        </div>
+      </CollapsibleSection>
+
+      {/* ─── MISSION CARDS ─── */}
+      <CollapsibleSection title="Mission Cards" subtitle="The three mission/focus area cards" icon={<Target className="w-4 h-4" />} isOpen={openSections.mission} onToggle={() => toggleSection('mission')}>
+        <div className="space-y-3">
+          {[1, 2, 3].map(num => (
+            <div key={num} className="border border-gray-700/50 rounded-xl p-3">
+              <span className="text-gray-400 text-[10px] font-semibold uppercase tracking-wider">Mission Card {num}</span>
+              <div className="mt-2">
+                <TextInput value={draft[`mission_card_${num}_title`] || ''} onChange={v => setDraft(p => ({ ...p, [`mission_card_${num}_title`]: v }))} placeholder={`Card ${num} title`} className="mb-2" />
+              </div>
+              <RichTextEditor value={draft[`mission_card_${num}_desc`] || ''} onChange={v => setDraft(p => ({ ...p, [`mission_card_${num}_desc`]: v }))} placeholder="Card description..." minHeight="min-h-[100px]" />
+            </div>
+          ))}
+        </div>
+      </CollapsibleSection>
+
+      {/* ─── ABOUT CONTENT ─── */}
+      <CollapsibleSection title="About Page Content" subtitle="Content for the About page" icon={<BookOpen className="w-4 h-4" />} isOpen={openSections.about} onToggle={() => toggleSection('about')}>
+        <RichTextEditor value={draft.about_content || ''} onChange={v => setDraft(p => ({ ...p, about_content: v }))} placeholder="Write about Sweet Mothers Ghana..." />
+      </CollapsibleSection>
+
+      {/* ─── FOUNDATION CTA ─── */}
+      <CollapsibleSection title="Foundation CTA Banner" subtitle="The support/donate call-to-action section" icon={<Heart className="w-4 h-4" />} isOpen={openSections.foundation_cta} onToggle={() => toggleSection('foundation_cta')}>
+        <div className="space-y-3">
+          <div>
+            <SectionLabel>CTA Title</SectionLabel>
+            <TextInput value={draft.section_foundation_cta_title || ''} onChange={v => setDraft(p => ({ ...p, section_foundation_cta_title: v }))} placeholder="Support Our Mission" />
+          </div>
+          <div>
+            <SectionLabel>CTA Description</SectionLabel>
+            <RichTextEditor value={draft.section_foundation_cta_description || ''} onChange={v => setDraft(p => ({ ...p, section_foundation_cta_description: v }))} placeholder="Description text for the foundation call-to-action..." minHeight="min-h-[150px]" />
+          </div>
+        </div>
+      </CollapsibleSection>
+
+      {/* ─── SOCIAL LINKS ─── */}
+      <CollapsibleSection title="Social Media Links" subtitle="All social media profile URLs" icon={<Share2 className="w-4 h-4" />} isOpen={openSections.social} onToggle={() => toggleSection('social')}>
+        <div className="space-y-3">
+          {SOCIAL_LINKS.map(s => (
+            <div key={s.key}>
+              <SectionLabel>{s.label}</SectionLabel>
+              <TextInput value={draft[s.key] || ''} onChange={v => setDraft(p => ({ ...p, [s.key]: v }))} placeholder={s.placeholder} />
+            </div>
+          ))}
+        </div>
+      </CollapsibleSection>
     </div>
   )
 }
@@ -212,16 +325,21 @@ function FoundationEditPanel({
 }: {
   draft: Record<string, string>; setDraft: (fn: (p: Record<string, string>) => Record<string, string>) => void
 }) {
+  const [isOpen, setIsOpen] = useState(true)
   return (
-    <div className="space-y-4">
-      <div>
-        <SectionLabel>Foundation Description</SectionLabel>
-        <RichTextEditor
-          value={draft.foundation_description || ''}
-          onChange={v => setDraft(p => ({ ...p, foundation_description: v }))}
-          placeholder="Describe the SMGH Foundation..."
-        />
-      </div>
+    <div className="space-y-3">
+      <CollapsibleSection title="Foundation Page Content" subtitle="Title, description for the foundation page" icon={<Heart className="w-4 h-4" />} isOpen={isOpen} onToggle={() => setIsOpen(v => !v)}>
+        <div className="space-y-3">
+          <div>
+            <SectionLabel>Section Title</SectionLabel>
+            <TextInput value={draft.section_foundation_title || ''} onChange={v => setDraft(p => ({ ...p, section_foundation_title: v }))} placeholder="Foundation Impact" />
+          </div>
+          <div>
+            <SectionLabel>Foundation Description</SectionLabel>
+            <RichTextEditor value={draft.foundation_description || ''} onChange={v => setDraft(p => ({ ...p, foundation_description: v }))} placeholder="Describe the SMGH Foundation..." />
+          </div>
+        </div>
+      </CollapsibleSection>
     </div>
   )
 }
@@ -243,6 +361,13 @@ function ContactEditPanel({
           placeholder="+233 24 000 0000"
           className="mb-3"
         />
+        <SectionLabel>Secondary Phone</SectionLabel>
+        <TextInput
+          value={draft.contact_phone2 || ''}
+          onChange={v => setDraft(p => ({ ...p, contact_phone2: v }))}
+          placeholder="+233 20 000 0000"
+          className="mb-3"
+        />
         <SectionLabel>Contact Email</SectionLabel>
         <TextInput
           value={draft.contact_email || ''}
@@ -255,6 +380,13 @@ function ContactEditPanel({
           value={draft.contact_address || ''}
           onChange={v => setDraft(p => ({ ...p, contact_address: v }))}
           placeholder="Cape Coast, Central Region, Ghana"
+          className="mb-3"
+        />
+        <SectionLabel>Office Hours</SectionLabel>
+        <TextInput
+          value={draft.contact_office_hours || ''}
+          onChange={v => setDraft(p => ({ ...p, contact_office_hours: v }))}
+          placeholder="Mon - Fri: 9:00 AM - 5:00 PM"
         />
       </div>
 
