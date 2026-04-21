@@ -391,3 +391,28 @@ Stage Summary:
 - Select dark theme CSS was already implemented - remaining issues are browser-specific native option rendering limitations
 - Files modified: src/app/admin/editor/page.tsx (4 small CSS class additions)
 
+---
+Task ID: 9-12
+Agent: main
+Task: Event banner aspect ratio 834x1080 + click-to-zoom lightbox
+
+Work Log:
+- Created new ImageZoom component (src/components/ui/image-zoom.tsx)
+  - Full-screen lightbox with dark backdrop
+  - Scroll-to-zoom (mouse wheel), pan-to-move (click-drag when zoomed)
+  - Toolbar: zoom in/out, rotate, reset, percentage display
+  - Keyboard shortcuts: Escape close, +/- zoom, R rotate
+  - Zoom hint icon overlay on hover
+- Updated all event banner aspect ratios from 3:4 (600x800) to 834/1080 (flyer dimensions)
+  - EventsPage.tsx: skeleton, hero card, upcoming grid, past events grid (4 instances)
+  - EventDetailPage.tsx: hero banner fallback, related events cards (2 instances)
+  - HomePage.tsx: upcoming event post, past events grid (2 instances)
+- Added ImageZoom wrapper to every event banner image across all 3 pages
+- Built production bundle and pushed
+
+Stage Summary:
+- New file: src/components/ui/image-zoom.tsx (reusable zoom lightbox)
+- Modified: EventsPage.tsx, EventDetailPage.tsx, HomePage.tsx
+- All event banners now display at 834x1080 ratio matching actual flyer dimensions
+- Users can click any event banner to open full-screen zoom with pan/rotate controls
+
