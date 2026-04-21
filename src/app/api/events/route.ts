@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
 
     const events = await db.event.findMany({
       where: status ? { status } : undefined,
-      orderBy: { date: 'desc' },
+      orderBy: status === 'upcoming' ? { date: 'asc' } : { date: 'desc' },
       take: limit,
     })
 
