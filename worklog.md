@@ -348,3 +348,25 @@ Stage Summary:
 - 4 pages received PageLoadingOverlay for saving states
 - Commit: 2fb181a pushed to main
 - User needs to: git pull on cPanel, npx prisma generate, restart app
+
+---
+Task ID: 1
+Agent: Main
+Task: Fix Prisma WASM out-of-memory error on cPanel shared hosting
+
+Work Log:
+- Analyzed root cause: Prisma native engine binaries missing for cPanel server OS → falls back to WebAssembly → WASM exceeds memory limit
+- Added ALL possible Linux binary targets to prisma/schema.prisma (debian 1.0/1.1/3.0, rhel 1.0/1.1/3.0, linux-musl, linux-musl-openssl-3.0.x)
+- Regenerated Prisma client with 8 native engine binaries covering all major cPanel distros
+- Added `output: "standalone"` to next.config.ts for proper deployment builds
+- Added `serverExternalPackages: ["@prisma/client", "mysql2"]` to next.config.ts
+- Created `scripts/postbuild.js` that copies all Prisma engine binaries into `.next/standalone/src/generated/prisma/`
+- Updated build script: `"build": "next build && node scripts/postbuild.js"`
+- Verified all 8 engine binaries present in standalone output after build
+- Successfully committed and pushed to GitHub
+
+Stage Summary:
+- Key fix: 8 native engine binaries now cover ALL cPanel hosting environments (Debian, Ubuntu, RHEL, CentOS, AlmaLinux, Rocky, CloudLinux, Alpine)
+- Postbuild script ensures engine files are always present in standalone deployment
+- Build + push successful to https://github.com/christianagbotah/smgh.git
+- User should `git pull` on cPanel to get the fix
