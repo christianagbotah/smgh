@@ -131,9 +131,9 @@ export default function EventsPage() {
                       <Link to={`/events/${upcoming[0].slug}`}>
                         <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 cursor-pointer">
                           <div className="flex flex-col md:flex-row">
-                            {/* Image side */}
-                            <div className="relative w-full md:w-[380px] lg:w-[440px] flex-shrink-0">
-                              <div className="aspect-[3/4] md:h-full md:aspect-auto overflow-hidden">
+                            {/* Image side — 3:4 portrait ratio */}
+                            <div className="relative w-full md:w-[340px] lg:w-[400px] flex-shrink-0">
+                              <div className="aspect-[3/4] overflow-hidden">
                                 <img
                                   src={upcoming[0].bannerImage || `https://picsum.photos/seed/${upcoming[0].slug}/600/800`}
                                   alt={upcoming[0].title}
