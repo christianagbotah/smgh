@@ -114,7 +114,7 @@ export default function EventsPage() {
           {loading ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="bg-gray-100 rounded-2xl aspect-[9/16] animate-pulse" />
+                <div key={i} className="bg-gray-100 rounded-2xl aspect-[3/4] animate-pulse" />
               ))}
             </div>
           ) : (
@@ -130,9 +130,9 @@ export default function EventsPage() {
                       <motion.div key={event.id} variants={item}>
                         <Link to={`/events/${event.slug}`}>
                           <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 cursor-pointer h-full flex flex-col">
-                            <div className="relative aspect-[9/16] overflow-hidden">
+                            <div className="relative aspect-[3/4] overflow-hidden">
                               <img
-                                src={event.bannerImage || `https://picsum.photos/seed/${event.slug}/600/1066`}
+                                src={event.bannerImage || `https://picsum.photos/seed/${event.slug}/600/800`}
                                 alt={event.title}
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                               />
@@ -185,9 +185,9 @@ export default function EventsPage() {
                       <motion.div key={event.id} variants={item}>
                         <Link to={`/events/${event.slug}`}>
                           <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 cursor-pointer h-full flex flex-col">
-                            <div className="relative aspect-[9/16] overflow-hidden">
+                            <div className="relative aspect-[3/4] overflow-hidden">
                               <img
-                                src={event.bannerImage || `https://picsum.photos/seed/${event.slug}/600/1066`}
+                                src={event.bannerImage || `https://picsum.photos/seed/${event.slug}/600/800`}
                                 alt={event.title}
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                               />

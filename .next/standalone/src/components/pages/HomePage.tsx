@@ -483,96 +483,93 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* ─── UPCOMING EVENTS POSTS ─── */}
+      {/* ─── UPCOMING EVENT POST ─── */}
       {upcomingEvents.length > 0 && (
         <section className="py-20 px-4 bg-white">
           <div className="max-w-6xl mx-auto">
             <AnimatedSection>
               <div className="text-center mb-12">
                 <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-green-50 text-green-700 text-sm font-medium mb-4">
-                  <Calendar className="w-4 h-4" /> Upcoming Events
+                  <Calendar className="w-4 h-4" /> Upcoming Event
                 </span>
-                <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4">Events <span className="text-green-600">Coming Up</span></h2>
-                <p className="text-gray-600 max-w-xl mx-auto">Don&apos;t miss out on our upcoming worship nights and outreach programs</p>
+                <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4">Coming <span className="text-green-600">Soon</span></h2>
+                <p className="text-gray-600 max-w-xl mx-auto">Our next worship night and celebration — save the date and join us</p>
                 <div className="w-16 h-1 bg-green-600 mx-auto rounded-full mt-4" />
               </div>
             </AnimatedSection>
             <AnimatedSection delay={0.2}>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {upcomingEvents.slice(0, 6).map((event, idx) => (
-                  <AnimatedSection key={event.id} delay={idx * 0.1}>
-                    <Link to={`/events/${event.slug}`}>
-                      <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 cursor-pointer h-full">
-                        {/* Banner Image */}
-                        <div className="relative aspect-[9/16] overflow-hidden">
-                          <img
-                            src={event.bannerImage || '/images/events/2024/banner.jpg'}
-                            alt={event.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-                          {/* Date badge */}
-                          <div className="absolute top-3 left-3 bg-green-600 text-white rounded-xl p-2 text-center min-w-[52px] shadow-lg">
-                            <p className="text-xs font-bold uppercase leading-none">
-                              {new Date(event.date).toLocaleDateString('en-US', { month: 'short' })}
-                            </p>
-                            <p className="text-xl font-extrabold leading-tight">
-                              {new Date(event.date).getDate()}
-                            </p>
-                          </div>
-                          {/* Status badge */}
-                          <div className="absolute top-3 right-3">
-                            <span className="px-2.5 py-1 bg-emerald-500/90 backdrop-blur-sm text-white text-xs font-semibold rounded-full flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-                              Upcoming
-                            </span>
-                          </div>
-                          {/* Title overlay */}
-                          <div className="absolute bottom-3 left-3 right-3">
-                            <h3 className="font-bold text-white text-lg leading-tight drop-shadow">{event.title}</h3>
-                          </div>
-                        </div>
-                        {/* Details */}
-                        <div className="p-5">
-                          <div className="space-y-2.5">
-                            <div className="flex items-center gap-2 text-gray-600 text-sm">
-                              <Clock className="w-4 h-4 text-green-600 flex-shrink-0" />
-                              <span>{formatDate(event.date)}</span>
+              <div className="max-w-4xl mx-auto">
+                {(() => {
+                  const ev = upcomingEvents[0]
+                  return (
+                    <Link to={`/events/${ev.slug}`}>
+                      <div className="group bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100 cursor-pointer">
+                        <div className="md:flex">
+                          {/* Banner Image */}
+                          <div className="md:w-[45%] relative aspect-[3/4] md:aspect-auto overflow-hidden">
+                            <img
+                              src={ev.bannerImage || '/images/events/2024/banner.jpg'}
+                              alt={ev.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/10 hidden md:block" />
+                            {/* Date badge */}
+                            <div className="absolute top-4 left-4 bg-green-600 text-white rounded-2xl p-3 text-center min-w-[60px] shadow-lg">
+                              <p className="text-xs font-bold uppercase leading-none">
+                                {new Date(ev.date).toLocaleDateString('en-US', { month: 'short' })}
+                              </p>
+                              <p className="text-2xl font-extrabold leading-tight mt-0.5">
+                                {new Date(ev.date).getDate()}
+                              </p>
                             </div>
-                            {event.time && (
-                              <div className="flex items-center gap-2 text-gray-600 text-sm">
-                                <Timer className="w-4 h-4 text-green-600 flex-shrink-0" />
-                                <span>{event.time}</span>
+                            {/* Status badge */}
+                            <div className="absolute top-4 right-4">
+                              <span className="px-3 py-1.5 bg-emerald-500/90 backdrop-blur-sm text-white text-xs font-semibold rounded-full flex items-center gap-1.5 shadow-sm">
+                                <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                                Upcoming
+                              </span>
+                            </div>
+                          </div>
+                          {/* Details */}
+                          <div className="md:w-[55%] p-8 md:p-10 flex flex-col justify-center">
+                            <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 group-hover:text-green-700 transition-colors">{ev.title}</h3>
+                            <div className="space-y-3 mb-8">
+                              <div className="flex items-center gap-3 text-gray-600">
+                                <div className="w-9 h-9 rounded-lg bg-green-50 flex items-center justify-center flex-shrink-0">
+                                  <Calendar className="w-4.5 h-4.5 text-green-600" />
+                                </div>
+                                <span className="text-sm font-medium">{formatDate(ev.date)}</span>
                               </div>
-                            )}
-                            <div className="flex items-center gap-2 text-gray-600 text-sm">
-                              <MapPin className="w-4 h-4 text-green-600 flex-shrink-0" />
-                              <span>{event.venue}, {event.city}</span>
+                              {ev.time && (
+                                <div className="flex items-center gap-3 text-gray-600">
+                                  <div className="w-9 h-9 rounded-lg bg-green-50 flex items-center justify-center flex-shrink-0">
+                                    <Clock className="w-4.5 h-4.5 text-green-600" />
+                                  </div>
+                                  <span className="text-sm font-medium">{ev.time}</span>
+                                </div>
+                              )}
+                              <div className="flex items-center gap-3 text-gray-600">
+                                <div className="w-9 h-9 rounded-lg bg-green-50 flex items-center justify-center flex-shrink-0">
+                                  <MapPin className="w-4.5 h-4.5 text-green-600" />
+                                </div>
+                                <span className="text-sm font-medium">{ev.venue}, {ev.city}</span>
+                              </div>
                             </div>
-                          </div>
-                          <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
-                            <span className="text-green-600 font-medium text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
-                              View Details <ChevronRight className="w-3.5 h-3.5" />
-                            </span>
-                            <span className="text-gray-400 text-xs flex items-center gap-1">
-                              <Users className="w-3 h-3" /> RSVP Open
-                            </span>
+                            <div className="flex items-center gap-3">
+                              <Button className="bg-green-600 hover:bg-green-700 text-white rounded-full px-6 transition-all shadow-sm hover:shadow-md">
+                                View Details <ArrowRight className="w-4 h-4 ml-2" />
+                              </Button>
+                              <span className="text-gray-400 text-xs flex items-center gap-1.5">
+                                <Users className="w-3.5 h-3.5" /> RSVP Open
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
                     </Link>
-                  </AnimatedSection>
-                ))}
+                  )
+                })()}
               </div>
-              {upcomingEvents.length > 3 && (
-                <div className="text-center mt-10">
-                  <Link to="/events">
-                    <Button variant="outline" className="border-green-600 text-green-700 hover:bg-green-600 hover:text-white rounded-full px-8 transition-all">
-                      View All Events <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </Link>
-                </div>
-              )}
             </AnimatedSection>
           </div>
         </section>
@@ -801,7 +798,7 @@ export default function HomePage() {
                 {completedEvents.slice(0, 6).map(event => (
                   <Link key={event.id} to={`/events/${event.slug}`}>
                     <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 cursor-pointer h-full">
-                      <div className="relative aspect-[9/16] overflow-hidden">
+                      <div className="relative aspect-[3/4] overflow-hidden">
                         <img src={event.bannerImage} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                         <div className="absolute top-3 left-3">
