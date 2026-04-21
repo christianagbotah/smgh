@@ -119,58 +119,117 @@ export default function EventsPage() {
             </div>
           ) : (
             <>
-              {/* Upcoming */}
+              {/* Upcoming — single hero card when 1 event, grid for multiple */}
               {upcoming.length > 0 && (
                 <div className="mb-16">
                   <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                     <span className="w-2 h-2 bg-smgh-green rounded-full animate-pulse" /> Upcoming Events
                   </h2>
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {upcoming.map(event => (
-                      <motion.div key={event.id} variants={item}>
-                        <Link to={`/events/${event.slug}`}>
-                          <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 cursor-pointer h-full flex flex-col">
-                            <div className="relative aspect-[3/4] overflow-hidden">
-                              <img
-                                src={event.bannerImage || `https://picsum.photos/seed/${event.slug}/600/800`}
-                                alt={event.title}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                              />
-                              <div className="absolute top-3 left-3">
-                                <span className="px-3 py-1 bg-smgh-green text-white text-xs font-semibold rounded-full animate-pulse">
+                  {upcoming.length === 1 ? (
+                    /* ── Single upcoming event: full-width hero card ── */
+                    <motion.div key={upcoming[0].id} variants={item}>
+                      <Link to={`/events/${upcoming[0].slug}`}>
+                        <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 cursor-pointer">
+                          <div className="flex flex-col md:flex-row">
+                            {/* Image side */}
+                            <div className="relative w-full md:w-[380px] lg:w-[440px] flex-shrink-0">
+                              <div className="aspect-[3/4] md:h-full md:aspect-auto overflow-hidden">
+                                <img
+                                  src={upcoming[0].bannerImage || `https://picsum.photos/seed/${upcoming[0].slug}/600/800`}
+                                  alt={upcoming[0].title}
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                />
+                              </div>
+                              <div className="absolute top-4 left-4">
+                                <span className="px-3 py-1.5 bg-smgh-green text-white text-xs font-semibold rounded-full animate-pulse shadow-lg">
                                   ● Upcoming
                                 </span>
                               </div>
                             </div>
-                            <div className="p-5 flex-1 flex flex-col">
-                              <h3 className="font-bold text-gray-900 group-hover:text-smgh-green transition-colors text-lg">{event.title}</h3>
-                              <div className="space-y-1.5 mt-3 flex-1">
-                                <div className="flex items-center gap-2 text-gray-500 text-sm">
-                                  <Calendar className="w-3.5 h-3.5" />
-                                  {new Date(event.date).toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric' })}
+                            {/* Content side */}
+                            <div className="flex-1 p-6 md:p-8 lg:p-10 flex flex-col justify-center">
+                              <h3 className="font-bold text-gray-900 group-hover:text-smgh-green transition-colors text-xl md:text-2xl lg:text-3xl">{upcoming[0].title}</h3>
+                              <div className="space-y-2.5 mt-5">
+                                <div className="flex items-center gap-2.5 text-gray-600 text-sm">
+                                  <div className="w-8 h-8 rounded-lg bg-smgh-green/10 flex items-center justify-center flex-shrink-0">
+                                    <Calendar className="w-4 h-4 text-smgh-green" />
+                                  </div>
+                                  {new Date(upcoming[0].date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                                 </div>
-                                {event.time && (
-                                  <div className="flex items-center gap-2 text-gray-500 text-sm">
-                                    <span className="w-3.5 h-3.5 text-smgh-green text-xs">⏰</span>
-                                    {event.time}
+                                {upcoming[0].time && (
+                                  <div className="flex items-center gap-2.5 text-gray-600 text-sm">
+                                    <div className="w-8 h-8 rounded-lg bg-smgh-green/10 flex items-center justify-center flex-shrink-0">
+                                      <span className="text-smgh-green text-sm">⏰</span>
+                                    </div>
+                                    {upcoming[0].time}
                                   </div>
                                 )}
-                                <div className="flex items-center gap-2 text-gray-500 text-sm">
-                                  <MapPin className="w-3.5 h-3.5" />
-                                  {event.venue}, {event.city}
+                                <div className="flex items-center gap-2.5 text-gray-600 text-sm">
+                                  <div className="w-8 h-8 rounded-lg bg-smgh-green/10 flex items-center justify-center flex-shrink-0">
+                                    <MapPin className="w-4 h-4 text-smgh-green" />
+                                  </div>
+                                  {upcoming[0].venue}, {upcoming[0].city}
                                 </div>
                               </div>
-                              <div className="mt-4">
-                                <span className="text-smgh-green font-medium text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
-                                  View Details <ArrowRight className="w-3.5 h-3.5" />
+                              <div className="mt-6">
+                                <span className="inline-flex items-center gap-1.5 bg-smgh-green text-white px-5 py-2.5 rounded-full font-medium text-sm group-hover:bg-smgh-green-dark transition-all shadow-md shadow-smgh-green/20">
+                                  View Details <ArrowRight className="w-4 h-4" />
                                 </span>
                               </div>
                             </div>
                           </div>
-                        </Link>
-                      </motion.div>
-                    ))}
-                  </div>
+                        </div>
+                      </Link>
+                    </motion.div>
+                  ) : (
+                    /* ── Multiple upcoming events: grid ── */
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {upcoming.map(event => (
+                        <motion.div key={event.id} variants={item}>
+                          <Link to={`/events/${event.slug}`}>
+                            <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 cursor-pointer h-full flex flex-col">
+                              <div className="relative aspect-[3/4] overflow-hidden">
+                                <img
+                                  src={event.bannerImage || `https://picsum.photos/seed/${event.slug}/600/800`}
+                                  alt={event.title}
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                />
+                                <div className="absolute top-3 left-3">
+                                  <span className="px-3 py-1 bg-smgh-green text-white text-xs font-semibold rounded-full animate-pulse">
+                                    ● Upcoming
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="p-5 flex-1 flex flex-col">
+                                <h3 className="font-bold text-gray-900 group-hover:text-smgh-green transition-colors text-lg">{event.title}</h3>
+                                <div className="space-y-1.5 mt-3 flex-1">
+                                  <div className="flex items-center gap-2 text-gray-500 text-sm">
+                                    <Calendar className="w-3.5 h-3.5" />
+                                    {new Date(event.date).toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric' })}
+                                  </div>
+                                  {event.time && (
+                                    <div className="flex items-center gap-2 text-gray-500 text-sm">
+                                      <span className="w-3.5 h-3.5 text-smgh-green text-xs">⏰</span>
+                                      {event.time}
+                                    </div>
+                                  )}
+                                  <div className="flex items-center gap-2 text-gray-500 text-sm">
+                                    <MapPin className="w-3.5 h-3.5" />
+                                    {event.venue}, {event.city}
+                                  </div>
+                                </div>
+                                <div className="mt-4">
+                                  <span className="text-smgh-green font-medium text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
+                                    View Details <ArrowRight className="w-3.5 h-3.5" />
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </Link>
+                        </motion.div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
