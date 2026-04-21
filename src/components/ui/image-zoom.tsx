@@ -89,10 +89,11 @@ export default function ImageZoom({ src, alt = 'Image', children, className = ''
         </div>
       </div>
 
-      {/* Lightbox Portal */}
+      {/* Lightbox Portal — stopPropagation prevents React tree bubbling to parent <Link> */}
       {open && createPortal(
         <div
           className="fixed inset-0 z-[9999] flex items-center justify-center"
+          onClick={e => e.stopPropagation()}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
         >
