@@ -275,3 +275,33 @@ Stage Summary:
 - New utility: src/lib/fetch-helpers.ts
 - Files modified: 17 admin pages + layout + 4 public components + events API route + fetch-helpers
 - Commit: e75e8dc pushed to main
+---
+Task ID: 2-a
+Agent: Main
+Task: Implement WordPress-like Site Editor + cleanup
+
+Work Log:
+- Created /admin/editor/page.tsx — full-featured WordPress-like page editor
+  - Page sidebar with site pages (10) + custom pages listing
+  - Prev/Next navigation + page indicator dots to browse pages sequentially
+  - Live site preview in browser-like frame (Navbar + PageShell + Footer)
+  - Device mode toggle: Desktop (100%) / Tablet (768px) / Mobile (375px)
+  - Context-aware edit panel (420px slide-over):
+    - Home page: hero description, visionary name/message, site tagline, mission cards, about content
+    - Foundation page: foundation description
+    - Contact page: contact info (phone, email, address) + FAQ editor
+    - Custom pages: title, slug, banner image, status, content
+    - Entity pages (Events, Gallery, Team, Artists, Shop, Donate): link to CMS manager
+    - Static pages (Track Order): informational only
+  - Save with automatic preview refresh (remounts PageShell)
+  - Uses hash router for live preview navigation (Navbar links work in preview)
+- Added 'Site Editor' nav item to admin sidebar (PenLine icon)
+- Removed /api/debug endpoint (security cleanup)
+- TypeScript compilation verified (no errors in new code)
+- Committed and pushed to main (c63142e)
+
+Stage Summary:
+- WordPress-like Site Editor now available at /admin/editor in CMS
+- Admin sidebar has new 'Site Editor' link between 'Donations' and 'Pages'
+- /api/debug endpoint removed for security
+- User needs to: git pull on cPanel, then prisma generate if needed, restart app
