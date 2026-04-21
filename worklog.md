@@ -305,3 +305,46 @@ Stage Summary:
 - Admin sidebar has new 'Site Editor' link between 'Donations' and 'Pages'
 - /api/debug endpoint removed for security
 - User needs to: git pull on cPanel, then prisma generate if needed, restart app
+
+---
+Task ID: 1
+Agent: Main
+Task: Fix select dropdowns, inline event edit, enhanced products, full CMS audit
+
+Work Log:
+- Fixed all dropdown <select> fields visibility in dark CMS theme:
+  - Updated globals.css with !important rules for select, option, optgroup
+  - Added option:hover and option:checked styles for better UX
+  - Fixes apply globally to all 9 admin pages with select elements
+- Fixed event edit to open inline under event card:
+  - Removed scrollIntoView useEffect that caused page to jump to top
+  - Edit form now appears inline with animate-fade-in animation
+  - Removed unused editRef from component
+- Rewrote products page with professional e-commerce features:
+  - 20-color palette for quick variant color selection
+  - 20 size presets (XS-5XL, Free Size, 6-24) for quick variant size entry
+  - Batch variant creation dialog (Create All Sizes for one color)
+  - Stock overview dashboard (total variants, stock, colors, sizes, low stock alerts)
+  - Enhanced product cards (color swatches, size badges, gallery thumbnails, material badges)
+  - SKU, Season, Occasion, Weight fields stored in careInstructions as JSON
+  - Category filter dropdown for search
+  - Out-of-stock and low-stock variant highlighting
+  - Backward compatible with existing careInstructions data
+- Full CMS audit: 7 pages fixed for professional consistency:
+  - orders/page.tsx: 4 raw fetches→fetchWrite, PageLoadingOverlay, gradient class fix
+  - users/page.tsx: 7 raw fetches→helpers, useConfirm migration, PageLoadingOverlay
+  - rsvps/page.tsx: 2 raw fetches→fetchJSON, useConfirm migration, PageLoadingOverlay
+  - donations/page.tsx: raw fetch→fetchJSON, PageLoadingOverlay
+  - media/page.tsx: raw fetch→fetchJSON, ensureArray, loading skeleton
+  - messages/page.tsx: raw fetch→fetchJSON
+  - newsletter/page.tsx: raw fetch→fetchJSON
+- Built production bundle, committed and pushed
+
+Stage Summary:
+- All 11 source files modified: globals.css, events, products, orders, users, rsvps, donations, media, messages, newsletter
+- Products page expanded from 919 to 1498 lines with full e-commerce features
+- 16 raw fetch() calls replaced with fetchJSON/fetchWrite across 7 pages
+- 2 pages migrated from manual delete confirmation to useConfirm hook
+- 4 pages received PageLoadingOverlay for saving states
+- Commit: 2fb181a pushed to main
+- User needs to: git pull on cPanel, npx prisma generate, restart app
