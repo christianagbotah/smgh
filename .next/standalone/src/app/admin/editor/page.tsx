@@ -838,7 +838,7 @@ export default function SiteEditor() {
         </div>
 
         {/* ── Preview + Edit Panel ── */}
-        <div className="flex-1 overflow-hidden flex">
+        <div className="flex-1 overflow-hidden flex min-h-0">
           {/* Browser-like Preview */}
           <div className="flex-1 overflow-hidden flex flex-col">
             {/* Browser chrome (dots + URL bar) */}
@@ -875,9 +875,9 @@ export default function SiteEditor() {
                 animate={{ width: 420, opacity: 1 }}
                 exit={{ width: 0, opacity: 0 }}
                 transition={{ duration: 0.25, ease: 'easeInOut' }}
-                className="bg-[#0a0a0a] border-l border-gray-800 overflow-hidden flex-shrink-0"
+                className="bg-[#0a0a0a] border-l border-gray-800 overflow-hidden flex-shrink-0 h-full"
               >
-                <div className="w-[420px] h-full flex flex-col">
+                <div className="w-[420px] h-full flex flex-col min-h-0">
                   {/* Edit header */}
                   <div className="p-4 border-b border-gray-800 flex items-center justify-between flex-shrink-0">
                     <div>
@@ -901,7 +901,7 @@ export default function SiteEditor() {
                   </div>
 
                   {/* Edit content */}
-                  <div className="flex-1 overflow-y-auto p-4 admin-scrollbar">
+                  <div className="flex-1 overflow-y-auto p-4 admin-scrollbar min-h-0">
                     {pageDef.type === 'entity' && <EntityEditPanel page={pageDef} />}
                     {pageDef.type === 'none' && <StaticEditPanel />}
                     {pageDef.type === 'settings' && pageDef.slug === '/' && (
