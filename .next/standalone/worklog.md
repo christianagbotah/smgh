@@ -1,0 +1,350 @@
+---
+Task ID: 1
+Agent: Main
+Task: Fix hero slider and events not showing
+
+Work Log:
+- Investigated HomePage.tsx data fetching: hero slider images come from settings API (`hero_slider_images`), events from events API
+- Both APIs use Prisma to query SQLite database
+- Found dev server binding issue: server was binding to IPv6 only, causing connection refused on 127.0.0.1
+- Fixed by adding `-H 0.0.0.0` flag to dev script in package.json
+- Seeded SQLite database with full data (9 events, 2 artists, 4 team members, 4 foundation records, 19 site settings)
+- Verified all API endpoints return data correctly (settings 200, events 200)
+
+Stage Summary:
+- Local dev now working: hero slider and events data available via APIs
+- Dev server binding fixed: `next dev -p 3000 -H 0.0.0.0`
+- Production site still needs MySQL Prisma client generation and database setup
+
+---
+Task ID: 2
+Agent: Main
+Task: Prepare production build with MySQL support and push to GitHub
+
+Work Log:
+- Created prisma/schema.mysql.prisma with MySQL provider and @db.Text annotations for long text fields
+- Switched schema to MySQL, generated MySQL Prisma client, built Next.js production
+- Restored SQLite schema for local dev
+- Created build-production.sh script for future production builds
+- Committed .next/ build (with MySQL Prisma client baked in) and pushed to GitHub
+- Dev server running with SQLite on localhost:3000
+
+Stage Summary:
+- Production build pushed to GitHub (commit ae98324)
+- On cPanel: needs to swap schema to MySQL, run `prisma db push`, `prisma seed`, restart app
+- Created prisma/schema.mysql.prisma for MySQL deployment
+- Key files: schema.prisma (SQLite), schema.mysql.prisma (MySQL), build-production.sh
+
+---
+Task ID: 3
+Agent: Main
+Task: Complete production MySQL deployment preparation
+
+Work Log:
+- Found existing schema.mysql.prisma with MySQL provider and @db.Text annotations
+- Added missing @db.Text to Event.description, Event.tags, Event.youtubeUrls
+- Backed up SQLite schema as schema.sqlite.prisma
+- Swapped schema.prisma to MySQL version
+- Generated MySQL Prisma client successfully
+- Built Next.js production (48 pages, all API routes dynamic)
+- Committed 191 files (build artifacts + schema changes)
+- Pushed to GitHub (commits ada34f5, 9452ccc)
+- Created deploy-to-production.sh script for cPanel server deployment
+- Cannot SSH from this environment (no SSH client, no SSH key)
+
+Stage Summary:
+- Production build with MySQL Prisma client pushed to GitHub
+- Deployment script created: deploy-to-production.sh
+- Production server needs: pull code, set DATABASE_URL, run prisma db push, seed database, restart
+- User needs to run deploy-to-production.sh on cPanel server via cPanel Terminal
+
+---
+Task ID: 4
+Agent: Main
+Task: Fix Prisma WASM OOM and .htaccess for production deployment
+
+Work Log:
+- Diagnosed root cause: `src/generated/prisma/` contained Debian-specific binary target (`libquery_engine-debian-openssl-3.0.x.so.node`), which fails on cPanel's CloudLinux/RHEL server
+- When Debian binary fails to load, Prisma falls back to WASM engine, which OOMs on 4GB virtual memory limit
+- Fixed `.htaccess`: added `RewriteRule` to proxy requests to Node.js on port 3000
+- Removed `src/generated/prisma/` from git tracking (26 files deleted including WASM and .so.node engine)
+- Added `src/generated/prisma/` to `.gitignore` — must be generated per-platform
+- Added `output = "../src/generated/prisma"` to both SQLite and MySQL schema files
+- Created `production-setup.sh` script that: removes old client, runs npm install, runs prisma generate
+- Rebuilt `.next` with MySQL schema, restored SQLite schema for local dev
+- Committed 268 files and pushed to GitHub (commit 4d07c6d)
+
+Stage Summary:
+- Root cause of WASM OOM: platform mismatch between Debian dev and RHEL/CloudLinux production
+- Fix: Prisma client must be generated on the production server (not committed from dev machine)
+- `.htaccess` now has proper rewrite rule for Node.js proxy
+- Production setup: pull code → run `bash production-setup.sh` → restart Node.js app in cPanel
+- Database is already seeded (all 21 tables, 9 events, artists, team, settings, hero slider data)
+
+---
+Task ID: 1
+Agent: main
+Task: Fix team page images not showing
+
+Work Log:
+- Investigated team page structure: hash-based routing (#/team), TeamPage.tsx fetches /api/team
+- Found database was empty - no team members seeded
+- Identified root cause: system env var DATABASE_URL was overriding .env file, pointing to wrong database file
+- Regenerated Prisma client for SQLite (dev mode)
+- Fixed .env to use absolute path: file:/home/z/my-project/prisma/db/smgh.db
+- Updated src/lib/db.ts to load dotenv with override:true for correct env precedence
+- Fixed prisma/seed.ts to use upsert for events (idempotent seeding)
+- Successfully seeded database with 4 team members, 9 events, 2 artists, 4 foundation records, 19 settings
+- Verified /api/team returns all 4 team members with correct photo paths
+- Verified all 3 team images serve correctly (200 OK) from public/images/team/
+
+Stage Summary:
+- Team page images now display correctly
+- Database properly seeded with team data including photo paths:
+  - Robert Yaw Essuon (Founder) → /images/team/robert-essuon.jpg
+  - Victoria Essuon (Co-Founder) → /images/team/victoria-essuon.jpg
+  - Christian Agbotah (Managing Director) → /images/team/christian-agbotah.jpg
+  - Theodora Boateng (PRO) → /images/team/victoria-essuon.jpg
+
+---
+Task ID: 2
+Agent: main
+Task: Fix team page images not showing - connected to cPanel MySQL
+
+Work Log:
+- User reminded us the production site uses MySQL on cPanel, not SQLite
+- Switched .env to use cPanel MySQL DATABASE_URL: mysql://lightwor_QrLight:***@lightworldtech.com:3306/lightwor_nestjs_smgh_2026
+- Regenerated Prisma client for MySQL using schema.mysql.prisma (with binary targets: debian-openssl-1.0.x, rhel-openssl-1.1.x, native)
+- Tested MySQL connection - successfully connected and found 4 team members
+- Discovered ROOT CAUSE: photo and bio fields were SWAPPED in the MySQL database
+  - photo column contained bio text (e.g. "The visionary behind Sweet Mothers Ghana...")
+  - bio column contained image paths (e.g. "/images/team/robert-essuon.jpg")
+- Fixed all 4 team members by swapping photo and bio back to correct values
+- Verified fix: all members now have correct image paths in photo field
+- Verified /api/team returns correct data and images serve with HTTP 200
+
+Stage Summary:
+- Team page images now display correctly using cPanel MySQL database
+- All 4 team members fixed:
+  - Robert Yaw Essuon → /images/team/robert-essuon.jpg
+  - Victoria Essuon → /images/team/victoria-essuon.jpg
+  - Christian Agbotah → /images/team/christian-agbotah.jpg
+  - Theodora Boateng → /images/team/victoria-essuon.jpg
+- Environment now properly configured to use production MySQL database
+
+---
+Task ID: 3
+Agent: main
+Task: Resolve cPanel git pull conflict and finalize MySQL migration cleanup
+
+Work Log:
+- User reported git pull error on cPanel: local changes to prisma/schema.prisma blocking merge
+- Verified current state: schema.prisma already uses MySQL (provider = "mysql", url = env("DATABASE_URL"))
+- .env already has MySQL connection string for cPanel production database
+- Regenerated Prisma client for MySQL (v6.19.2)
+- Verified all API endpoints work correctly with MySQL:
+  - /api/settings: 19 settings including hero slider images
+  - /api/team: 4 members with correct photo paths
+  - /api/events: 9 events
+  - /api/artists: 2 artists
+- Cleaned up leftover SQLite artifacts:
+  - Deleted prisma/schema.sqlite.prisma
+  - Deleted prisma/schema.mysql.prisma (no longer needed, main schema is MySQL)
+  - Deleted outdated scripts: production-setup.sh, deploy-to-production.sh, build-production.sh
+- Updated deploy-cpanel.sh: handles git checkout before pull, removed schema swapping step
+- Fixed stale SQLite comment in src/app/api/auth/route.ts
+- Committed and pushed (77cd985)
+
+Stage Summary:
+- Project is fully MySQL — both local and production use the same database
+- Clean deployment script: deploy-cpanel.sh handles everything in 5 steps
+- User needs to run on cPanel: git checkout -- . && git pull && npx prisma generate, then restart app
+
+---
+Task ID: 4
+Agent: main
+Task: Fix image upload and add multi-upload support for hero slider and gallery
+
+Work Log:
+- Discovered root cause: /api/upload route did NOT exist — 4 components (MediaPicker, MultiMediaPicker, admin/media, admin/foundation) all POST to it
+- Created /api/upload/route.ts with: auth check, MIME type validation (images+videos), 10MB size limit, saves to public/uploads/, creates MediaFile DB record
+- Replaced single MediaPicker with MultiMediaPicker for hero slider in admin settings page
+- Hero slider now supports: upload multiple at once, drag & drop, browse media library, paste URLs, reorder slides, remove individual slides
+- Gallery page already had MultiMediaPicker via bulk upload dialog (was broken due to missing /api/upload, now fixed)
+- Added public/uploads/ to .gitignore (uploaded files are server-specific)
+- Built, committed (8b74cdc), and pushed
+
+Stage Summary:
+- Image upload now works across all admin pages: media library, hero slider, gallery, foundation
+- Hero slider supports multi-image upload with drag & drop
+- Gallery bulk upload works via MultiMediaPicker
+- Server-side validation: MIME types (JPG/PNG/GIF/WebP/SVG/MP4/WebM/MOV), 10MB max
+---
+Task ID: 2
+Agent: Main
+Task: Fix "A Word From The Visionary" full message not showing on cPanel live site
+
+Work Log:
+- Investigated the visionary message display flow: HomePage.tsx → /api/settings → SiteSetting DB
+- Found root cause: `/api/seed/route.ts` had a shortened one-line visionary_message while `prisma/seed.ts` had the full version
+- The cPanel database was seeded via `/api/seed` which had the short placeholder text
+- Updated all 3 seed files to use the full visionary message:
+  1. `src/app/api/seed/route.ts` - updated visionary_message and foundation_description
+  2. `src/app/api/setup-database/route.ts` - updated visionary_message and foundation_description
+  3. `setup-db.js` - updated visionary_message and foundation_description
+- Built and pushed to origin/main
+
+Stage Summary:
+- All seed files now have consistent full visionary message text
+- User needs to: `git pull` on cPanel, then visit `/api/seed` to re-seed the database with the full message
+- Alternatively, the message can be edited via the admin CMS at `/admin/pages`
+---
+Task ID: 3
+Agent: Main
+Task: Fix visionary message showing only 2 lines (VARCHAR truncation)
+
+Work Log:
+- Root cause: `SiteSetting.value` was `String` (maps to VARCHAR(191) in MySQL) - the full message is ~800+ chars but got silently truncated at 191
+- Updated Prisma schema: changed `SiteSetting.value` from `String` to `String @db.Text`
+- Also changed other long text fields to TEXT: Event.description, EventGuest.description, Artist.bio, ContactMessage.message, FoundationRecord.description, TeamMember.bio, Product.description, Order.deliveryAddress, Order.notes, CustomPage.content, Beneficiary.story
+- Ran `prisma db push` with production DATABASE_URL to alter the MySQL columns
+- Ran `prisma generate` to update the Prisma client
+- Built and pushed to origin/main
+
+Stage Summary:
+- Database columns are now TEXT type (supports up to 65KB)
+- DB schema push was applied directly to production MySQL from local
+- User still needs to visit `/api/seed` to re-save the full message (upsert will update)
+- No need for `prisma generate` or `prisma db push` on cPanel
+---
+Task ID: 4
+Agent: Main
+Task: Add drag-and-drop reordering for hero slider and gallery images
+
+Work Log:
+- Fixed dnd-kit version mismatch: removed incompatible @dnd-kit/sortable@10, installed compatible set (core@6.3.1, sortable@8.0.0, utilities@3.2.2)
+- Updated MultiMediaPicker component: replaced up/down chevron buttons with dnd-kit drag handles (GripVertical icon), added DndContext + SortableContext with rectSortingStrategy
+- Updated Gallery admin page: added SortableGalleryItem component with drag handle, optimistic reorder with error rollback, drag disabled when filters active
+- Created new API endpoint /api/gallery/reorder (POST) that accepts { orderedIds: string[] } and updates all sortOrder values in a single transaction
+- Built and pushed to origin/main
+
+Stage Summary:
+- Hero slider images in admin settings: drag-and-drop reordering via grip handle
+- Gallery admin: drag-and-drop reordering with persistent sortOrder, hint text, saving indicator
+- Both use dnd-kit v6 with smooth CSS transitions
+- Gallery reorder persists to database immediately via batch API
+---
+Task ID: 1
+Agent: Main Agent
+Task: Fix broken button backgrounds and implement enterprise-grade button styling across admin CMS
+
+Work Log:
+- Audited all admin CMS pages (13 pages) for button styling issues
+- Identified root cause: `.gradient-teal` CSS class used in 8 buttons but never defined in globals.css
+- Enhanced shadcn Button component with 4 new enterprise variants: success (emerald), danger (red), warning (amber), info (teal)
+- Added missing `.gradient-teal` CSS class to globals.css for public-facing components
+- Replaced all `gradient-green text-white` className hacks on `<Button>` with `variant="success"` across 11 admin pages
+- Replaced all `gradient-teal text-black` className hacks on `<Button>` with `variant="info"` across 5 admin pages
+- Updated Reset button to use `variant="warning"` (amber)
+- Updated all Cancel buttons with danger hover styling (hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30)
+- Verified: 0 remaining `gradient-green text-white` or `gradient-teal text-black` on admin Button components
+- Dev server compiled successfully with no errors
+
+Stage Summary:
+- Button component now has 10 variants: default, destructive, outline, secondary, ghost, link, success, danger, warning, info
+- 30+ button instances updated across 13 admin pages
+- Consistent semantic button system: Save=success(green), Cancel=danger(red hover), Reset=warning(amber), Upload/Add=info(teal)
+- All changes are backward-compatible (public components still use gradient-teal class which is now defined)
+---
+Task ID: 1
+Agent: Main
+Task: Fix CMS event edit button not responding + comprehensive CMS audit
+
+Work Log:
+- Investigated event edit button issue: root cause was startEdit() async function had no try/catch
+- fetch().json() would throw on non-2xx responses (500 from API), silently failing without opening the edit form
+- Discovered 39 total bugs across ALL admin pages through systematic audit
+- Created src/lib/fetch-helpers.ts utility with fetchJSON, fetchWrite, ensureArray, safeJSONParse, fetchJSONOrNull
+- Fixed ALL 17 admin pages with proper error handling
+- Also fixed 4 public-facing components (UpcomingEvents, EventsTimeline, Gallery, ArtistsHub)
+- Built production bundle and pushed
+
+Stage Summary:
+- 39 bugs fixed across all admin pages
+- Categories: 18 missing res.ok checks, 11 missing write ok checks, 1 unsafe JSON.parse, 7 unvalidated state setters
+- New utility: src/lib/fetch-helpers.ts
+- Files modified: 17 admin pages + layout + 4 public components + events API route + fetch-helpers
+- Commit: e75e8dc pushed to main
+---
+Task ID: 2-a
+Agent: Main
+Task: Implement WordPress-like Site Editor + cleanup
+
+Work Log:
+- Created /admin/editor/page.tsx — full-featured WordPress-like page editor
+  - Page sidebar with site pages (10) + custom pages listing
+  - Prev/Next navigation + page indicator dots to browse pages sequentially
+  - Live site preview in browser-like frame (Navbar + PageShell + Footer)
+  - Device mode toggle: Desktop (100%) / Tablet (768px) / Mobile (375px)
+  - Context-aware edit panel (420px slide-over):
+    - Home page: hero description, visionary name/message, site tagline, mission cards, about content
+    - Foundation page: foundation description
+    - Contact page: contact info (phone, email, address) + FAQ editor
+    - Custom pages: title, slug, banner image, status, content
+    - Entity pages (Events, Gallery, Team, Artists, Shop, Donate): link to CMS manager
+    - Static pages (Track Order): informational only
+  - Save with automatic preview refresh (remounts PageShell)
+  - Uses hash router for live preview navigation (Navbar links work in preview)
+- Added 'Site Editor' nav item to admin sidebar (PenLine icon)
+- Removed /api/debug endpoint (security cleanup)
+- TypeScript compilation verified (no errors in new code)
+- Committed and pushed to main (c63142e)
+
+Stage Summary:
+- WordPress-like Site Editor now available at /admin/editor in CMS
+- Admin sidebar has new 'Site Editor' link between 'Donations' and 'Pages'
+- /api/debug endpoint removed for security
+- User needs to: git pull on cPanel, then prisma generate if needed, restart app
+
+---
+Task ID: 1
+Agent: Main
+Task: Fix select dropdowns, inline event edit, enhanced products, full CMS audit
+
+Work Log:
+- Fixed all dropdown <select> fields visibility in dark CMS theme:
+  - Updated globals.css with !important rules for select, option, optgroup
+  - Added option:hover and option:checked styles for better UX
+  - Fixes apply globally to all 9 admin pages with select elements
+- Fixed event edit to open inline under event card:
+  - Removed scrollIntoView useEffect that caused page to jump to top
+  - Edit form now appears inline with animate-fade-in animation
+  - Removed unused editRef from component
+- Rewrote products page with professional e-commerce features:
+  - 20-color palette for quick variant color selection
+  - 20 size presets (XS-5XL, Free Size, 6-24) for quick variant size entry
+  - Batch variant creation dialog (Create All Sizes for one color)
+  - Stock overview dashboard (total variants, stock, colors, sizes, low stock alerts)
+  - Enhanced product cards (color swatches, size badges, gallery thumbnails, material badges)
+  - SKU, Season, Occasion, Weight fields stored in careInstructions as JSON
+  - Category filter dropdown for search
+  - Out-of-stock and low-stock variant highlighting
+  - Backward compatible with existing careInstructions data
+- Full CMS audit: 7 pages fixed for professional consistency:
+  - orders/page.tsx: 4 raw fetches→fetchWrite, PageLoadingOverlay, gradient class fix
+  - users/page.tsx: 7 raw fetches→helpers, useConfirm migration, PageLoadingOverlay
+  - rsvps/page.tsx: 2 raw fetches→fetchJSON, useConfirm migration, PageLoadingOverlay
+  - donations/page.tsx: raw fetch→fetchJSON, PageLoadingOverlay
+  - media/page.tsx: raw fetch→fetchJSON, ensureArray, loading skeleton
+  - messages/page.tsx: raw fetch→fetchJSON
+  - newsletter/page.tsx: raw fetch→fetchJSON
+- Built production bundle, committed and pushed
+
+Stage Summary:
+- All 11 source files modified: globals.css, events, products, orders, users, rsvps, donations, media, messages, newsletter
+- Products page expanded from 919 to 1498 lines with full e-commerce features
+- 16 raw fetch() calls replaced with fetchJSON/fetchWrite across 7 pages
+- 2 pages migrated from manual delete confirmation to useConfirm hook
+- 4 pages received PageLoadingOverlay for saving states
+- Commit: 2fb181a pushed to main
+- User needs to: git pull on cPanel, npx prisma generate, restart app

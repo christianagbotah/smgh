@@ -1,0 +1,3 @@
+{
+  "/api/custom-pages/[id]/route": "app/api/custom-pages/[id]/route.js"
+}

@@ -1,0 +1,579 @@
+import { NextResponse } from 'next/server'
+import { readFileSync } from 'fs'
+import { join } from 'path'
+import { hash } from 'bcryptjs'
+
+/* ================================================================
+   SMGH Database Setup API
+   Visit: https://sweetmothersgh.org/api/setup-database
+   Creates all MySQL tables and seeds with SMGH content.
+   No CLI tools needed — works entirely through the running Node.js app.
+   ================================================================ */
+
+const CREATE_TABLES_SQL = `
+SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS OrderItem, ProductVariant, Product, EventRSVP, GalleryItem,
+  EventTestimonial, EventGuest, EventArtist, Beneficiary, CustomPage, Order,
+  FoundationRecord, TeamMember, MediaFile, AdminUser, SiteSetting,
+  NewsletterSubscriber, ContactMessage, Donation, Artist, Event;
+SET FOREIGN_KEY_CHECKS = 1;
+
+CREATE TABLE Event (
+  id VARCHAR(191) NOT NULL,
+  title VARCHAR(191) NOT NULL,
+  slug VARCHAR(191) NOT NULL,
+  date DATETIME(3) NOT NULL,
+  time VARCHAR(191) NULL,
+  venue VARCHAR(191) NOT NULL,
+  city VARCHAR(191) NOT NULL,
+  address VARCHAR(191) NULL,
+  description TEXT NULL,
+  bannerImage VARCHAR(191) NULL,
+  status VARCHAR(191) NOT NULL DEFAULT 'upcoming',
+  tags TEXT NULL,
+  youtubeUrls TEXT NULL,
+  attendanceCount INT NOT NULL DEFAULT 0,
+  ticketPrice DOUBLE NULL,
+  ticketCurrency VARCHAR(191) NOT NULL DEFAULT 'GHS',
+  createdAt DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updatedAt DATETIME(3) NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE INDEX Event_slug_key (slug)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE TABLE Artist (
+  id VARCHAR(191) NOT NULL,
+  name VARCHAR(191) NOT NULL,
+  location VARCHAR(191) NULL,
+  bio TEXT NULL,
+  image VARCHAR(191) NULL,
+  featured BOOLEAN NOT NULL DEFAULT FALSE,
+  createdAt DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updatedAt DATETIME(3) NOT NULL,
+  PRIMARY KEY (id)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE TABLE Donation (
+  id VARCHAR(191) NOT NULL,
+  name VARCHAR(191) NOT NULL,
+  email VARCHAR(191) NULL,
+  phone VARCHAR(191) NULL,
+  address VARCHAR(191) NULL,
+  amount DOUBLE NOT NULL,
+  currency VARCHAR(191) NOT NULL DEFAULT 'GHS',
+  paymentMethod VARCHAR(191) NOT NULL DEFAULT 'manual',
+  paymentProvider VARCHAR(191) NULL,
+  status VARCHAR(191) NOT NULL DEFAULT 'pending',
+  reference VARCHAR(191) NULL,
+  message TEXT NULL,
+  donorType VARCHAR(191) NOT NULL DEFAULT 'individual',
+  donationFrequency VARCHAR(191) NULL,
+  organization VARCHAR(191) NULL,
+  createdAt DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (id)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE TABLE ContactMessage (
+  id VARCHAR(191) NOT NULL,
+  name VARCHAR(191) NOT NULL,
+  phone VARCHAR(191) NOT NULL,
+  email VARCHAR(191) NULL,
+  message TEXT NOT NULL,
+  read BOOLEAN NOT NULL DEFAULT FALSE,
+  createdAt DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (id)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE TABLE NewsletterSubscriber (
+  id VARCHAR(191) NOT NULL,
+  email VARCHAR(191) NOT NULL,
+  active BOOLEAN NOT NULL DEFAULT TRUE,
+  createdAt DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (id),
+  UNIQUE INDEX NewsletterSubscriber_email_key (email)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE TABLE SiteSetting (
+  id VARCHAR(191) NOT NULL,
+  key VARCHAR(191) NOT NULL,
+  value TEXT NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE INDEX SiteSetting_key_key (key)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE TABLE AdminUser (
+  id VARCHAR(191) NOT NULL,
+  username VARCHAR(191) NOT NULL,
+  password VARCHAR(191) NOT NULL,
+  name VARCHAR(191) NOT NULL,
+  role VARCHAR(191) NOT NULL DEFAULT 'editor',
+  active BOOLEAN NOT NULL DEFAULT TRUE,
+  createdAt DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updatedAt DATETIME(3) NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE INDEX AdminUser_username_key (username)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE TABLE MediaFile (
+  id VARCHAR(191) NOT NULL,
+  filename VARCHAR(191) NOT NULL,
+  url VARCHAR(191) NOT NULL,
+  mimeType VARCHAR(191) NOT NULL,
+  size INT NOT NULL,
+  alt VARCHAR(191) NULL,
+  createdAt DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (id)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE TABLE TeamMember (
+  id VARCHAR(191) NOT NULL,
+  name VARCHAR(191) NOT NULL,
+  role VARCHAR(191) NOT NULL,
+  photo VARCHAR(191) NULL,
+  bio TEXT NULL,
+  email VARCHAR(191) NULL,
+  phone VARCHAR(191) NULL,
+  socialLinks TEXT NULL,
+  category VARCHAR(191) NOT NULL DEFAULT 'leadership',
+  sortOrder INT NOT NULL DEFAULT 0,
+  active BOOLEAN NOT NULL DEFAULT TRUE,
+  createdAt DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updatedAt DATETIME(3) NOT NULL,
+  PRIMARY KEY (id)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE TABLE FoundationRecord (
+  id VARCHAR(191) NOT NULL,
+  year INT NOT NULL,
+  description TEXT NOT NULL,
+  amountRaised DOUBLE NULL,
+  amountSpent DOUBLE NULL,
+  beneficiariesCount INT NULL,
+  locations TEXT NULL,
+  createdAt DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updatedAt DATETIME(3) NOT NULL,
+  PRIMARY KEY (id)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE TABLE CustomPage (
+  id VARCHAR(191) NOT NULL,
+  slug VARCHAR(191) NOT NULL,
+  title VARCHAR(191) NOT NULL,
+  content TEXT NOT NULL DEFAULT '',
+  bannerImage VARCHAR(191) NULL,
+  status VARCHAR(191) NOT NULL DEFAULT 'draft',
+  sortOrder INT NOT NULL DEFAULT 0,
+  createdAt DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updatedAt DATETIME(3) NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE INDEX CustomPage_slug_key (slug)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE TABLE Beneficiary (
+  id VARCHAR(191) NOT NULL,
+  name VARCHAR(191) NOT NULL,
+  story TEXT NULL,
+  photo VARCHAR(191) NULL,
+  category VARCHAR(191) NULL,
+  location VARCHAR(191) NULL,
+  yearHelped INT NULL,
+  active BOOLEAN NOT NULL DEFAULT TRUE,
+  createdAt DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (id)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE TABLE Order (
+  id VARCHAR(191) NOT NULL,
+  orderNumber VARCHAR(191) NOT NULL,
+  customerName VARCHAR(191) NOT NULL,
+  customerEmail VARCHAR(191) NULL,
+  customerPhone VARCHAR(191) NOT NULL,
+  deliveryAddress VARCHAR(191) NULL,
+  deliveryCity VARCHAR(191) NULL,
+  deliveryRegion VARCHAR(191) NULL,
+  status VARCHAR(191) NOT NULL DEFAULT 'pending',
+  paymentProvider VARCHAR(191) NULL,
+  paymentStatus VARCHAR(191) NOT NULL DEFAULT 'pending',
+  paymentRef VARCHAR(191) NULL,
+  totalAmount DOUBLE NOT NULL,
+  currency VARCHAR(191) NOT NULL DEFAULT 'GHS',
+  trackingNumber VARCHAR(191) NULL,
+  notes TEXT NULL,
+  createdAt DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updatedAt DATETIME(3) NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE INDEX Order_orderNumber_key (orderNumber)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE TABLE EventArtist (
+  id VARCHAR(191) NOT NULL,
+  eventId VARCHAR(191) NOT NULL,
+  artistId VARCHAR(191) NOT NULL,
+  sortOrder INT NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  UNIQUE INDEX EventArtist_eventId_artistId_key (eventId, artistId),
+  INDEX EventArtist_artistId_idx (artistId),
+  FOREIGN KEY (eventId) REFERENCES Event(id) ON DELETE CASCADE,
+  FOREIGN KEY (artistId) REFERENCES Artist(id) ON DELETE CASCADE
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE TABLE EventGuest (
+  id VARCHAR(191) NOT NULL,
+  eventId VARCHAR(191) NOT NULL,
+  name VARCHAR(191) NOT NULL,
+  title VARCHAR(191) NULL,
+  photo VARCHAR(191) NULL,
+  description VARCHAR(191) NULL,
+  sortOrder INT NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  INDEX EventGuest_eventId_idx (eventId),
+  FOREIGN KEY (eventId) REFERENCES Event(id) ON DELETE CASCADE
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE TABLE EventTestimonial (
+  id VARCHAR(191) NOT NULL,
+  eventId VARCHAR(191) NOT NULL,
+  quote TEXT NOT NULL,
+  author VARCHAR(191) NOT NULL,
+  photo VARCHAR(191) NULL,
+  PRIMARY KEY (id),
+  INDEX EventTestimonial_eventId_idx (eventId),
+  FOREIGN KEY (eventId) REFERENCES Event(id) ON DELETE CASCADE
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE TABLE GalleryItem (
+  id VARCHAR(191) NOT NULL,
+  title VARCHAR(191) NULL,
+  description VARCHAR(191) NULL,
+  type VARCHAR(191) NOT NULL DEFAULT 'image',
+  url VARCHAR(191) NOT NULL,
+  thumbnail VARCHAR(191) NULL,
+  eventId VARCHAR(191) NULL,
+  foundationRecordId VARCHAR(191) NULL,
+  year INT NULL,
+  category VARCHAR(191) NULL,
+  sortOrder INT NOT NULL DEFAULT 0,
+  createdAt DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (id),
+  INDEX GalleryItem_eventId_idx (eventId),
+  INDEX GalleryItem_foundationRecordId_idx (foundationRecordId),
+  FOREIGN KEY (eventId) REFERENCES Event(id) ON DELETE SET NULL,
+  FOREIGN KEY (foundationRecordId) REFERENCES FoundationRecord(id) ON DELETE SET NULL
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE TABLE EventRSVP (
+  id VARCHAR(191) NOT NULL,
+  eventId VARCHAR(191) NOT NULL,
+  name VARCHAR(191) NOT NULL,
+  email VARCHAR(191) NULL,
+  phone VARCHAR(191) NULL,
+  guests INT NOT NULL DEFAULT 1,
+  message TEXT NULL,
+  createdAt DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (id),
+  INDEX EventRSVP_eventId_idx (eventId),
+  FOREIGN KEY (eventId) REFERENCES Event(id) ON DELETE CASCADE
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE TABLE Product (
+  id VARCHAR(191) NOT NULL,
+  name VARCHAR(191) NOT NULL,
+  slug VARCHAR(191) NOT NULL,
+  description TEXT NULL,
+  basePrice DOUBLE NOT NULL,
+  currency VARCHAR(191) NOT NULL DEFAULT 'GHS',
+  category VARCHAR(191) NOT NULL DEFAULT 'tshirt',
+  eventId VARCHAR(191) NULL,
+  primaryImage VARCHAR(191) NULL,
+  isActive BOOLEAN NOT NULL DEFAULT TRUE,
+  createdAt DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updatedAt DATETIME(3) NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE INDEX Product_slug_key (slug),
+  INDEX Product_eventId_idx (eventId),
+  FOREIGN KEY (eventId) REFERENCES Event(id) ON DELETE SET NULL
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE TABLE ProductVariant (
+  id VARCHAR(191) NOT NULL,
+  productId VARCHAR(191) NOT NULL,
+  name VARCHAR(191) NOT NULL,
+  color VARCHAR(191) NOT NULL,
+  colorName VARCHAR(191) NOT NULL,
+  size VARCHAR(191) NOT NULL,
+  price DOUBLE NOT NULL,
+  stock INT NOT NULL DEFAULT 0,
+  image VARCHAR(191) NULL,
+  isActive BOOLEAN NOT NULL DEFAULT TRUE,
+  PRIMARY KEY (id),
+  UNIQUE INDEX ProductVariant_productId_colorName_size_key (productId, colorName, size),
+  INDEX ProductVariant_productId_idx (productId),
+  FOREIGN KEY (productId) REFERENCES Product(id) ON DELETE CASCADE
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE TABLE OrderItem (
+  id VARCHAR(191) NOT NULL,
+  orderId VARCHAR(191) NOT NULL,
+  productId VARCHAR(191) NULL,
+  productVariantId VARCHAR(191) NULL,
+  productName VARCHAR(191) NOT NULL,
+  variantName VARCHAR(191) NULL,
+  quantity INT NOT NULL,
+  unitPrice DOUBLE NOT NULL,
+  totalPrice DOUBLE NOT NULL,
+  PRIMARY KEY (id),
+  INDEX OrderItem_orderId_idx (orderId),
+  INDEX OrderItem_productId_idx (productId),
+  INDEX OrderItem_productVariantId_idx (productVariantId),
+  FOREIGN KEY (orderId) REFERENCES \`Order\`(id) ON DELETE CASCADE,
+  FOREIGN KEY (productId) REFERENCES Product(id) ON DELETE SET NULL,
+  FOREIGN KEY (productVariantId) REFERENCES ProductVariant(id) ON DELETE SET NULL
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+`
+
+async function seedDatabase(connection: any, logs: string[]) {
+  const uid = () => crypto.randomUUID()
+  const now = new Date().toISOString().replace('T', ' ').slice(0, 19) + '.000'
+  const q = async (sql: string, params?: any[]) => {
+    await connection.query(sql, params)
+  }
+
+  // ── Admin User ──
+  const adminPw = await hash('admin123', 10)
+  await q(
+    `INSERT INTO AdminUser (id, username, password, name, role, active, createdAt, updatedAt) VALUES (?, ?, ?, ?, 'admin', 1, ?, ?)`,
+    [uid(), 'admin', adminPw, 'SMGH Administrator', now, now]
+  )
+  logs.push('Admin user created (admin / admin123)')
+
+  // ── Artists ──
+  const artistBob = uid()
+  const artistDebby = uid()
+  await q(
+    `INSERT INTO Artist (id, name, location, bio, image, featured, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, 1, ?, ?)`,
+    [artistBob, 'Minister Bob', 'Abokobi, Ghana',
+      'Minister Bobby Essuon, widely known as Minister Bob, is the founder and visionary behind Sweet Mothers Ghana. An anointed Ghanaian gospel minister and songwriter, he is known for his soul-lifting worship songs and powerful ministrations. His passion for worship and deep love for mothers inspired the creation of the Sweet Mothers Ghana movement in 2017. He leads Minister Bobby Ministries and has been a blessing to many through his music ministry.',
+      '/images/artists/minister-bob.jpg', now, now]
+  )
+  await q(
+    `INSERT INTO Artist (id, name, location, bio, image, featured, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, 1, ?, ?)`,
+    [artistDebby, 'Minister Debby', 'Kumasi, Ghana',
+      'Minister Debby is a gifted Ghanaian gospel artist from Kumasi with a passion for worship and a voice that captivates audiences. She has been a featured artist at multiple SMGH worship night events, blessing thousands with her anointed ministrations. Minister Debby first performed at SMGH in 2018 and returned for the 2021 edition, delivering powerful worship experiences.',
+      '/images/artists/minister-debby.jpg', now, now]
+  )
+  logs.push('2 artists created')
+
+  // ── Team Members ──
+  const teamMembers = [
+    { name: 'Robert Yaw Essuon', role: 'Founder', bio: 'The visionary behind Sweet Mothers Ghana. The love of God has led him to show that same Love, Care and Appreciation to our dear mothers and to encourage them to keep up with the task God has entrusted into their hands.', photo: '/images/team/robert-essuon.jpg', socialLinks: '{"facebook":"https://facebook.com/sweetmothersgh","youtube":"https://www.youtube.com/@sweetmothersgh"}' },
+    { name: 'Victoria Essuon (Mrs)', role: 'Co-Founder', bio: 'Victoria Essuon is the Co-Founder of Sweet Mothers Ghana. She works alongside her husband Robert to bring the vision of SMGH to life, providing leadership and support to the organization\'s programs and foundation activities.', photo: '/images/team/victoria-essuon.jpg', socialLinks: null },
+    { name: 'Christian Agbotah', role: 'Managing Director', bio: 'Christian Agbotah serves as the Managing Director of Sweet Mothers Ghana, overseeing the organization\'s operations, strategic planning, and program execution.', photo: '/images/team/christian-agbotah.jpg', socialLinks: null },
+    { name: 'Theodora Boateng', role: 'Public Relations Officer', bio: 'Theodora Boateng serves as the Public Relations Officer for Sweet Mothers Ghana. She handles media relations, communications, and public engagement for the organization.', photo: '/images/team/victoria-essuon.jpg', socialLinks: null },
+  ]
+  for (let i = 0; i < teamMembers.length; i++) {
+    const tm = teamMembers[i]
+    await q(
+      `INSERT INTO TeamMember (id, name, role, photo, bio, email, phone, socialLinks, category, sortOrder, active, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, 'bobby@sweetmothersgh.org', '+233 247 612 799', ?, 'leadership', ?, 1, ?, ?)`,
+      [uid(), tm.name, tm.role, tm.photo, tm.bio, tm.socialLinks, i, now, now]
+    )
+  }
+  logs.push('4 team members created')
+
+  // ── Foundation Records ──
+  const foundationData = [
+    { year: 2021, desc: 'SMGH Foundation started full operations in 2021. Donations were made in cash, food stuffs and other consumables to less privileged widows and rural pastors\' wives across the Cape Coast metropolis.', raised: 15000, spent: 12000, count: 52, locs: '["Cape Coast","Moree","Elmina"]' },
+    { year: 2022, desc: 'The 2022 foundation outreach expanded to cover more communities. Donations in cash, food stuffs and other consumables were distributed to less privileged widows and rural pastors\' wives.', raised: 25000, spent: 22000, count: 85, locs: '["Cape Coast","Winneba","Accra"]' },
+    { year: 2023, desc: 'The 2023 foundation outreach continued to grow, with increased donations and a wider reach of beneficiaries. The foundation provided food items, clothing, and cash support to widows, single mothers, and rural pastors\' wives across multiple communities.', raised: 35000, spent: 30000, count: 100, locs: '["Cape Coast","Winneba","Accra","Tema"]' },
+    { year: 2024, desc: 'Building on previous years, SMGH Foundation continued its annual outreach program, providing essential support to mothers in need. The foundation solicited funds from organizations and individuals to support less privileged widows and rural pastors\' wives.', raised: 50000, spent: 45000, count: 130, locs: '["Cape Coast","Winneba","Accra","Tema","Kumasi"]' },
+  ]
+  for (const fd of foundationData) {
+    await q(
+      `INSERT INTO FoundationRecord (id, year, description, amountRaised, amountSpent, beneficiariesCount, locations, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [uid(), fd.year, fd.desc, fd.raised, fd.spent, fd.count, fd.locs, now, now]
+    )
+  }
+  logs.push('4 foundation records created')
+
+  // ── Events ──
+  const eventsData = [
+    { title: 'SWEET MOTHERS GH – 2017', slug: 'smgh-2017', date: '2017-05-07', time: '16:30', venue: 'The Latter Glory Outreach Church', city: 'Winneba', address: 'The Latter Glory Outreach Church, Winneba, Ghana', banner: '/images/events/2017/banner.jpg', status: 'completed', tags: 'inaugural, mother-day, worship-night', desc: '<p>The inaugural Sweet Mothers Ghana worship night was held on Mother\'s Day, May 7, 2017, at The Latter Glory Outreach Church in Winneba. This historic event marked the birth of a movement to honour and support mothers in Ghana.</p><p>The vision was birthed by Minister Bobby Essuon, who felt a strong calling to create a platform that celebrates mothers while also supporting those in need.</p>', artists: [0], testimonials: [{ quote: 'The first Sweet Mothers Ghana was an unforgettable experience. I felt truly honoured as a mother.', author: 'Attendee' }], gallery: ['/images/events/2017/banner.jpg', '/images/events/2017/gallery-1.jpg', '/images/events/2017/gallery-2.jpg'] },
+    { title: 'SWEET MOTHERS GH – 2018', slug: 'smgh-2018', date: '2018-05-06', time: '16:30', venue: 'Presbyterian Church', city: 'Gbawe', address: 'Presbyterian Church, Gbawe, Ghana', banner: '/images/events/2018/banner.jpg', status: 'completed', tags: 'mother-day, worship-night', desc: '<p>The second edition of Sweet Mothers Ghana was held on May 6, 2018 at the Presbyterian Church in Gbawe. The event continued to grow, with Minister Debby bringing her anointed worship to the SMGH stage for the first time.</p>', artists: [1], testimonials: [{ quote: 'Year after year, Sweet Mothers GH keeps getting better. God is truly behind this vision.', author: 'Pastor Isaac' }], gallery: ['/images/events/2018/banner.jpg', '/images/events/2018/gallery-1.jpg', '/images/events/2018/gallery-2.jpg', '/images/events/2018/gallery-3.jpg', '/images/events/2018/gallery-4.jpg'] },
+    { title: 'SWEET MOTHERS GH – 2019', slug: 'smgh-2019', date: '2019-05-05', time: '16:30', venue: 'Global Palace International', city: 'Tema Comm 22', address: 'Global Palace International, Tema Comm 22, Ghana', banner: '/images/events/2019/banner.jpg', status: 'completed', tags: 'global-palace, mother-day', desc: '<p>The 2019 edition was held at Global Palace International in Tema on May 5, 2019. With a growing attendance, the event featured Minister Bob returning to the SMGH stage for another powerful ministration.</p>', artists: [0], testimonials: [{ quote: 'The atmosphere at Global Palace was amazing. God showed up powerfully!', author: 'Attendee' }], gallery: ['/images/events/2019/banner.jpg', '/images/events/2019/gallery-1.jpg', '/images/events/2019/gallery-2.jpg'] },
+    { title: 'SWEET MOTHERS GH 2020', slug: 'smgh-2020', date: '2020-05-03', time: '16:30', venue: 'Global Palace International', city: 'Tema Comm 22', address: 'Global Palace International, Tema Comm 22, Ghana', banner: '/images/events/2020/banner.jpg', status: 'completed', tags: 'resilience, mother-day', desc: '<p>The 2020 edition was held on May 3, 2020 at Global Palace International in Tema. Despite global difficulties, the event went ahead with the necessary precautions, demonstrating the resilience of the SMGH vision.</p>', artists: [0], testimonials: [{ quote: 'Even in difficult times, SMGH remained committed to honouring mothers. Truly inspiring.', author: 'Attendee' }], gallery: ['/images/events/2020/banner.jpg', '/images/events/2020/gallery-1.jpg'] },
+    { title: 'SWEET MOTHERS GH – 2021', slug: 'smgh-2021', date: '2021-05-02', time: '16:30', venue: 'Fullness Centre - Abokobi', city: 'Abokobi - Pantang', address: 'Fullness Centre - Abokobi, Abokobi - Pantang, Ghana', banner: '/images/events/2021/banner.jpg', status: 'completed', tags: 'foundation-launch, dual-ministration', desc: '<p>The 2021 edition was held on May 2, 2021 at the Fullness Centre in Abokobi. Both Minister Bob and Minister Debby ministered together on the same stage. This edition marked a significant milestone as the SMGH Foundation began full structured operations.</p>', artists: [0, 1], testimonials: [{ quote: 'Having both Minister Bob and Minister Debby on the same stage was incredible. The worship was heavenly!', author: 'Grace' }, { quote: 'The foundation work this year was truly impactful. So many mothers were blessed.', author: 'Donor' }], gallery: ['/images/events/2021/banner.jpg', '/images/events/2021/gallery-1.jpg', '/images/events/2021/gallery-2.jpg', '/images/events/2021/gallery-3.jpg', '/images/events/2021/gallery-4.jpg', '/images/events/2021/gallery-5.jpg', '/images/events/2021/gallery-6.jpg', '/images/events/2021/gallery-7.jpg', '/images/events/2021/gallery-8.jpg', '/images/events/2021/gallery-9.jpg'] },
+    { title: 'SWEET MOTHERS GH – 2022', slug: 'smgh-2022', date: '2022-05-08', time: '17:30', venue: 'Peace Chapel International', city: 'Lapaz', address: 'Peace Chapel International - Lapaz, Nyamekye Junction, Lapaz, Ghana', banner: '/images/events/2022/banner.jpg', status: 'completed', tags: 'expanded-outreach, lapaz', desc: '<p>The 2022 edition was held on May 8, 2022 at Peace Chapel International in Lapaz. The foundation outreach expanded its reach across multiple communities.</p>', artists: [0], testimonials: [{ quote: 'SMGH 2022 at Peace Chapel was a blessed experience. The worship was powerful!', author: 'David' }], gallery: ['/images/events/2022/banner.jpg', '/images/events/2022/gallery-1.jpg', '/images/events/2022/gallery-2.jpg', '/images/events/2022/gallery-3.jpg', '/images/events/2022/gallery-4.jpg', '/images/events/2022/gallery-5.jpg'] },
+    { title: 'SWEET MOTHERS GH – 2023', slug: 'smgh-2023', date: '2023-05-14', time: '17:30', venue: 'Church of Pentecost', city: 'Cape Coast', address: 'JW Sackie, Oguaa Abura District, Cape Coast, Ghana', banner: '/images/events/2023/banner.jpg', status: 'completed', tags: 'cape-coast, church-of-pentecost', desc: '<p>The 2023 edition was held on May 14, 2023 at the Church of Pentecost, JW Sackie, Oguaa Abura District in Cape Coast. Minister Bob delivered a powerful ministration bringing the audience into a deep atmosphere of worship and praise.</p>', artists: [0], testimonials: [{ quote: 'The atmosphere of worship at SMGH 2023 was something I have never experienced before. God showed up mightily!', author: 'Esther' }], gallery: ['/images/events/2023/banner.jpg', '/images/events/2023/gallery-1.jpg', '/images/events/2023/gallery-2.jpg', '/images/events/2023/gallery-3.jpg', '/images/events/2023/gallery-4.jpg', '/images/events/2023/gallery-5.jpg', '/images/events/2023/gallery-6.jpg', '/images/events/2023/gallery-7.jpg'] },
+    { title: 'SWEET MOTHERS GH – 2024', slug: 'smgh-2024', date: '2024-05-12', time: '17:00', venue: 'TBD', city: 'Ghana', address: null, banner: '/images/events/2024/banner.jpg', status: 'completed', tags: 'anniversary, worship-night', desc: '<p>SWEET MOTHERS GH 2024 was held on May 12, 2024. Minister Bob ministered at this highly anticipated event, bringing another edition of powerful worship and celebration of motherhood.</p>', artists: [0], testimonials: [{ quote: 'SMGH 2024 was truly special. The organization and worship were exceptional!', author: 'Kwabena' }], gallery: ['/images/events/2024/banner.jpg'] },
+    { title: 'SWEET MOTHERS GH – 2025', slug: 'smgh-2025', date: '2025-05-11', time: '17:00', venue: 'TBD', city: 'Ghana', address: null, banner: '/images/events/2024/banner.jpg', status: 'upcoming', tags: 'upcoming, 2025, worship-night', desc: '<p>SWEET MOTHERS GH 2025 is coming soon! Join us for another incredible night of worship, celebration, and giving. Stay tuned for venue and artist announcements.</p>', artists: [0], testimonials: [], gallery: [] },
+  ]
+
+  const artistIds = [artistBob, artistDebby]
+
+  for (const ev of eventsData) {
+    const eventId = uid()
+    await q(
+      `INSERT INTO Event (id, title, slug, date, time, venue, city, address, description, bannerImage, status, tags, youtubeUrls, attendanceCount, ticketCurrency, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 'GHS', ?, ?)`,
+      [eventId, ev.title, ev.slug, ev.date + ' 00:00:00', ev.time, ev.venue, ev.city, ev.address, ev.desc, ev.banner, ev.status, ev.tags, '[]', now, now]
+    )
+
+    // Event artists
+    for (let i = 0; i < ev.artists.length; i++) {
+      await q(
+        `INSERT INTO EventArtist (id, eventId, artistId, sortOrder) VALUES (?, ?, ?, ?)`,
+        [uid(), eventId, artistIds[ev.artists[i]], i]
+      )
+    }
+
+    // Event testimonials
+    for (const t of ev.testimonials) {
+      await q(
+        `INSERT INTO EventTestimonial (id, eventId, quote, author, photo) VALUES (?, ?, ?, ?, NULL)`,
+        [uid(), eventId, t.quote, t.author]
+      )
+    }
+
+    // Event gallery
+    for (let i = 0; i < ev.gallery.length; i++) {
+      await q(
+        `INSERT INTO GalleryItem (id, title, type, url, thumbnail, eventId, year, category, sortOrder, createdAt) VALUES (?, ?, 'image', ?, ?, ?, ?, 'event', ?, ?)`,
+        [uid(), `${ev.title} - Photo ${i + 1}`, ev.gallery[i], ev.gallery[i], eventId, parseInt(ev.date.slice(0, 4)), i, now]
+      )
+    }
+  }
+  logs.push('9 events created with artists, testimonials, and gallery')
+
+  // ── General Gallery Items ──
+  const generalGallery = [
+    { title: 'SMGH 2023 Worship Night', url: '/images/events/2023/gallery-2.jpg', year: 2023, category: 'event' },
+    { title: 'SMGH 2024 Event', url: '/images/events/2024/banner.jpg', year: 2024, category: 'event' },
+    { title: 'Foundation Outreach', url: '/images/events/2021/gallery-3.jpg', year: 2021, category: 'foundation' },
+    { title: 'SMGH Team', url: '/images/artists/minister-bob.jpg', year: 2023, category: 'team' },
+  ]
+  for (const item of generalGallery) {
+    await q(
+      `INSERT INTO GalleryItem (id, title, type, url, thumbnail, year, category, sortOrder, createdAt) VALUES (?, ?, 'image', ?, ?, ?, ?, 0, ?)`,
+      [uid(), item.title, item.url, item.url, item.year, item.category, now]
+    )
+  }
+  logs.push('4 general gallery items created')
+
+  // ── Site Settings ──
+  const settings = [
+    { key: 'about_content', value: 'Sweet Mothers Ghana (SMGH) is a faith-based organization founded in 2017 by Minister Bobby Essuon. We warmly welcome you to the Sweet Mothers GH website. Our mission is to honour and support mothers, especially single mothers, widows, and the less privileged in Ghana.' },
+    { key: 'visionary_message', value: '<p class="text-gray-600 leading-relaxed mb-4 text-justify">The love of God has led us to show that same Love, Care and Appreciation to our dear mothers and to encourage them to keep up with the task God has entrusted into their hands. Motherhood as you and I know, is not one of those regular responsibilities out there. Right from the inception of pregnancy to nurturing the child to become a responsible figure in the society.</p><p class="text-gray-600 leading-relaxed mb-4 text-justify">We don\'t just stop there, we also have a great passion for those of them who are finding it difficult to take care of their wards due to one reason and the other. Some are single parenting probably because they have lost their husbands, others due to broken homes etc. We see the need to assist such mothers as well so as to push harder and bring their children up properly.</p><p class="text-gray-600 leading-relaxed mb-6 text-justify">This is why we have the <strong class="text-green-700">SWEET MOTHERS FOUNDATION</strong> where we raise funds to support mothers who are in a very heart-breaking situations.</p><p class="text-gray-500 italic text-sm">We therefore welcome you to join us in fighting for these mothers and their children. Thank you. <span class="text-green-700 font-medium">~Minister Bobby Essuon.</span></p>' },
+    { key: 'foundation_description', value: 'SMGH-FOUNDATION was established in the year 2017. This was birthed by Sweet Mothers GH with the mission of providing supports to less privileged widows and rural pastors\' wives. We make donations to them, in cash, food stuffs and other consumables by soliciting funds from organizations and individuals. This initiative started full operations from 2021, even though some donations were made annually to some beneficiaries on our list from 2017 to 2020.' },
+    { key: 'contact_phone1', value: '0243618186' },
+    { key: 'contact_phone2', value: '0247612799' },
+    { key: 'contact_email', value: 'bobby@sweetmothersgh.org' },
+    { key: 'contact_address', value: 'Ghana' },
+    { key: 'youtube_url', value: 'https://www.youtube.com/@sweetmothersgh' },
+    { key: 'facebook_url', value: 'https://web.facebook.com/sweetmothersgh' },
+    { key: 'instagram_url', value: 'https://instagram.com/sweetmothersgh' },
+    { key: 'whatsapp_url', value: 'https://wa.me/233243618186' },
+    { key: 'paystack_public_key', value: '' },
+    { key: 'hubtel_merchant_number', value: '' },
+    { key: 'hero_slider_images', value: JSON.stringify(['/images/events/2023/banner.jpg', '/images/events/2021/banner.jpg', '/images/events/2022/banner.jpg', '/images/events/2019/banner.jpg', '/images/events/2024/banner.jpg']) },
+    { key: 'nav_links', value: JSON.stringify([{ label: 'Home', href: '/' }, { label: 'Events', href: '/events' }, { label: 'Foundation', href: '/foundation' }, { label: 'Team', href: '/team' }, { label: 'Gallery', href: '/gallery' }, { label: 'Artists', href: '/artists' }, { label: 'Donate', href: '/donate' }, { label: 'Shop', href: '/shop' }, { label: 'Contact', href: '/contact' }, { label: 'Track Order', href: '/track-order' }]) },
+    { key: 'footer_links', value: JSON.stringify([{ label: 'Events', href: '/events' }, { label: 'Foundation', href: '/foundation' }, { label: 'Our Team', href: '/team' }, { label: 'Gallery', href: '/gallery' }, { label: 'Artists', href: '/artists' }, { label: 'Donate', href: '/donate' }]) },
+    { key: 'faqs', value: JSON.stringify([{ q: 'When is the next SMGH worship night?', a: 'SMGH worship nights are held annually on Mother\'s Day (second Sunday in May).' }, { q: 'How can I volunteer?', a: 'We always need volunteers for our events and outreach programs.' }, { q: 'How are donations used?', a: '100% of donations go directly to supporting beneficiaries.' }, { q: 'Can I nominate a beneficiary?', a: 'Yes! Contact us with their details.' }, { q: 'How can I perform at SMGH?', a: 'Gospel artists can reach out through our contact form or social media.' }]) },
+    { key: 'contact_office_hours', value: 'Mon - Fri: 9:00 AM - 5:00 PM' },
+    { key: 'whatsapp_link', value: 'https://wa.link/jdnvkt' },
+  ]
+
+  for (const s of settings) {
+    await q(
+      `INSERT INTO SiteSetting (id, key, value) VALUES (?, ?, ?)`,
+      [uid(), s.key, s.value]
+    )
+  }
+  logs.push('19 site settings created (including hero_slider_images)')
+}
+
+export async function GET() {
+  const logs: string[] = []
+
+  try {
+    // 1. Read .env
+    const envPath = join(process.cwd(), '.env')
+    let envContent: string
+    try {
+      envContent = readFileSync(envPath, 'utf8')
+    } catch {
+      return NextResponse.json({ success: false, error: '.env file not found at ' + envPath })
+    }
+
+    const dbUrlMatch = envContent.match(/DATABASE_URL=(.+)/)
+    if (!dbUrlMatch) {
+      return NextResponse.json({ success: false, error: 'DATABASE_URL not found in .env file' })
+    }
+    const dbUrl = dbUrlMatch[1].trim()
+    logs.push('DATABASE_URL found in .env')
+
+    // 2. Parse DATABASE_URL
+    const url = new URL(dbUrl)
+    const config = {
+      host: url.hostname,
+      port: parseInt(url.port) || 3306,
+      user: decodeURIComponent(url.username),
+      password: decodeURIComponent(url.password),
+      database: decodeURIComponent(url.pathname.slice(1)),
+      multipleStatements: true,
+      charset: 'utf8mb4',
+    }
+    logs.push(`Parsed DB config: ${config.host}:${config.port}/${config.database}`)
+
+    // 3. Connect to MySQL
+    logs.push('Connecting to MySQL...')
+    const mysqlModule = await import('mysql2/promise')
+    const mysql = mysqlModule.default || mysqlModule
+    const connection = await mysql.createConnection(config)
+    logs.push('Connected to MySQL successfully')
+
+    // 4. Create all tables
+    logs.push('Creating tables (dropping existing if any)...')
+    await connection.query(CREATE_TABLES_SQL)
+    logs.push('All 21 tables created successfully')
+
+    // 5. Seed data
+    logs.push('Seeding database with SMGH content...')
+    await seedDatabase(connection, logs)
+    logs.push('Database seeded successfully')
+
+    // 6. Close MySQL connection
+    await connection.end()
+    logs.push('MySQL connection closed')
+
+    // 7. Regenerate Prisma client using the running Node.js binary
+    logs.push('Regenerating Prisma client...')
+    try {
+      const { execSync } = await import('child_process')
+      const nodeBin = process.execPath
+      const prismaBin = join(process.cwd(), 'node_modules', 'prisma', 'build', 'index.js')
+      execSync(`"${nodeBin}" "${prismaBin}" generate`, {
+        cwd: process.cwd(),
+        timeout: 120000,
+        stdio: 'pipe',
+      })
+      logs.push('Prisma client regenerated successfully')
+    } catch (prismaErr: any) {
+      logs.push(`Warning: Prisma generate returned: ${prismaErr.message?.slice(0, 200)}`)
+      logs.push('This is OK — the setup route will still work.')
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: '🎉 Database setup complete! Now restart the Node.js app in cPanel → Software → Node.js → Restart',
+      logs,
+    })
+  } catch (error: any) {
+    logs.push(`ERROR: ${error.message}`)
+    return NextResponse.json(
+      {
+        success: false,
+        error: error.message,
+        logs,
+      },
+      { status: 500 }
+    )
+  }
+}
