@@ -5,6 +5,10 @@ import { motion } from 'framer-motion'
 import { Link } from '@/lib/router'
 import { Calendar, MapPin, Filter, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import ImageZoom from '@/components/ui/image-zoom'
+
+/* Flyer dimensions: 834×1080 */
+const FLYER_RATIO = 'aspect-[834/1080]'
 
 interface Event {
   id: string
@@ -114,7 +118,7 @@ export default function EventsPage() {
           {loading ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="bg-gray-100 rounded-2xl aspect-[3/4] animate-pulse" />
+                <div key={i} className={`bg-gray-100 rounded-2xl ${FLYER_RATIO} animate-pulse`} />
               ))}
             </div>
           ) : (
@@ -131,15 +135,17 @@ export default function EventsPage() {
                       <Link to={`/events/${upcoming[0].slug}`}>
                         <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 cursor-pointer">
                           <div className="flex flex-col md:flex-row">
-                            {/* Image side — 3:4 portrait ratio */}
+                            {/* Image side — flyer ratio 834×1080, click to zoom */}
                             <div className="relative w-full md:w-[340px] lg:w-[400px] flex-shrink-0">
-                              <div className="aspect-[3/4] overflow-hidden">
-                                <img
-                                  src={upcoming[0].bannerImage || `https://picsum.photos/seed/${upcoming[0].slug}/600/800`}
-                                  alt={upcoming[0].title}
-                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                />
-                              </div>
+                              <ImageZoom src={upcoming[0].bannerImage || `https://picsum.photos/seed/${upcoming[0].slug}/834/1080`} alt={upcoming[0].title}>
+                                <div className={`${FLYER_RATIO} overflow-hidden`}>
+                                  <img
+                                    src={upcoming[0].bannerImage || `https://picsum.photos/seed/${upcoming[0].slug}/834/1080`}
+                                    alt={upcoming[0].title}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                              </ImageZoom>
                               <div className="absolute top-4 left-4">
                                 <span className="px-3 py-1.5 bg-smgh-green text-white text-xs font-semibold rounded-full animate-pulse shadow-lg">
                                   ● Upcoming
@@ -188,18 +194,20 @@ export default function EventsPage() {
                         <motion.div key={event.id} variants={item}>
                           <Link to={`/events/${event.slug}`}>
                             <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 cursor-pointer h-full flex flex-col">
-                              <div className="relative aspect-[3/4] overflow-hidden">
-                                <img
-                                  src={event.bannerImage || `https://picsum.photos/seed/${event.slug}/600/800`}
-                                  alt={event.title}
-                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                />
-                                <div className="absolute top-3 left-3">
-                                  <span className="px-3 py-1 bg-smgh-green text-white text-xs font-semibold rounded-full animate-pulse">
-                                    ● Upcoming
-                                  </span>
+                              <ImageZoom src={event.bannerImage || `https://picsum.photos/seed/${event.slug}/834/1080`} alt={event.title}>
+                                <div className={`relative ${FLYER_RATIO} overflow-hidden`}>
+                                  <img
+                                    src={event.bannerImage || `https://picsum.photos/seed/${event.slug}/834/1080`}
+                                    alt={event.title}
+                                    className="w-full h-full object-cover"
+                                  />
+                                  <div className="absolute top-3 left-3">
+                                    <span className="px-3 py-1 bg-smgh-green text-white text-xs font-semibold rounded-full animate-pulse">
+                                      ● Upcoming
+                                    </span>
+                                  </div>
                                 </div>
-                              </div>
+                              </ImageZoom>
                               <div className="p-5 flex-1 flex flex-col">
                                 <h3 className="font-bold text-gray-900 group-hover:text-smgh-green transition-colors text-lg">{event.title}</h3>
                                 <div className="space-y-1.5 mt-3 flex-1">
@@ -244,18 +252,20 @@ export default function EventsPage() {
                       <motion.div key={event.id} variants={item}>
                         <Link to={`/events/${event.slug}`}>
                           <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 cursor-pointer h-full flex flex-col">
-                            <div className="relative aspect-[3/4] overflow-hidden">
-                              <img
-                                src={event.bannerImage || `https://picsum.photos/seed/${event.slug}/600/800`}
-                                alt={event.title}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                              />
-                              <div className="absolute top-3 left-3">
-                                <span className="px-3 py-1 bg-gray-800 text-white text-xs font-medium rounded-full">
-                                  {new Date(event.date).getFullYear()}
-                                </span>
+                            <ImageZoom src={event.bannerImage || `https://picsum.photos/seed/${event.slug}/834/1080`} alt={event.title}>
+                              <div className={`relative ${FLYER_RATIO} overflow-hidden`}>
+                                <img
+                                  src={event.bannerImage || `https://picsum.photos/seed/${event.slug}/834/1080`}
+                                  alt={event.title}
+                                  className="w-full h-full object-cover"
+                                />
+                                <div className="absolute top-3 left-3">
+                                  <span className="px-3 py-1 bg-gray-800 text-white text-xs font-medium rounded-full">
+                                    {new Date(event.date).getFullYear()}
+                                  </span>
+                                </div>
                               </div>
-                            </div>
+                            </ImageZoom>
                             <div className="p-5 flex-1 flex flex-col">
                               <h3 className="font-bold text-gray-900 group-hover:text-smgh-green transition-colors">{event.title}</h3>
                               <div className="flex items-center gap-2 text-gray-500 text-sm mt-2">

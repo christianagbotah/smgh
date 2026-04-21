@@ -10,6 +10,7 @@ import {
   Baby, Church, Sparkles, Globe
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import ImageZoom from '@/components/ui/image-zoom'
 import HeroSlider from '@/components/HeroSlider'
 import { useToast } from '@/hooks/use-toast'
 
@@ -516,12 +517,14 @@ export default function HomePage() {
                       <div className="group bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100 cursor-pointer">
                         <div className="md:flex">
                           {/* Banner Image */}
-                          <div className="md:w-[45%] relative aspect-[3/4] md:aspect-auto overflow-hidden">
-                            <img
-                              src={ev.bannerImage || '/images/events/2024/banner.jpg'}
-                              alt={ev.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                            />
+                          <div className="md:w-[45%] relative aspect-[834/1080] md:aspect-auto overflow-hidden">
+                            <ImageZoom src={ev.bannerImage || '/images/events/2024/banner.jpg'} alt={ev.title} className="absolute inset-0">
+                              <img
+                                src={ev.bannerImage || '/images/events/2024/banner.jpg'}
+                                alt={ev.title}
+                                className="w-full h-full object-cover"
+                              />
+                            </ImageZoom>
                             <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/10 hidden md:block" />
                             {/* Date badge */}
                             <div className="absolute top-4 left-4 bg-green-600 text-white rounded-2xl p-3 text-center min-w-[60px] shadow-lg">
@@ -806,8 +809,9 @@ export default function HomePage() {
                 {completedEvents.slice(0, 6).map(event => (
                   <Link key={event.id} to={`/events/${event.slug}`}>
                     <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 cursor-pointer h-full">
-                      <div className="relative aspect-[3/4] overflow-hidden">
-                        <img src={event.bannerImage} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <ImageZoom src={event.bannerImage} alt={event.title} className="relative">
+                      <div className="relative aspect-[834/1080] overflow-hidden">
+                        <img src={event.bannerImage} alt={event.title} className="w-full h-full object-cover" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                         <div className="absolute top-3 left-3">
                           <span className="px-3 py-1 bg-green-600 text-white text-xs font-semibold rounded-full">
@@ -818,6 +822,7 @@ export default function HomePage() {
                           <h3 className="font-bold text-white text-lg leading-tight drop-shadow">{event.title}</h3>
                         </div>
                       </div>
+                      </ImageZoom>
                       <div className="p-4">
                         <div className="flex items-center gap-2 text-sm text-gray-500">
                           <MapPin className="w-3.5 h-3.5" />
