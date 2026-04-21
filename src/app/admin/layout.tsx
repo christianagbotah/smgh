@@ -7,7 +7,8 @@ import { motion } from 'framer-motion'
 import {
   LayoutDashboard, Calendar, Image, Heart, Music, FileText,
   MessageSquare, Mail, Settings, LogOut, Upload, X, Menu, ChevronLeft,
-  Users, UserPlus, ShoppingBag, Package, DollarSign, FilePlus2, Shield
+  Users, UserPlus, ShoppingBag, Package, DollarSign, FilePlus2, Shield,
+  Monitor, PenLine
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ConfirmProvider } from '@/hooks/useConfirm'
@@ -24,6 +25,7 @@ const navItems = [
   { href: '/admin/products', label: 'Products', icon: ShoppingBag },
   { href: '/admin/orders', label: 'Orders', icon: Package },
   { href: '/admin/donations', label: 'Donations', icon: DollarSign },
+  { href: '/admin/editor', label: 'Site Editor', icon: PenLine },
   { href: '/admin/pages', label: 'Pages', icon: FileText },
   { href: '/admin/custom-pages', label: 'Custom Pages', icon: FilePlus2 },
   { href: '/admin/messages', label: 'Messages', icon: MessageSquare },
