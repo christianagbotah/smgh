@@ -656,9 +656,9 @@ export default function EventDetailPage() {
   return (
     <motion.div variants={container} initial="hidden" animate="show" className="min-h-screen overflow-hidden">
       {/* Hero Banner */}
-      <div className="relative h-[55vh] md:h-[70vh] overflow-hidden">
+      <div className="relative h-[60vh] md:h-[80vh] overflow-hidden">
         <img
-          src={event.bannerImage || `https://picsum.photos/seed/${event.slug}/1920/800`}
+          src={event.bannerImage || `https://picsum.photos/seed/${event.slug}/1080/1920`}
           alt={event.title}
           className="w-full h-full object-cover"
         />
@@ -1224,8 +1224,8 @@ export default function EventDetailPage() {
                 <Link key={re.id} to={`/events/${re.slug}`}>
                   <Card className="group overflow-hidden shadow-sm hover:shadow-lg transition-all border border-gray-100 cursor-pointer">
                     <CardContent className="p-0">
-                      <div className="relative aspect-video overflow-hidden">
-                        <img src={re.bannerImage || `https://picsum.photos/seed/${re.slug}/600/300`} alt={re.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <div className="relative aspect-[9/16] overflow-hidden">
+                        <img src={re.bannerImage || `https://picsum.photos/seed/${re.slug}/600/1066`} alt={re.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                         <div className="absolute bottom-3 left-3">
                           <Badge className="bg-white/90 text-gray-800 text-xs backdrop-blur-sm border-0">

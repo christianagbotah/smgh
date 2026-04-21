@@ -504,7 +504,7 @@ export default function HomePage() {
                     <Link to={`/events/${event.slug}`}>
                       <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 cursor-pointer h-full">
                         {/* Banner Image */}
-                        <div className="relative aspect-video overflow-hidden">
+                        <div className="relative aspect-[9/16] overflow-hidden">
                           <img
                             src={event.bannerImage || '/images/events/2024/banner.jpg'}
                             alt={event.title}
@@ -591,7 +591,7 @@ export default function HomePage() {
               </div>
               <div className="relative rounded-3xl overflow-hidden bg-white shadow-xl shadow-black/5 border border-gray-100">
                 <div className="md:flex">
-                  <div className="md:w-1/2 h-56 sm:h-64 md:h-auto">
+                  <div className="md:w-1/2 min-h-[400px] md:min-h-[500px]">
                     <img
                       src={latestEvent.bannerImage || '/images/events/2024/banner.jpg'}
                       alt={latestEvent.title}
@@ -801,7 +801,7 @@ export default function HomePage() {
                 {completedEvents.slice(0, 6).map(event => (
                   <Link key={event.id} to={`/events/${event.slug}`}>
                     <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 cursor-pointer h-full">
-                      <div className="relative aspect-video overflow-hidden">
+                      <div className="relative aspect-[9/16] overflow-hidden">
                         <img src={event.bannerImage} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                         <div className="absolute top-3 left-3">
