@@ -19,7 +19,9 @@ export default function ImageZoom({ src, alt = 'Image', children, className = ''
   const [dragging, setDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
 
-  const openZoom = useCallback(() => {
+  const openZoom = useCallback((e?: React.MouseEvent) => {
+    e?.stopPropagation()
+    e?.preventDefault()
     setScale(1)
     setRotation(0)
     setOffset({ x: 0, y: 0 })
