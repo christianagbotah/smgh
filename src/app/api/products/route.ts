@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create product
-    const { name, slug, description, basePrice, category, eventId, primaryImage } = body
+    const { name, slug, description, basePrice, category, eventId, primaryImage, galleryImages, fabric, style, fit, material, careInstructions } = body
     if (!name) return NextResponse.json({ error: 'Name is required' }, { status: 400 })
 
     const finalSlug = slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
@@ -98,6 +98,12 @@ export async function POST(request: NextRequest) {
         category: category || 'tshirt',
         eventId: eventId || null,
         primaryImage: primaryImage || null,
+        galleryImages: galleryImages || null,
+        fabric: fabric || null,
+        style: style || null,
+        fit: fit || null,
+        material: material || null,
+        careInstructions: careInstructions || null,
       },
     })
 
@@ -144,7 +150,7 @@ export async function PUT(request: NextRequest) {
     if (!id) return NextResponse.json({ error: 'Product id is required' }, { status: 400 })
 
     const updateData: any = {}
-    const allowedFields = ['name', 'slug', 'description', 'basePrice', 'category', 'eventId', 'primaryImage', 'isActive']
+    const allowedFields = ['name', 'slug', 'description', 'basePrice', 'category', 'eventId', 'primaryImage', 'galleryImages', 'fabric', 'style', 'fit', 'material', 'careInstructions', 'isActive']
     for (const field of allowedFields) {
       if (updates[field] !== undefined) {
         updateData[field] = field === 'basePrice' ? parseFloat(updates[field]) || 0 : updates[field]

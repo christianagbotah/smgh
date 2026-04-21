@@ -202,19 +202,25 @@ model EventRSVP {
 }
 
 model Product {
-  id           String   @id @default(cuid())
-  name         String
-  slug         String   @unique
-  description  String?  @db.Text
-  basePrice    Float
-  currency     String   @default("GHS")
-  category     String   @default("tshirt")
-  eventId      String?
-  event        Event?   @relation(fields: [eventId], references: [id], onDelete: SetNull)
-  primaryImage String?
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id               String   @id @default(cuid())
+  name             String
+  slug             String   @unique
+  description      String?  @db.Text
+  basePrice        Float
+  currency         String   @default("GHS")
+  category         String   @default("tshirt")
+  eventId          String?
+  event            Event?   @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  primaryImage     String?
+  galleryImages    String?  @db.Text
+  fabric           String?
+  style            String?
+  fit              String?
+  material         String?
+  careInstructions String?  @db.Text
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   variants   ProductVariant[]
   orderItems OrderItem[]

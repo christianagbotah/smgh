@@ -305,6 +305,12 @@ exports.Prisma.ProductScalarFieldEnum = {
   category: 'category',
   eventId: 'eventId',
   primaryImage: 'primaryImage',
+  galleryImages: 'galleryImages',
+  fabric: 'fabric',
+  style: 'style',
+  fit: 'fit',
+  material: 'material',
+  careInstructions: 'careInstructions',
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -536,7 +542,13 @@ exports.Prisma.ProductOrderByRelevanceFieldEnum = {
   currency: 'currency',
   category: 'category',
   eventId: 'eventId',
-  primaryImage: 'primaryImage'
+  primaryImage: 'primaryImage',
+  galleryImages: 'galleryImages',
+  fabric: 'fabric',
+  style: 'style',
+  fit: 'fit',
+  material: 'material',
+  careInstructions: 'careInstructions'
 };
 
 exports.Prisma.ProductVariantOrderByRelevanceFieldEnum = {

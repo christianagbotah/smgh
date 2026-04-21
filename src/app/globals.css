@@ -315,6 +315,23 @@
   cursor: pointer;
 }
 
+/* Fix all <select> dropdowns in admin: option elements must have dark bg */
+.admin-theme select {
+  background-color: #1a1a1a;
+  color: #f0f0f0;
+  border-color: #333;
+}
+.admin-theme select option {
+  background-color: #1a1a1a;
+  color: #f0f0f0;
+  padding: 8px;
+}
+.admin-theme select optgroup {
+  background-color: #111;
+  color: #9ca3af;
+  font-weight: 600;
+}
+
 /* Custom admin scrollbar */
 .admin-scrollbar::-webkit-scrollbar {
   width: 6px;
