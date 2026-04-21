@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
 import { useConfirm } from '@/hooks/useConfirm'
-import { fetchWrite, ensureArray } from '@/lib/fetch-helpers'
+import { fetchJSON, fetchWrite, ensureArray } from '@/lib/fetch-helpers'
 
 interface Subscriber {
   id: string
@@ -23,8 +23,7 @@ export default function AdminNewsletter() {
   const { confirm } = useConfirm()
 
   const fetchSubscribers = () => {
-    fetch('/api/newsletter')
-      .then(res => { if (!res.ok) throw new Error(); return res.json() })
+    fetchJSON('/api/newsletter')
       .then(data => { setSubscribers(ensureArray(data)); setLoading(false) })
       .catch(() => setLoading(false))
   }

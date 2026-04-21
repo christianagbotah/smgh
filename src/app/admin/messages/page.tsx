@@ -5,7 +5,7 @@ import { MessageSquare, Trash2, Eye, Mail, Phone } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 import { useConfirm } from '@/hooks/useConfirm'
-import { fetchWrite, ensureArray } from '@/lib/fetch-helpers'
+import { fetchJSON, fetchWrite, ensureArray } from '@/lib/fetch-helpers'
 
 interface ContactMessage {
   id: string
@@ -25,8 +25,7 @@ export default function AdminMessages() {
   const { confirm } = useConfirm()
 
   const fetchMessages = () => {
-    fetch('/api/contact')
-      .then(res => { if (!res.ok) throw new Error(); return res.json() })
+    fetchJSON('/api/contact')
       .then(data => { setMessages(ensureArray(data)); setLoading(false) })
       .catch(() => setLoading(false))
   }

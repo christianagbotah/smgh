@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Users, UserPlus, Shield, ShieldCheck, Trash2, Loader2, AlertTriangle, X } from 'lucide-react'
+import { Users, UserPlus, Shield, ShieldCheck, Trash2, Loader2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
-import { ensureArray } from '@/lib/fetch-helpers'
+import { fetchJSON, fetchJSONOrNull, fetchWrite, ensureArray } from '@/lib/fetch-helpers'
+import { useConfirm } from '@/hooks/useConfirm'
+import PageLoadingOverlay from '@/components/admin/PageLoadingOverlay'
 
 interface AdminUser {
   id: string
@@ -27,8 +29,8 @@ export default function AdminUsersPage() {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null)
   const [showAddForm, setShowAddForm] = useState(false)
   const [adding, setAdding] = useState(false)
-  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const { toast } = useToast()
+  const { confirm } = useConfirm()
 
   // New user form
   const [newName, setNewName] = useState('')
@@ -38,16 +40,16 @@ export default function AdminUsersPage() {
 
   const fetchUsers = useCallback(async () => {
     try {
-      const res = await fetch('/api/users')
-      if (res.ok) {
-        const data = await res.json()
-        setUsers(ensureArray(data))
-      } else if (res.status === 403) {
+      const data = await fetchJSON('/api/users')
+      setUsers(ensureArray(data))
+    } catch (err: any) {
+      if (err?.message?.includes('403')) {
         // Not authorized — user is not super_admin
-        setCurrentUser((await fetch('/api/auth').then(r => r.ok ? r.json() : null))?.user || null)
+        const authData = await fetchJSONOrNull('/api/auth')
+        setCurrentUser(authData?.user || null)
+      } else {
+        toast({ title: 'Failed to load users', variant: 'destructive' })
       }
-    } catch {
-      toast({ title: 'Failed to load users', variant: 'destructive' })
     } finally {
       setLoading(false)
     }
@@ -55,11 +57,9 @@ export default function AdminUsersPage() {
 
   useEffect(() => {
     // First get auth info, then fetch users
-    fetch('/api/auth')
-      .then(res => res.ok ? res.json() : null)
-      .then(data => {
-        if (data?.user) setCurrentUser(data.user)
-      })
+    fetchJSONOrNull('/api/auth').then(data => {
+      if (data?.user) setCurrentUser(data.user)
+    })
     fetchUsers()
   }, [fetchUsers])
 
@@ -76,12 +76,12 @@ export default function AdminUsersPage() {
 
     setAdding(true)
     try {
-      const res = await fetch('/api/users', {
+      const { ok, data } = await fetchWrite('/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: newUsername, password: newPassword, name: newName, role: newRole }),
       })
-      if (res.ok) {
+      if (ok) {
         toast({ title: 'User created successfully' })
         setNewName('')
         setNewUsername('')
@@ -90,8 +90,7 @@ export default function AdminUsersPage() {
         setShowAddForm(false)
         fetchUsers()
       } else {
-        const data = await res.json()
-        toast({ title: data.error || 'Failed to create user', variant: 'destructive' })
+        toast({ title: data?.error || 'Failed to create user', variant: 'destructive' })
       }
     } catch {
       toast({ title: 'Failed to create user', variant: 'destructive' })
@@ -102,56 +101,47 @@ export default function AdminUsersPage() {
 
   const handleToggleRole = async (userId: string, currentRole: string) => {
     const newRole = currentRole === 'super_admin' ? 'editor' : 'super_admin'
-    try {
-      const res = await fetch(`/api/users/${userId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role: newRole }),
-      })
-      if (res.ok) {
-        toast({ title: `Role updated to ${newRole === 'super_admin' ? 'Super Admin' : 'Editor'}` })
-        fetchUsers()
-      } else {
-        const data = await res.json()
-        toast({ title: data.error || 'Failed to update role', variant: 'destructive' })
-      }
-    } catch {
-      toast({ title: 'Failed to update role', variant: 'destructive' })
+    const { ok, data } = await fetchWrite(`/api/users/${userId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role: newRole }),
+    })
+    if (ok) {
+      toast({ title: `Role updated to ${newRole === 'super_admin' ? 'Super Admin' : 'Editor'}` })
+      fetchUsers()
+    } else {
+      toast({ title: data?.error || 'Failed to update role', variant: 'destructive' })
     }
   }
 
   const handleToggleActive = async (userId: string, currentActive: boolean) => {
-    try {
-      const res = await fetch(`/api/users/${userId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ active: !currentActive }),
-      })
-      if (res.ok) {
-        toast({ title: `User ${currentActive ? 'deactivated' : 'activated'}` })
-        fetchUsers()
-      } else {
-        const data = await res.json()
-        toast({ title: data.error || 'Failed to update status', variant: 'destructive' })
-      }
-    } catch {
-      toast({ title: 'Failed to update status', variant: 'destructive' })
+    const { ok, data } = await fetchWrite(`/api/users/${userId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ active: !currentActive }),
+    })
+    if (ok) {
+      toast({ title: `User ${currentActive ? 'deactivated' : 'activated'}` })
+      fetchUsers()
+    } else {
+      toast({ title: data?.error || 'Failed to update status', variant: 'destructive' })
     }
   }
 
   const handleDelete = async (userId: string) => {
-    try {
-      const res = await fetch(`/api/users/${userId}`, { method: 'DELETE' })
-      if (res.ok) {
-        toast({ title: 'User deleted' })
-        setDeleteConfirm(null)
-        fetchUsers()
-      } else {
-        const data = await res.json()
-        toast({ title: data.error || 'Failed to delete user', variant: 'destructive' })
-      }
-    } catch {
-      toast({ title: 'Failed to delete user', variant: 'destructive' })
+    const confirmed = await confirm({
+      title: 'Delete User',
+      description: 'Are you sure you want to delete this user? This action cannot be undone.',
+      variant: 'danger',
+    })
+    if (!confirmed) return
+
+    const { ok, data } = await fetchWrite(`/api/users/${userId}`, { method: 'DELETE' })
+    if (ok) {
+      toast({ title: 'User deleted' })
+      fetchUsers()
+    } else {
+      toast({ title: data?.error || 'Failed to delete user', variant: 'destructive' })
     }
   }
 
@@ -183,6 +173,8 @@ export default function AdminUsersPage() {
 
   return (
     <div>
+      <PageLoadingOverlay visible={adding} message="Creating user..." />
+
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
@@ -355,38 +347,16 @@ export default function AdminUsersPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      {deleteConfirm === user.id ? (
-                        <div className="flex items-center justify-end gap-2">
-                          <span className="text-red-400 text-xs">Delete?</span>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleDelete(user.id)}
-                            className="text-red-400 hover:text-red-300 hover:bg-red-500/10 h-7 px-2"
-                          >
-                            Yes
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => setDeleteConfirm(null)}
-                            className="text-gray-400 hover:text-white hover:bg-white/5 h-7 px-2"
-                          >
-                            No
-                          </Button>
-                        </div>
-                      ) : (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => setDeleteConfirm(user.id)}
-                          disabled={user.username === currentUser?.username}
-                          className="text-gray-500 hover:text-red-400 hover:bg-red-500/10 h-7 px-2 disabled:opacity-20 disabled:cursor-not-allowed"
-                          title={user.username === currentUser?.username ? "Can't delete yourself" : 'Delete user'}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      )}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleDelete(user.id)}
+                        disabled={user.username === currentUser?.username}
+                        className="text-gray-500 hover:text-red-400 hover:bg-red-500/10 h-7 px-2 disabled:opacity-20 disabled:cursor-not-allowed"
+                        title={user.username === currentUser?.username ? "Can't delete yourself" : 'Delete user'}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
                     </td>
                   </tr>
                 ))
@@ -418,7 +388,7 @@ export default function AdminUsersPage() {
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() => setDeleteConfirm(deleteConfirm === user.id ? null : user.id)}
+                    onClick={() => handleDelete(user.id)}
                     disabled={user.username === currentUser?.username}
                     className="text-gray-500 hover:text-red-400 hover:bg-red-500/10 h-8 w-8 p-0 disabled:opacity-20"
                   >
@@ -455,28 +425,6 @@ export default function AdminUsersPage() {
                     {new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                   </span>
                 </div>
-                {deleteConfirm === user.id && (
-                  <div className="flex items-center gap-2 bg-red-500/10 rounded-lg p-2">
-                    <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0" />
-                    <span className="text-red-400 text-xs flex-1">Delete this user?</span>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleDelete(user.id)}
-                      className="text-red-400 hover:bg-red-500/20 h-7 px-3 text-xs"
-                    >
-                      Delete
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setDeleteConfirm(null)}
-                      className="text-gray-400 hover:bg-white/5 h-7 px-3 text-xs"
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                )}
               </div>
             ))
           )}

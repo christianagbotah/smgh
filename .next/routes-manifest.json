@@ -90,6 +90,12 @@
       "namedRegex": "^/admin/donations(?:/)?$"
     },
     {
+      "page": "/admin/editor",
+      "regex": "^/admin/editor(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/editor(?:/)?$"
+    },
+    {
       "page": "/admin/events",
       "regex": "^/admin/events(?:/)?$",
       "routeKeys": {},
@@ -202,12 +208,6 @@
       "regex": "^/api/custom\\-pages(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/api/custom\\-pages(?:/)?$"
-    },
-    {
-      "page": "/api/debug",
-      "regex": "^/api/debug(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/api/debug(?:/)?$"
     },
     {
       "page": "/api/donations",
@@ -346,12 +346,6 @@
       "regex": "^/api/testimonials(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/api/testimonials(?:/)?$"
-    },
-    {
-      "page": "/api/upload",
-      "regex": "^/api/upload(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/api/upload(?:/)?$"
     },
     {
       "page": "/api/users",

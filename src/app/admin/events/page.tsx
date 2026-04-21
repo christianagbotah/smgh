@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { Plus, Trash2, Edit3, Save, Calendar, MapPin, Clock, Youtube, Users, MessageSquare, Image as ImageIcon, ChevronDown, ChevronUp, X, ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -46,7 +46,6 @@ export default function AdminEvents() {
   const [saving, setSaving] = useState(false)
   const { toast } = useToast()
   const { confirm } = useConfirm()
-  const editRef = useRef<HTMLDivElement>(null)
 
   const fetchEvents = () => {
     fetch('/api/events?limit=50')
@@ -63,13 +62,6 @@ export default function AdminEvents() {
   }
 
   useEffect(() => { fetchEvents(); fetchArtists() }, [])
-
-  // Scroll to edit form when it opens inline
-  useEffect(() => {
-    if (editingId && editRef.current) {
-      editRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-    }
-  }, [editingId])
 
   const handleSave = async () => {
     if (!form.title || !form.date || !form.venue || !form.city) {
@@ -215,7 +207,7 @@ export default function AdminEvents() {
 
   // Shared edit form component
   const renderEditForm = (isInline: boolean) => (
-    <div ref={!isInline ? editRef : undefined} className="glass rounded-2xl p-6 max-h-[80vh] overflow-y-auto admin-scrollbar border-smgh-green/20 border">
+    <div className="glass rounded-2xl p-6 max-h-[80vh] overflow-y-auto admin-scrollbar border-smgh-green/20 border animate-fade-in">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-white font-semibold">{editingId ? 'Edit Event' : 'New Event'}</h3>
         {!isInline && (
@@ -655,7 +647,7 @@ export default function AdminEvents() {
 
                 {/* Inline Edit Form (appears directly under this event card) */}
                 {isEditing && (
-                  <div className="mt-3 ml-2 mr-2" ref={editRef}>
+                  <div className="mt-3 ml-2 mr-2">
                     {renderEditForm(true)}
                   </div>
                 )}

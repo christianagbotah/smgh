@@ -5,7 +5,9 @@ import { Users, Search, Trash2, Mail, Phone, MessageSquare, Calendar, ChevronDow
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
-import { fetchWrite, ensureArray } from '@/lib/fetch-helpers'
+import { fetchJSON, fetchWrite, ensureArray } from '@/lib/fetch-helpers'
+import { useConfirm } from '@/hooks/useConfirm'
+import PageLoadingOverlay from '@/components/admin/PageLoadingOverlay'
 
 interface RSVPEvent {
   id: string
@@ -87,24 +89,22 @@ export default function AdminRSVPs() {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [eventFilter, setEventFilter] = useState<string>('all')
-  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
   const { toast } = useToast()
+  const { confirm } = useConfirm()
 
   const fetchRSVPs = () => {
     setLoading(true)
     const url = eventFilter === 'all'
       ? '/api/events/rsvp'
       : `/api/events/rsvp?eventId=${eventFilter}`
-    fetch(url)
-      .then(r => { if (!r.ok) throw new Error(); return r.json() })
+    fetchJSON(url)
       .then(data => { setRsvps(ensureArray(data)); setLoading(false) })
       .catch(() => { setLoading(false) })
   }
 
   const fetchEvents = () => {
-    fetch('/api/events?limit=50')
-      .then(r => { if (!r.ok) throw new Error(); return r.json() })
+    fetchJSON('/api/events?limit=50')
       .then(data => setEvents(ensureArray(data)))
       .catch(() => {})
   }
@@ -132,6 +132,13 @@ export default function AdminRSVPs() {
   }, [rsvps])
 
   const handleDelete = async (id: string) => {
+    const ok = await confirm({
+      title: 'Delete RSVP',
+      description: 'Are you sure you want to delete this RSVP? This action cannot be undone.',
+      variant: 'danger',
+      confirmText: 'Delete',
+    })
+    if (!ok) return
     setDeleting(true)
     try {
       const result = await fetchWrite(`/api/events/rsvp?id=${id}`, { method: 'DELETE' })
@@ -146,7 +153,6 @@ export default function AdminRSVPs() {
       toast({ title: 'Failed to delete RSVP', variant: 'destructive' })
     } finally {
       setDeleting(false)
-      setDeleteConfirmId(null)
     }
   }
 
@@ -157,6 +163,8 @@ export default function AdminRSVPs() {
   }, [events, rsvps])
 
   return (
+    <>
+    <PageLoadingOverlay visible={deleting} message="Deleting..." />
     <div>
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
@@ -269,7 +277,6 @@ export default function AdminRSVPs() {
         <div className="space-y-2">
           {filteredRSVPs.map(rsvp => {
             const isExpanded = expandedId === rsvp.id
-            const isConfirming = deleteConfirmId === rsvp.id
             const avatarClass = getAvatarColor(rsvp.name)
             const initials = getInitials(rsvp.name)
 
@@ -436,37 +443,15 @@ export default function AdminRSVPs() {
                         </p>
 
                         <div className="flex items-center gap-2">
-                          {isConfirming ? (
-                            <div className="flex items-center gap-2">
-                              <span className="text-red-400 text-xs">Delete this RSVP?</span>
-                              <Button
-                                size="sm"
-                                onClick={(e) => { e.stopPropagation(); handleDelete(rsvp.id) }}
-                                disabled={deleting}
-                                className="bg-red-500/20 text-red-400 hover:bg-red-500/30 text-xs"
-                              >
-                                {deleting ? 'Deleting...' : 'Confirm'}
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(null) }}
-                                className="text-gray-400 text-xs"
-                              >
-                                Cancel
-                              </Button>
-                            </div>
-                          ) : (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(rsvp.id) }}
-                              className="text-gray-400 hover:text-red-400 hover:bg-red-500/10 text-xs"
-                            >
-                              <Trash2 className="w-3.5 h-3.5 mr-1" />
-                              Delete
-                            </Button>
-                          )}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={(e) => { e.stopPropagation(); handleDelete(rsvp.id) }}
+                            className="text-gray-400 hover:text-red-400 hover:bg-red-500/10 text-xs"
+                          >
+                            <Trash2 className="w-3.5 h-3.5 mr-1" />
+                            Delete
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -486,5 +471,6 @@ export default function AdminRSVPs() {
         </div>
       )}
     </div>
+    </>
   )
 }

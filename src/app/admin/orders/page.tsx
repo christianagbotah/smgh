@@ -8,7 +8,8 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
-import { ensureArray } from '@/lib/fetch-helpers'
+import { fetchJSON, fetchWrite, ensureArray } from '@/lib/fetch-helpers'
+import PageLoadingOverlay from '@/components/admin/PageLoadingOverlay'
 
 // ─── Types ──────────────────────────────────────────────────────────
 interface OrderItem {
@@ -440,6 +441,9 @@ export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [savingStatus, setSavingStatus] = useState(false)
+  const [savingTracking, setSavingTracking] = useState(false)
+  const [savingNotes, setSavingNotes] = useState(false)
 
   // Filter state
   const [activeTab, setActiveTab] = useState<StatusKey>('all')
@@ -452,9 +456,7 @@ export default function AdminOrdersPage() {
       if (search.trim()) params.set('search', search.trim())
       if (activeTab !== 'all') params.set('status', activeTab)
 
-      const res = await fetch(`/api/orders?${params.toString()}`)
-      if (!res.ok) throw new Error('Failed to fetch orders')
-      const data = await res.json()
+      const data = await fetchJSON(`/api/orders?${params.toString()}`)
       setOrders(ensureArray(data))
     } catch {
       toast({ title: 'Failed to load orders', variant: 'destructive' })
@@ -476,32 +478,38 @@ export default function AdminOrdersPage() {
 
   // ─── Handlers ─────────────────────────────────────────────────────
   const handleStatusChange = async (id: string, status: string) => {
-    const res = await fetch(`/api/orders/${id}`, {
+    setSavingStatus(true)
+    const { ok } = await fetchWrite(`/api/orders/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status }),
     })
-    if (!res.ok) throw new Error('Update failed')
+    setSavingStatus(false)
+    if (!ok) throw new Error('Update failed')
     setOrders(prev => prev.map(o => o.id === id ? { ...o, status, updatedAt: new Date().toISOString() } : o))
   }
 
   const handleTrackingSave = async (id: string, trackingNumber: string) => {
-    const res = await fetch(`/api/orders/${id}`, {
+    setSavingTracking(true)
+    const { ok } = await fetchWrite(`/api/orders/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ trackingNumber }),
     })
-    if (!res.ok) throw new Error('Update failed')
+    setSavingTracking(false)
+    if (!ok) throw new Error('Update failed')
     setOrders(prev => prev.map(o => o.id === id ? { ...o, trackingNumber, updatedAt: new Date().toISOString() } : o))
   }
 
   const handleNotesSave = async (id: string, notes: string) => {
-    const res = await fetch(`/api/orders/${id}`, {
+    setSavingNotes(true)
+    const { ok } = await fetchWrite(`/api/orders/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ notes }),
     })
-    if (!res.ok) throw new Error('Update failed')
+    setSavingNotes(false)
+    if (!ok) throw new Error('Update failed')
     setOrders(prev => prev.map(o => o.id === id ? { ...o, notes, updatedAt: new Date().toISOString() } : o))
   }
 
@@ -512,6 +520,8 @@ export default function AdminOrdersPage() {
   // ─── Render ───────────────────────────────────────────────────────
   return (
     <div>
+      <PageLoadingOverlay visible={savingStatus || savingTracking || savingNotes} message="Saving changes..." />
+
       {/* Page Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -576,7 +586,7 @@ export default function AdminOrdersPage() {
                 onClick={() => setActiveTab(tab.key)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap flex items-center gap-1.5 ${
                   activeTab === tab.key
-                    ? 'gradient-green text-white shadow-sm'
+                    ? 'bg-white/10 text-white shadow-sm'
                     : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                 }`}
               >

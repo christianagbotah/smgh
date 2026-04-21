@@ -5,7 +5,7 @@ import { Upload, Copy, Trash2, Image as ImageIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 import { useConfirm } from '@/hooks/useConfirm'
-import { fetchWrite } from '@/lib/fetch-helpers'
+import { fetchJSON, fetchWrite, ensureArray } from '@/lib/fetch-helpers'
 import PageLoadingOverlay from '@/components/admin/PageLoadingOverlay'
 import MediaPicker from '@/components/MediaPicker'
 
@@ -21,15 +21,15 @@ interface MediaFile {
 
 export default function AdminMedia() {
   const [files, setFiles] = useState<MediaFile[]>([])
+  const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const { toast } = useToast()
   const { confirm } = useConfirm()
 
   const fetchFiles = useCallback(() => {
-    fetch('/api/media?limit=100')
-      .then(r => { if (!r.ok) throw new Error(); return r.json() })
-      .then(data => setFiles(data.files || []))
-      .catch(() => setFiles([]))
+    fetchJSON('/api/media?limit=100')
+      .then(data => { setFiles(ensureArray(data?.files || data)); setLoading(false) })
+      .catch(() => { setFiles([]); setLoading(false) })
   }, [])
 
   useEffect(() => { fetchFiles() }, [fetchFiles])
@@ -99,14 +99,26 @@ export default function AdminMedia() {
       </div>
 
       {/* Upload Area */}
+      {!loading && (
       <div className="glass rounded-xl p-8 mb-6 text-center border-dashed border-2 border-gray-700 hover:border-smgh-teal/30 transition-colors">
         <Upload className="w-12 h-12 text-gray-500 mx-auto mb-3" />
         <p className="text-gray-400 mb-2">Drag & drop files here or click to upload</p>
         <p className="text-gray-500 text-sm">Supports images and videos</p>
       </div>
+      )}
 
-      {/* Files Grid */}
-      {files.length === 0 ? (
+      {/* Loading Skeleton */}
+      {loading ? (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="glass rounded-xl p-5 animate-pulse">
+              <div className="bg-white/10 rounded-lg h-40 mb-4" />
+              <div className="h-3 bg-white/10 rounded w-3/4" />
+              <div className="h-2 bg-white/10 rounded w-1/2 mt-2" />
+            </div>
+          ))}
+        </div>
+      ) : files.length === 0 ? (
         <div className="glass rounded-xl p-12 text-center">
           <ImageIcon className="w-12 h-12 text-gray-600 mx-auto mb-3" />
           <p className="text-gray-400">No media files uploaded yet</p>

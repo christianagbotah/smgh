@@ -5,7 +5,8 @@ import { Heart, DollarSign, Search, CheckCircle, Clock, XCircle, Building2, User
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
-import { fetchWrite, ensureArray } from '@/lib/fetch-helpers'
+import { fetchJSON, fetchWrite, ensureArray } from '@/lib/fetch-helpers'
+import PageLoadingOverlay from '@/components/admin/PageLoadingOverlay'
 
 interface Donation {
   id: string
@@ -89,8 +90,7 @@ export default function AdminDonations() {
     if (statusFilter !== 'all') params.set('status', statusFilter)
     if (donorTypeFilter !== 'all') params.set('donorType', donorTypeFilter)
 
-    fetch(`/api/donations?${params.toString()}`)
-      .then(res => { if (!res.ok) throw new Error(); return res.json() })
+    fetchJSON(`/api/donations?${params.toString()}`)
       .then(data => { setDonations(ensureArray(data)); setLoading(false) })
       .catch(() => {
         toast({ title: 'Failed to load donations', variant: 'destructive' })
@@ -159,6 +159,8 @@ export default function AdminDonations() {
   ]
 
   return (
+    <>
+    <PageLoadingOverlay visible={!!updatingId} message="Updating status..." />
     <div>
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
@@ -472,5 +474,6 @@ export default function AdminDonations() {
         </div>
       )}
     </div>
+    </>
   )
 }
