@@ -148,7 +148,7 @@ export default function MediaPicker({
       {/* Current Preview + Trigger */}
       <div className="flex items-start gap-3">
         {/* Preview area */}
-        <div className={`relative ${previewHeight} flex-1 rounded-xl overflow-hidden border border-gray-700 bg-white/5 group`}>
+        <div className={`relative ${previewHeight} max-w-xs rounded-xl overflow-hidden border border-gray-700 bg-white/5 group`}>
           {value ? (
             <>
               <img

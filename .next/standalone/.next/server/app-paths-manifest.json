@@ -50,6 +50,7 @@
   "/api/stats/route": "app/api/stats/route.js",
   "/api/team/route": "app/api/team/route.js",
   "/api/testimonials/route": "app/api/testimonials/route.js",
+  "/api/upload/route": "app/api/upload/route.js",
   "/api/users/[id]/route": "app/api/users/[id]/route.js",
   "/api/users/route": "app/api/users/route.js",
   "/page": "app/page.js",

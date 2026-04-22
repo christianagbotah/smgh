@@ -637,7 +637,7 @@ export default function AdminEvents() {
                         {/* Banner thumbnail */}
                         {event.bannerImage && (
                           <div className="mt-2">
-                            <img src={event.bannerImage} alt={event.title} className="h-32 rounded-lg object-cover" />
+                            <img src={event.bannerImage} alt={event.title} className="max-w-xs h-32 rounded-lg object-cover" />
                           </div>
                         )}
                       </div>
