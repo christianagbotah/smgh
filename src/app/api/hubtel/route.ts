@@ -270,13 +270,33 @@ export async function POST(request: NextRequest) {
         body: JSON.stringify(requestBody),
       })
 
-      const data = await response.json() as Record<string, unknown>
-      console.log('Hubtel Onsite Checkout response:', JSON.stringify({ status: response.status, data }))
+      // Read response as text first to handle non-JSON or empty responses
+      const responseText = await response.text()
+      console.log('Hubtel Onsite Checkout response:', JSON.stringify({ status: response.status, body: responseText.substring(0, 500) }))
+
+      if (!responseText.trim()) {
+        console.error('Hubtel Onsite Checkout: Empty response from API')
+        return NextResponse.json(
+          { error: `Hubtel returned an empty response (HTTP ${response.status}). Please check your Hubtel credentials in Admin Settings.` },
+          { status: 502 }
+        )
+      }
+
+      let data: Record<string, unknown>
+      try {
+        data = JSON.parse(responseText) as Record<string, unknown>
+      } catch {
+        console.error('Hubtel Onsite Checkout: Non-JSON response:', responseText.substring(0, 200))
+        return NextResponse.json(
+          { error: `Hubtel returned an invalid response (HTTP ${response.status}). Please verify your Hubtel API credentials.` },
+          { status: 502 }
+        )
+      }
 
       if (!response.ok) {
         console.error('Hubtel Onsite Checkout API error:', response.status, JSON.stringify(data))
         return NextResponse.json(
-          { error: `Hubtel API error: ${data?.Message || data?.Description || data?.message || 'Unknown error'}` },
+          { error: `Hubtel API error (${response.status}): ${data?.Message || data?.Description || data?.message || data?.ResponseCode || JSON.stringify(data)}` },
           { status: response.status }
         )
       }
@@ -291,7 +311,7 @@ export async function POST(request: NextRequest) {
       if (!checkoutUrl) {
         console.error('Hubtel Onsite Checkout: No CheckoutUrl in response', JSON.stringify(data))
         return NextResponse.json(
-          { error: 'No checkout URL returned from Hubtel. Please try again.' },
+          { error: `Hubtel did not return a checkout URL. Response: ${data?.ResponseCode || 'unknown'} - ${data?.Message || 'No message'}` },
           { status: 500 }
         )
       }

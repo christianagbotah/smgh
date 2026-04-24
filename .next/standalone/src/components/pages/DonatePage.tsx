@@ -237,7 +237,9 @@ export default function DonatePage() {
           }),
         })
 
-        const initData = await initRes.json()
+        const initData = await initRes.json().catch(() => {
+          throw new Error('Payment server error. Please try again.')
+        })
 
         if (initData.success && initData.authorization_url) {
           // Open Paystack payment page in a new tab
@@ -270,7 +272,9 @@ export default function DonatePage() {
           }),
         })
 
-        const initData = await initRes.json()
+        const initData = await initRes.json().catch(() => {
+          throw new Error('Payment server error. Please try again.')
+        })
 
         if (initData.success && initData.checkoutUrl) {
           // Redirect to Hubtel's hosted checkout page
