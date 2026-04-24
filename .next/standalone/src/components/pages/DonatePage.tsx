@@ -254,13 +254,13 @@ export default function DonatePage() {
         return
       }
 
-      // For Hubtel - initialize Mobile Money payment
+      // For Hubtel - initialize Onsite Checkout (hosted payment page)
       if (paymentProvider === 'hubtel') {
         const initRes = await fetch('/api/hubtel', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            action: 'initialize',
+            action: 'onsite-checkout',
             amount: finalAmount,
             email: form.email,
             phone: form.phone,
@@ -272,17 +272,13 @@ export default function DonatePage() {
 
         const initData = await initRes.json()
 
-        if (initData.success) {
-          setSubmitted(true)
-          toast({
-            title: 'Payment initiated!',
-            description: initData.message || 'Check your phone for the mobile money prompt. Thank you!',
-          })
+        if (initData.success && initData.checkoutUrl) {
+          // Redirect to Hubtel's hosted checkout page
+          window.location.href = initData.checkoutUrl
+          return
         } else {
-          throw new Error(initData.error || 'Failed to initialize Hubtel payment')
+          throw new Error(initData.error || 'Failed to initialize Hubtel checkout')
         }
-        setLoading(false)
-        return
       }
     } catch (error) {
       toast({

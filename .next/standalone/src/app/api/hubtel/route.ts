@@ -53,49 +53,82 @@ export async function POST(request: NextRequest) {
       Status,
       Data,
       ClientReference,
+      InvoiceId,
+      TransactionId,
     } = body
 
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || ''
 
     // ── Handle Hubtel webhook callback ──────────────────────────────
-    if (!action && (Status || Data)) {
+    // Handles both Direct Mobile Money and Onsite Checkout webhook formats
+    if (!action && (Status || Data || body.Status || body.TransactionId)) {
       const creds = await getHubtelCredentials()
       if (!creds) {
         return NextResponse.json({ error: 'Hubtel not configured' }, { status: 500 })
       }
 
-      const txStatus = Status || Data?.Status
+      // Direct Mobile Money format: { Status, Data, ClientReference }
+      // Onsite Checkout format: { TransactionId, ClientReference, InvoiceId, Status, Amount, ... }
+      const txStatus = Status || Data?.Status || body.Status
       const txData = Data || body
       const meta = txData?.Metadata || txData?.metadata || {}
+      const invoiceId = InvoiceId || txData?.InvoiceId || ''
+      const clientRef = ClientReference || txData?.ClientReference || ''
 
-      console.log('Hubtel webhook received:', JSON.stringify({ Status: txStatus, ClientReference, meta }))
+      console.log('Hubtel webhook received:', JSON.stringify({ Status: txStatus, ClientReference: clientRef, InvoiceId: invoiceId, TransactionId }))
+
+      // Extract donationId from InvoiceId (format: SMGH-<donationId>)
+      let webhookDonationId = meta?.donationId || ''
+      if (!webhookDonationId && invoiceId && invoiceId.startsWith('SMGH-')) {
+        webhookDonationId = invoiceId.replace('SMGH-', '')
+      }
 
       if (txStatus === 'Completed') {
-        if (meta?.donationId) {
+        // Update by metadata donationId
+        if (webhookDonationId) {
           await db.donation.update({
-            where: { id: meta.donationId },
+            where: { id: webhookDonationId },
             data: { status: 'completed', paymentMethod: 'hubtel' },
-          })
+          }).catch(() => { /* record may not exist */ })
         }
+        // Update by metadata orderId
         if (meta?.orderId) {
           await db.order.update({
             where: { id: meta.orderId },
             data: { paymentStatus: 'paid', status: 'confirmed' },
-          })
+          }).catch(() => { /* record may not exist */ })
         }
-        if (ClientReference) {
-          const order = await db.order.findUnique({ where: { id: ClientReference } })
+        // Update by ClientReference (matches donation.id or order.id)
+        if (clientRef) {
+          const order = await db.order.findUnique({ where: { id: clientRef } })
           if (order) {
             await db.order.update({
-              where: { id: ClientReference },
+              where: { id: clientRef },
               data: { paymentStatus: 'paid', status: 'confirmed' },
             })
           }
-          const donation = await db.donation.findUnique({ where: { id: ClientReference } })
+          const donation = await db.donation.findUnique({ where: { id: clientRef } })
           if (donation) {
             await db.donation.update({
-              where: { id: ClientReference },
+              where: { id: clientRef },
               data: { status: 'completed', paymentMethod: 'hubtel' },
+            })
+          }
+        }
+      } else if (txStatus === 'Failed' || txStatus === 'Cancelled' || txStatus === 'Timeout') {
+        // Mark donation/order as failed for non-completed statuses
+        if (webhookDonationId) {
+          await db.donation.update({
+            where: { id: webhookDonationId },
+            data: { status: 'failed' },
+          }).catch(() => {})
+        }
+        if (clientRef) {
+          const donation = await db.donation.findUnique({ where: { id: clientRef } })
+          if (donation) {
+            await db.donation.update({
+              where: { id: clientRef },
+              data: { status: 'failed' },
             })
           }
         }
@@ -187,6 +220,96 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    // ── Onsite Checkout (Hubtel Online Checkout Invoice) ───────────
+    if (action === 'onsite-checkout') {
+      if (!amount) {
+        return NextResponse.json({ error: 'Amount is required' }, { status: 400 })
+      }
+      if (!donationId) {
+        return NextResponse.json({ error: 'Donation ID is required' }, { status: 400 })
+      }
+
+      const creds = await getHubtelCredentials()
+      if (!creds) {
+        return NextResponse.json({ error: 'Hubtel not configured. Please contact the administrator.' }, { status: 500 })
+      }
+
+      // Format phone number: remove leading 0, add 233 prefix
+      let msisdn = phone || ''
+      if (msisdn.startsWith('0')) {
+        msisdn = '233' + msisdn.substring(1)
+      } else if (msisdn.startsWith('+')) {
+        msisdn = msisdn.substring(1)
+      }
+
+      const invoiceId = `SMGH-${donationId}`
+      const callbackUrl = `${baseUrl}/api/hubtel`
+
+      const requestBody = {
+        InvoiceId: invoiceId,
+        TotalAmount: Number(amount),
+        Description: `SMGH Donation - ${name || 'Donor'}`,
+        CustomerName: name || '',
+        CustomerEmail: email || '',
+        CustomerMsisdn: msisdn,
+        PrimaryCallbackUrl: callbackUrl,
+        SecondaryCallbackUrl: callbackUrl,
+        ReturnUrl: `${baseUrl}/#/donate?status=success`,
+        CancellationUrl: `${baseUrl}/#/donate?status=cancelled`,
+        Logo: `${baseUrl}/logo.png`,
+      }
+
+      console.log('Hubtel Onsite Checkout request:', JSON.stringify(requestBody))
+
+      const response = await fetch('https://payproxyapi.hubtel.com/items/initiate', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${creds.basicAuth}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      })
+
+      const data = await response.json() as Record<string, unknown>
+      console.log('Hubtel Onsite Checkout response:', JSON.stringify({ status: response.status, data }))
+
+      if (!response.ok) {
+        console.error('Hubtel Onsite Checkout API error:', response.status, JSON.stringify(data))
+        return NextResponse.json(
+          { error: `Hubtel API error: ${data?.Message || data?.Description || data?.message || 'Unknown error'}` },
+          { status: response.status }
+        )
+      }
+
+      // Extract checkout URL from response
+      // Response format: { ResponseCode: '00', Data: { CheckoutUrl: '...' } }
+      const checkoutUrl = (data?.Data as Record<string, unknown>)?.CheckoutUrl as string
+        || data?.CheckoutUrl as string
+        || data?.checkoutUrl as string
+        || ''
+
+      if (!checkoutUrl) {
+        console.error('Hubtel Onsite Checkout: No CheckoutUrl in response', JSON.stringify(data))
+        return NextResponse.json(
+          { error: 'No checkout URL returned from Hubtel. Please try again.' },
+          { status: 500 }
+        )
+      }
+
+      // Save reference on donation
+      await db.donation.update({
+        where: { id: donationId },
+        data: { reference: invoiceId, paymentMethod: 'hubtel', paymentProvider: 'hubtel' },
+      }).catch(() => {})
+
+      return NextResponse.json({
+        success: true,
+        checkoutUrl,
+        reference: invoiceId,
+        message: 'Redirecting to Hubtel checkout page...',
+      })
+    }
+
     // ── Verify a transaction ────────────────────────────────────────
     if (action === 'verify') {
       if (!reference) {
@@ -221,7 +344,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, data }, { status: 400 })
     }
 
-    return NextResponse.json({ error: 'Invalid action. Use "initialize" or "verify".' }, { status: 400 })
+    return NextResponse.json({ error: 'Invalid action. Use "initialize", "onsite-checkout", or "verify".' }, { status: 400 })
   } catch (error) {
     console.error('Hubtel error:', error)
     return NextResponse.json({ error: 'Payment processing failed' }, { status: 500 })
