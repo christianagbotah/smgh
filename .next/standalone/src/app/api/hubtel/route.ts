@@ -347,6 +347,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid action. Use "initialize", "onsite-checkout", or "verify".' }, { status: 400 })
   } catch (error) {
     console.error('Hubtel error:', error)
-    return NextResponse.json({ error: 'Payment processing failed' }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'Payment processing failed'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

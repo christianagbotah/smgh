@@ -575,34 +575,7 @@ export default function DonatePage() {
                           </div>
                         </div>
 
-                        {/* Mobile Network - show when Hubtel is selected */}
-                        {paymentProvider === 'hubtel' && (
-                          <div>
-                            <label className="text-sm font-medium text-gray-700 mb-1.5 block">
-                              Mobile Network <span className="text-smgh-red">*</span>
-                            </label>
-                            <div className="grid grid-cols-3 gap-2">
-                              {[
-                                { value: 'mtn', label: 'MTN', color: 'border-yellow-400 text-yellow-700 bg-yellow-50' },
-                                { value: 'telecel', label: 'Telecel', color: 'border-red-400 text-red-700 bg-red-50' },
-                                { value: 'airteltigo', label: 'AT', color: 'border-blue-400 text-blue-700 bg-blue-50' },
-                              ].map(nw => (
-                                <button
-                                  key={nw.value}
-                                  type="button"
-                                  onClick={() => updateForm('network', nw.value)}
-                                  className={`px-3 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${
-                                    form.network === nw.value
-                                      ? nw.color + ' ring-2 ring-offset-1 ring-gray-300'
-                                      : 'border-gray-200 text-gray-500 bg-white hover:bg-gray-50'
-                                  }`}
-                                >
-                                  {nw.label}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        )}
+
 
                         {/* Email */}
                         <div>
