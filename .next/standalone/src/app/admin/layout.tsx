@@ -259,7 +259,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       )}
 
       {/* Main Content */}
-      <div className="flex-1 transition-all duration-300 lg:ml-0" style={{ marginLeft: sidebarOpen ? 256 : 72 }}>
+      <div className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'lg:ml-[256px]' : 'lg:ml-[72px]'}`}>
         {/* Top Bar */}
         <header className="sticky top-0 z-20 glass-strong px-4 md:px-6 h-14 flex items-center justify-between">
           <button

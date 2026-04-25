@@ -509,7 +509,7 @@ export default function AdminEvents() {
                   </Badge>
                 </h4>
                 <p className="text-gray-500 text-xs mb-3">Manage gallery items in the Gallery section. Use category &quot;event&quot; and select this event.</p>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                   {(events.find(e => e.id === editingId)?.galleryItems || []).slice(0, 8).map(gi => (
                     <div key={gi.id} className="aspect-square rounded-lg overflow-hidden">
                       <img src={gi.thumbnail || gi.url} alt={gi.title || ''} className="w-full h-full object-cover" />
@@ -536,7 +536,7 @@ export default function AdminEvents() {
   return (
     <div>
       <PageLoadingOverlay visible={saving} message="Saving..." />
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-white">Events</h1>
           <p className="text-gray-400 text-sm">Manage worship night events</p>

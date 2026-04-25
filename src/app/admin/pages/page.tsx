@@ -73,7 +73,7 @@ export default function AdminPages() {
           <h1 className="text-2xl font-bold text-white">Content / Pages</h1>
           <p className="text-gray-400 text-sm">Edit website content and page text</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
           <Button variant="warning" onClick={handleReset}>
             <RotateCcw className="w-4 h-4 mr-2" />
             Reset

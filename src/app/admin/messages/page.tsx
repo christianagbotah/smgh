@@ -70,7 +70,7 @@ export default function AdminMessages() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-white">Messages</h1>
           <p className="text-gray-400 text-sm">Contact form submissions{unread > 0 && ` · ${unread} unread`}</p>
@@ -79,7 +79,7 @@ export default function AdminMessages() {
 
       <div className="grid md:grid-cols-3 gap-6">
         {/* List */}
-        <div className="md:col-span-1 space-y-2 max-h-[70vh] overflow-y-auto scrollbar-thin">
+        <div className="md:col-span-1 space-y-2 max-h-[40vh] md:max-h-[70vh] overflow-y-auto scrollbar-thin">
           {loading ? (
             [...Array(5)].map((_, i) => <div key={i} className="glass rounded-xl p-3 animate-pulse h-16" />)
           ) : messages.length === 0 ? (

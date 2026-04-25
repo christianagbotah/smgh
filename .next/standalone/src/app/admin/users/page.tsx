@@ -176,7 +176,7 @@ export default function AdminUsersPage() {
       <PageLoadingOverlay visible={adding} message="Creating user..." />
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-2">
             <Users className="w-6 h-6 text-smgh-green" />

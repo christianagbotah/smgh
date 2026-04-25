@@ -280,7 +280,7 @@ export default function AdminFoundation() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="grid grid-cols-3 gap-4">{[...Array(3)].map((_, i) => <Skeleton key={i} className="h-24 rounded-xl bg-white/5" />)}</div>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">{[...Array(3)].map((_, i) => <Skeleton key={i} className="h-24 rounded-xl bg-white/5" />)}</div>
         {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-20 rounded-xl bg-white/5" />)}
       </div>
     )
@@ -466,7 +466,7 @@ export default function AdminFoundation() {
                             ))}
                           </div>
                         )}
-                        <div className="grid grid-cols-3 gap-3 mt-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
                           {record.amountRaised && (
                             <div className="bg-smgh-green/5 rounded-lg p-3 text-center">
                               <p className="text-xs text-gray-500">Raised</p>

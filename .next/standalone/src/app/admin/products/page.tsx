@@ -1335,7 +1335,7 @@ export default function AdminProducts() {
       <PageLoadingOverlay visible={saving || variantSaving} message={variantSaving ? 'Creating variants...' : 'Saving...'} />
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-white">Products</h1>
           <p className="text-gray-400 text-sm">Manage shop merchandise &amp; variants</p>

@@ -195,7 +195,7 @@ export default function AdminCustomPages() {
     <div>
       <PageLoadingOverlay visible={saving} message="Saving..." />
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-white">Custom Pages</h1>
           <p className="text-gray-400 text-sm">Create and manage custom pages for your website</p>

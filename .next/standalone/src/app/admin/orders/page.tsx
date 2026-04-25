@@ -523,7 +523,7 @@ export default function AdminOrdersPage() {
       <PageLoadingOverlay visible={savingStatus || savingTracking || savingNotes} message="Saving changes..." />
 
       {/* Page Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-2">
             <Package className="w-6 h-6 text-smgh-green" />

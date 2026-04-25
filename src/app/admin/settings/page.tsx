@@ -208,7 +208,7 @@ export default function AdminSettings() {
   return (
     <div>
       <PageLoadingOverlay visible={saving} message="Saving settings..." />
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-white">Settings</h1>
           <p className="text-gray-400 text-sm">Payment configuration, hero slider and site settings</p>
@@ -306,7 +306,7 @@ export default function AdminSettings() {
           </p>
           <div className="space-y-2 mb-4">
             {navLinksList.map((link, idx) => (
-              <div key={idx} className="flex items-center gap-2">
+              <div key={idx} className="flex items-center gap-2 flex-wrap">
                 <div className="flex flex-col gap-0.5">
                   <button onClick={() => moveNavLink(idx, 'up')} disabled={idx === 0} className="p-0.5 text-gray-500 hover:text-white disabled:opacity-20 disabled:cursor-not-allowed transition-colors">
                     <ChevronUp className="w-3 h-3" />
@@ -319,13 +319,13 @@ export default function AdminSettings() {
                 <input
                   value={link.label}
                   onChange={e => updateNavLink(idx, 'label', e.target.value)}
-                  className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-gray-700 text-white text-sm focus:outline-none focus:border-smgh-teal"
+                  className="flex-1 min-w-0 px-3 py-2 rounded-lg bg-white/5 border border-gray-700 text-white text-sm focus:outline-none focus:border-smgh-teal"
                   placeholder="Link Label"
                 />
                 <input
                   value={link.href}
                   onChange={e => updateNavLink(idx, 'href', e.target.value)}
-                  className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-gray-700 text-white text-sm focus:outline-none focus:border-smgh-teal font-mono"
+                  className="flex-1 min-w-0 px-3 py-2 rounded-lg bg-white/5 border border-gray-700 text-white text-sm focus:outline-none focus:border-smgh-teal font-mono"
                   placeholder="/path"
                 />
                 <button onClick={() => removeNavLink(idx)} className="p-2 text-red-400/70 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors">
@@ -415,7 +415,7 @@ export default function AdminSettings() {
               <Phone className="w-4 h-4 text-orange-400" />
               Hubtel Keys
             </h4>
-            <div className="grid md:grid-cols-3 gap-3">
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
               <div>
                 <label className="text-gray-400 text-xs mb-1 block">API Username</label>
                 <input value={settings.hubtel_username || ''} onChange={e => update('hubtel_username', e.target.value)} className="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-gray-700 text-white text-sm focus:outline-none focus:border-smgh-teal" placeholder="API Username" />
@@ -563,7 +563,7 @@ export default function AdminSettings() {
           </p>
           <div className="space-y-2 mb-4">
             {footerLinksList.map((link, idx) => (
-              <div key={idx} className="flex items-center gap-2">
+              <div key={idx} className="flex items-center gap-2 flex-wrap">
                 <div className="flex flex-col gap-0.5">
                   <button onClick={() => moveFooterLink(idx, 'up')} disabled={idx === 0} className="p-0.5 text-gray-500 hover:text-white disabled:opacity-20 disabled:cursor-not-allowed transition-colors">
                     <ChevronUp className="w-3 h-3" />
@@ -576,13 +576,13 @@ export default function AdminSettings() {
                 <input
                   value={link.label}
                   onChange={e => updateFooterLink(idx, 'label', e.target.value)}
-                  className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-gray-700 text-white text-sm focus:outline-none focus:border-smgh-teal"
+                  className="flex-1 min-w-0 px-3 py-2 rounded-lg bg-white/5 border border-gray-700 text-white text-sm focus:outline-none focus:border-smgh-teal"
                   placeholder="Link Label"
                 />
                 <input
                   value={link.href}
                   onChange={e => updateFooterLink(idx, 'href', e.target.value)}
-                  className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-gray-700 text-white text-sm focus:outline-none focus:border-smgh-teal font-mono"
+                  className="flex-1 min-w-0 px-3 py-2 rounded-lg bg-white/5 border border-gray-700 text-white text-sm focus:outline-none focus:border-smgh-teal font-mono"
                   placeholder="/path"
                 />
                 <button onClick={() => removeFooterLink(idx)} className="p-2 text-red-400/70 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors">
@@ -671,7 +671,7 @@ export default function AdminSettings() {
             <Lock className="w-4 h-4" />
             Change Admin Password
           </h3>
-          <div className="grid md:grid-cols-3 gap-4 mb-4">
+          <div className="grid sm:grid-cols-3 gap-4 mb-4">
             <div>
               <label className="text-gray-400 text-sm mb-1 block">Current Password</label>
               <input
