@@ -416,3 +416,41 @@ Stage Summary:
 - All event banners now display at 834x1080 ratio matching actual flyer dimensions
 - Users can click any event banner to open full-screen zoom with pan/rotate controls
 
+
+---
+Task ID: 1
+Agent: Main
+Task: Event program outline with PDF upload, QR code generation, and public viewer page
+
+Work Log:
+- Added programOutlineUrl field to Event model in prisma/schema.prisma
+- Installed qrcode package (v1.5.4) with @types/qrcode for QR code generation
+- Updated /api/events route to handle programOutlineUrl in POST and PUT
+- Added /events/:slug/program path to hash-based router (src/lib/router.tsx)
+- Added route to PageShell.tsx RESERVED_PATHS and rendering
+- Created EventProgramPage.tsx — professional public PDF viewer with:
+  - Hero banner with event image, date, time, venue
+  - Breadcrumb navigation
+  - Embedded PDF iframe viewer (75vh height)
+  - "Open in New Tab" and "Download PDF" buttons
+  - Loading skeleton and error/not-found states
+- Added "Program Outline" tab to admin event editor (src/app/admin/events/page.tsx):
+  - PDF drag-and-drop upload (accepts .pdf only, max 50MB)
+  - Upload progress indicator
+  - Replace/remove uploaded PDF
+  - Auto-generates high-res QR code (1024x1024px, H error correction)
+  - QR code display with info panel (resolution, error correction, format, linked URL)
+  - Download QR code as PNG for printing
+  - Preview page link
+  - Green dot indicator on tab when PDF is uploaded
+- Added "Program" button to event detail page sticky bar when outline exists
+- Added program outline indicator in admin event list expanded view
+- Built, committed (5223d2fc), and pushed to GitHub
+
+Stage Summary:
+- Database: Event.programOutlineUrl (nullable String) — needs `prisma db push` on cPanel
+- Admin: New "Program Outline" tab in event editor with PDF upload + QR generation
+- Public: /events/:slug/program page with embedded PDF viewer + download
+- Event detail: "Program" button appears in sticky bar when outline is set
+- QR code: 1024x1024px PNG, High error correction, links to {baseUrl}/#/events/{slug}/program
+- User needs to: git pull on cPanel, run `npx prisma db push`, restart app
