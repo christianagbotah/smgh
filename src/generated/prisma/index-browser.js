@@ -138,6 +138,7 @@ exports.Prisma.EventScalarFieldEnum = {
   attendanceCount: 'attendanceCount',
   ticketPrice: 'ticketPrice',
   ticketCurrency: 'ticketCurrency',
+  programOutlineUrl: 'programOutlineUrl',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -409,7 +410,8 @@ exports.Prisma.EventOrderByRelevanceFieldEnum = {
   status: 'status',
   tags: 'tags',
   youtubeUrls: 'youtubeUrls',
-  ticketCurrency: 'ticketCurrency'
+  ticketCurrency: 'ticketCurrency',
+  programOutlineUrl: 'programOutlineUrl'
 };
 
 exports.Prisma.EventArtistOrderByRelevanceFieldEnum = {

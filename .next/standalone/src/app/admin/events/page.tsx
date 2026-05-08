@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Trash2, Edit3, Save, Calendar, MapPin, Clock, Youtube, Users, MessageSquare, Image as ImageIcon, ChevronDown, ChevronUp, X, ExternalLink } from 'lucide-react'
+import { Plus, Trash2, Edit3, Save, Calendar, MapPin, Clock, Youtube, Users, MessageSquare, Image as ImageIcon, ChevronDown, ChevronUp, X, ExternalLink, FileText, QrCode, Download, Upload, Eye } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -13,6 +13,7 @@ import PageLoadingOverlay from '@/components/admin/PageLoadingOverlay'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import MediaPicker from '@/components/MediaPicker'
 import RichTextEditor from '@/components/RichTextEditor'
+import QRCode from 'qrcode'
 import { fetchJSON, fetchWrite, ensureArray, safeJSONParse } from '@/lib/fetch-helpers'
 
 interface EventArtist { artistId: string; sortOrder: number; artist?: { id: string; name: string } }
@@ -22,6 +23,7 @@ interface EventData {
   id: string; title: string; slug: string; date: string; time: string | null
   venue: string; city: string; address: string | null; description: string | null
   bannerImage: string | null; status: string; tags: string | null; youtubeUrls: string | null
+  programOutlineUrl: string | null
   artists?: EventArtist[]; guests?: EventGuest[]; testimonials?: EventTestimonial[]
   galleryItems?: { id: string; url: string; thumbnail?: string | null; title?: string | null }[]
 }
@@ -31,7 +33,8 @@ interface ArtistOption { id: string; name: string }
 const emptyForm = {
   title: '', slug: '', date: '', time: '', venue: '', city: '', address: '',
   description: '', bannerImage: '', status: 'upcoming', tags: '',
-  youtubeUrls: '', artists: [] as EventArtist[], guests: [] as EventGuest[],
+  youtubeUrls: '', programOutlineUrl: '',
+  artists: [] as EventArtist[], guests: [] as EventGuest[],
   testimonials: [] as EventTestimonial[],
 }
 
@@ -44,6 +47,8 @@ export default function AdminEvents() {
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [form, setForm] = useState(emptyForm)
   const [saving, setSaving] = useState(false)
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
+  const [uploadingPdf, setUploadingPdf] = useState(false)
   const { toast } = useToast()
   const { confirm } = useConfirm()
 
@@ -62,6 +67,73 @@ export default function AdminEvents() {
   }
 
   useEffect(() => { fetchEvents(); fetchArtists() }, [])
+
+  // Generate QR code for program outline
+  const generateQR = async (eventSlug: string) => {
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || ''
+      const programUrl = `${baseUrl}/#/events/${eventSlug}/program`
+      const qr = await QRCode.toDataURL(programUrl, {
+        width: 1024,
+        margin: 2,
+        color: { dark: '#000000', light: '#ffffff' },
+        errorCorrectionLevel: 'H',
+      })
+      setQrDataUrl(qr)
+    } catch (err) {
+      console.error('QR generation failed:', err)
+    }
+  }
+
+  // Upload PDF file
+  const handlePdfUpload = async (file: File) => {
+    if (!file || file.type !== 'application/pdf') {
+      toast({ title: 'Please select a PDF file', variant: 'destructive' })
+      return
+    }
+    if (file.size > 50 * 1024 * 1024) {
+      toast({ title: 'File size must be under 50MB', variant: 'destructive' })
+      return
+    }
+    setUploadingPdf(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('alt', `Program outline for ${form.title || 'event'}`)
+      const res = await fetch('/api/upload', { method: 'POST', body: formData })
+      if (!res.ok) throw new Error('Upload failed')
+      const data = await res.json()
+      updateForm('programOutlineUrl', data.url)
+      toast({ title: 'PDF uploaded successfully' })
+      // Generate QR code with the slug
+      if (form.slug) {
+        generateQR(form.slug)
+      }
+    } catch {
+      toast({ title: 'Failed to upload PDF', variant: 'destructive' })
+    } finally {
+      setUploadingPdf(false)
+    }
+  }
+
+  // Download QR code as PNG
+  const downloadQR = () => {
+    if (!qrDataUrl) return
+    const link = document.createElement('a')
+    link.download = `${form.slug || 'event'}-program-qr.png`
+    link.href = qrDataUrl
+    link.click()
+    toast({ title: 'QR code downloaded' })
+  }
+
+  // Update QR when slug changes
+  useEffect(() => {
+    if (form.programOutlineUrl && form.slug) {
+      generateQR(form.slug)
+    } else {
+      setQrDataUrl(null)
+    }
+  }, [form.programOutlineUrl, form.slug])
 
   const handleSave = async () => {
     if (!form.title || !form.date || !form.venue || !form.city) {
@@ -163,6 +235,7 @@ export default function AdminEvents() {
         status: data.status || 'upcoming',
         tags: data.tags || '',
         youtubeUrls: safeJSONParse(data.youtubeUrls, []).join('\n'),
+        programOutlineUrl: data.programOutlineUrl || '',
         artists: ensureArray(data.artists).map((a: any) => ({
           artistId: a.artistId || a.artist?.id || '',
           sortOrder: a.sortOrder || 0,
@@ -227,6 +300,10 @@ export default function AdminEvents() {
             Guests & Testimonials
           </TabsTrigger>
           <TabsTrigger value="media" className="data-[state=active]:bg-white/10 text-gray-400 data-[state=active]:text-white rounded-lg">Media & Videos</TabsTrigger>
+          <TabsTrigger value="program" className="data-[state=active]:bg-white/10 text-gray-400 data-[state=active]:text-white rounded-lg">
+            Program Outline
+            {form.programOutlineUrl && <span className="ml-1 w-2 h-2 rounded-full bg-smgh-green inline-block" />}
+          </TabsTrigger>
         </TabsList>
 
         {/* Basic Info */}
@@ -520,6 +597,159 @@ export default function AdminEvents() {
             )}
           </div>
         </TabsContent>
+
+        {/* Program Outline */}
+        <TabsContent value="program">
+          <div className="space-y-6">
+            {/* PDF Upload Section */}
+            <div>
+              <h4 className="text-white font-medium text-sm flex items-center gap-2 mb-3">
+                <FileText className="w-4 h-4 text-smgh-green" />
+                Program Outline PDF
+              </h4>
+              <p className="text-gray-500 text-xs mb-4">
+                Upload the event program outline as a PDF. Once uploaded, a QR code will be generated automatically that links to the public program page. Attendees can scan the QR code to view or download the program.
+              </p>
+
+              {form.programOutlineUrl ? (
+                <div className="glass rounded-xl p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-lg bg-red-500/10 flex items-center justify-center flex-shrink-0">
+                        <FileText className="w-6 h-6 text-red-400" />
+                      </div>
+                      <div>
+                        <p className="text-white text-sm font-medium">PDF Uploaded</p>
+                        <p className="text-gray-500 text-xs font-mono truncate max-w-[250px]">{form.programOutlineUrl}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <a href={form.programOutlineUrl} target="_blank" rel="noopener noreferrer">
+                        <Button size="sm" variant="ghost" className="text-gray-400 hover:text-white h-8 px-2">
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                      </a>
+                      <Button size="sm" variant="ghost" onClick={() => updateForm('programOutlineUrl', '')} className="text-gray-400 hover:text-red-400 h-8 px-2">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Replace file */}
+                  <div>
+                    <label className="block">
+                      <div className="flex items-center gap-2 px-4 py-3 rounded-xl border border-dashed border-gray-600 hover:border-smgh-green/50 cursor-pointer transition-colors">
+                        <Upload className="w-4 h-4 text-gray-400" />
+                        <span className="text-gray-400 text-sm">Replace PDF file</span>
+                      </div>
+                      <input
+                        type="file"
+                        accept=".pdf"
+                        className="hidden"
+                        onChange={e => { if (e.target.files?.[0]) handlePdfUpload(e.target.files[0]); e.target.value = '' }}
+                      />
+                    </label>
+                  </div>
+                </div>
+              ) : (
+                <label className="block">
+                  <div className={`flex flex-col items-center justify-center p-8 rounded-xl border-2 border-dashed border-gray-600 hover:border-smgh-green/50 cursor-pointer transition-all ${uploadingPdf ? 'opacity-50 pointer-events-none' : ''}`}>
+                    <Upload className="w-10 h-10 text-gray-500 mb-3" />
+                    <p className="text-white text-sm font-medium mb-1">
+                      {uploadingPdf ? 'Uploading...' : 'Upload PDF Program Outline'}
+                    </p>
+                    <p className="text-gray-500 text-xs">PDF files only, max 50MB</p>
+                    {uploadingPdf && (
+                      <div className="mt-3 w-48 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                        <div className="h-full bg-smgh-green rounded-full animate-pulse" style={{ width: '60%' }} />
+                      </div>
+                    )}
+                  </div>
+                  <input
+                    type="file"
+                    accept=".pdf"
+                    className="hidden"
+                    onChange={e => { if (e.target.files?.[0]) handlePdfUpload(e.target.files[0]); e.target.value = '' }}
+                  />
+                </label>
+              )}
+            </div>
+
+            {/* QR Code Section */}
+            {form.programOutlineUrl && qrDataUrl && (
+              <div className="glass rounded-xl p-6">
+                <h4 className="text-white font-medium text-sm flex items-center gap-2 mb-4">
+                  <QrCode className="w-4 h-4 text-smgh-gold" />
+                  QR Code for Program Outline
+                </h4>
+                <p className="text-gray-500 text-xs mb-4">
+                  Scan this QR code or download it for printing. It links directly to the public program outline page where attendees can view and download the PDF.
+                </p>
+
+                <div className="flex flex-col sm:flex-row items-center gap-6">
+                  {/* QR Code Display */}
+                  <div className="bg-white p-4 rounded-2xl shadow-lg">
+                    <img
+                      src={qrDataUrl}
+                      alt="QR Code for program outline"
+                      className="w-48 h-48 sm:w-56 sm:h-56"
+                    />
+                  </div>
+
+                  {/* QR Code Info */}
+                  <div className="flex-1 space-y-3">
+                    <div className="bg-white/5 rounded-xl p-4 space-y-2">
+                      <p className="text-gray-400 text-xs">Links to:</p>
+                      <p className="text-white text-sm font-mono break-all">
+                        {process.env.NEXT_PUBLIC_BASE_URL || window.location.origin}/#/events/{form.slug}/program
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      <div className="bg-white/5 rounded-lg p-3">
+                        <p className="text-gray-500">Resolution</p>
+                        <p className="text-white font-medium">1024 × 1024px</p>
+                      </div>
+                      <div className="bg-white/5 rounded-lg p-3">
+                        <p className="text-gray-500">Error Correction</p>
+                        <p className="text-white font-medium">High (30%)</p>
+                      </div>
+                      <div className="bg-white/5 rounded-lg p-3">
+                        <p className="text-gray-500">Format</p>
+                        <p className="text-white font-medium">PNG (Print-ready)</p>
+                      </div>
+                      <div className="bg-white/5 rounded-lg p-3">
+                        <p className="text-gray-500">Event</p>
+                        <p className="text-white font-medium truncate">{form.title || '—'}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button onClick={downloadQR} variant="success" size="sm" className="flex-1">
+                        <Download className="w-4 h-4 mr-2" />
+                        Download QR Code
+                      </Button>
+                      <a href={form.programOutlineUrl} target="_blank" rel="noopener noreferrer">
+                        <Button variant="outline" size="sm" className="border-gray-700 text-gray-300 hover:text-white">
+                          <ExternalLink className="w-4 h-4 mr-2" />
+                          Preview Page
+                        </Button>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {!form.programOutlineUrl && (
+              <div className="text-center py-8 border border-dashed border-gray-700 rounded-xl">
+                <QrCode className="w-10 h-10 text-gray-600 mx-auto mb-3" />
+                <p className="text-gray-500 text-sm">Upload a PDF above to generate a QR code</p>
+                <p className="text-gray-600 text-xs mt-1">The QR code will link to the public program outline page</p>
+              </div>
+            )}
+          </div>
+        </TabsContent>
       </Tabs>
 
       <div className="flex gap-3 mt-6 pt-4 border-t border-gray-800">
@@ -629,6 +859,9 @@ export default function AdminEvents() {
                           )}
                           {event.galleryItems && event.galleryItems.length > 0 && (
                             <span className="flex items-center gap-1"><ImageIcon className="w-3 h-3" />{event.galleryItems.length} photo{event.galleryItems.length !== 1 ? 's' : ''}</span>
+                          )}
+                          {event.programOutlineUrl && (
+                            <span className="flex items-center gap-1"><FileText className="w-3 h-3 text-red-400" />Program outline</span>
                           )}
                           {event.tags && (
                             <span className="text-gray-500">Tags: {event.tags}</span>

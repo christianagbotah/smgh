@@ -2791,6 +2791,7 @@ export namespace Prisma {
     attendanceCount: number | null
     ticketPrice: number | null
     ticketCurrency: string | null
+    programOutlineUrl: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -2812,6 +2813,7 @@ export namespace Prisma {
     attendanceCount: number | null
     ticketPrice: number | null
     ticketCurrency: string | null
+    programOutlineUrl: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -2833,6 +2835,7 @@ export namespace Prisma {
     attendanceCount: number
     ticketPrice: number
     ticketCurrency: number
+    programOutlineUrl: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -2866,6 +2869,7 @@ export namespace Prisma {
     attendanceCount?: true
     ticketPrice?: true
     ticketCurrency?: true
+    programOutlineUrl?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -2887,6 +2891,7 @@ export namespace Prisma {
     attendanceCount?: true
     ticketPrice?: true
     ticketCurrency?: true
+    programOutlineUrl?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -2908,6 +2913,7 @@ export namespace Prisma {
     attendanceCount?: true
     ticketPrice?: true
     ticketCurrency?: true
+    programOutlineUrl?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -3016,6 +3022,7 @@ export namespace Prisma {
     attendanceCount: number
     ticketPrice: number | null
     ticketCurrency: string
+    programOutlineUrl: string | null
     createdAt: Date
     updatedAt: Date
     _count: EventCountAggregateOutputType | null
@@ -3056,6 +3063,7 @@ export namespace Prisma {
     attendanceCount?: boolean
     ticketPrice?: boolean
     ticketCurrency?: boolean
+    programOutlineUrl?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     artists?: boolean | Event$artistsArgs<ExtArgs>
@@ -3086,11 +3094,12 @@ export namespace Prisma {
     attendanceCount?: boolean
     ticketPrice?: boolean
     ticketCurrency?: boolean
+    programOutlineUrl?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type EventOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "slug" | "date" | "time" | "venue" | "city" | "address" | "description" | "bannerImage" | "status" | "tags" | "youtubeUrls" | "attendanceCount" | "ticketPrice" | "ticketCurrency" | "createdAt" | "updatedAt", ExtArgs["result"]["event"]>
+  export type EventOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "slug" | "date" | "time" | "venue" | "city" | "address" | "description" | "bannerImage" | "status" | "tags" | "youtubeUrls" | "attendanceCount" | "ticketPrice" | "ticketCurrency" | "programOutlineUrl" | "createdAt" | "updatedAt", ExtArgs["result"]["event"]>
   export type EventInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     artists?: boolean | Event$artistsArgs<ExtArgs>
     guests?: boolean | Event$guestsArgs<ExtArgs>
@@ -3128,6 +3137,7 @@ export namespace Prisma {
       attendanceCount: number
       ticketPrice: number | null
       ticketCurrency: string
+      programOutlineUrl: string | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["event"]>
@@ -3521,6 +3531,7 @@ export namespace Prisma {
     readonly attendanceCount: FieldRef<"Event", 'Int'>
     readonly ticketPrice: FieldRef<"Event", 'Float'>
     readonly ticketCurrency: FieldRef<"Event", 'String'>
+    readonly programOutlineUrl: FieldRef<"Event", 'String'>
     readonly createdAt: FieldRef<"Event", 'DateTime'>
     readonly updatedAt: FieldRef<"Event", 'DateTime'>
   }
@@ -23921,6 +23932,7 @@ export namespace Prisma {
     attendanceCount: 'attendanceCount',
     ticketPrice: 'ticketPrice',
     ticketCurrency: 'ticketCurrency',
+    programOutlineUrl: 'programOutlineUrl',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -24261,7 +24273,8 @@ export namespace Prisma {
     status: 'status',
     tags: 'tags',
     youtubeUrls: 'youtubeUrls',
-    ticketCurrency: 'ticketCurrency'
+    ticketCurrency: 'ticketCurrency',
+    programOutlineUrl: 'programOutlineUrl'
   };
 
   export type EventOrderByRelevanceFieldEnum = (typeof EventOrderByRelevanceFieldEnum)[keyof typeof EventOrderByRelevanceFieldEnum]
@@ -24584,6 +24597,7 @@ export namespace Prisma {
     attendanceCount?: IntFilter<"Event"> | number
     ticketPrice?: FloatNullableFilter<"Event"> | number | null
     ticketCurrency?: StringFilter<"Event"> | string
+    programOutlineUrl?: StringNullableFilter<"Event"> | string | null
     createdAt?: DateTimeFilter<"Event"> | Date | string
     updatedAt?: DateTimeFilter<"Event"> | Date | string
     artists?: EventArtistListRelationFilter
@@ -24611,6 +24625,7 @@ export namespace Prisma {
     attendanceCount?: SortOrder
     ticketPrice?: SortOrderInput | SortOrder
     ticketCurrency?: SortOrder
+    programOutlineUrl?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     artists?: EventArtistOrderByRelationAggregateInput
@@ -24642,6 +24657,7 @@ export namespace Prisma {
     attendanceCount?: IntFilter<"Event"> | number
     ticketPrice?: FloatNullableFilter<"Event"> | number | null
     ticketCurrency?: StringFilter<"Event"> | string
+    programOutlineUrl?: StringNullableFilter<"Event"> | string | null
     createdAt?: DateTimeFilter<"Event"> | Date | string
     updatedAt?: DateTimeFilter<"Event"> | Date | string
     artists?: EventArtistListRelationFilter
@@ -24669,6 +24685,7 @@ export namespace Prisma {
     attendanceCount?: SortOrder
     ticketPrice?: SortOrderInput | SortOrder
     ticketCurrency?: SortOrder
+    programOutlineUrl?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: EventCountOrderByAggregateInput
@@ -24698,6 +24715,7 @@ export namespace Prisma {
     attendanceCount?: IntWithAggregatesFilter<"Event"> | number
     ticketPrice?: FloatNullableWithAggregatesFilter<"Event"> | number | null
     ticketCurrency?: StringWithAggregatesFilter<"Event"> | string
+    programOutlineUrl?: StringNullableWithAggregatesFilter<"Event"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Event"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Event"> | Date | string
   }
@@ -26283,6 +26301,7 @@ export namespace Prisma {
     attendanceCount?: number
     ticketPrice?: number | null
     ticketCurrency?: string
+    programOutlineUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     artists?: EventArtistCreateNestedManyWithoutEventInput
@@ -26310,6 +26329,7 @@ export namespace Prisma {
     attendanceCount?: number
     ticketPrice?: number | null
     ticketCurrency?: string
+    programOutlineUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     artists?: EventArtistUncheckedCreateNestedManyWithoutEventInput
@@ -26337,6 +26357,7 @@ export namespace Prisma {
     attendanceCount?: IntFieldUpdateOperationsInput | number
     ticketPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     ticketCurrency?: StringFieldUpdateOperationsInput | string
+    programOutlineUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     artists?: EventArtistUpdateManyWithoutEventNestedInput
@@ -26364,6 +26385,7 @@ export namespace Prisma {
     attendanceCount?: IntFieldUpdateOperationsInput | number
     ticketPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     ticketCurrency?: StringFieldUpdateOperationsInput | string
+    programOutlineUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     artists?: EventArtistUncheckedUpdateManyWithoutEventNestedInput
@@ -26391,6 +26413,7 @@ export namespace Prisma {
     attendanceCount?: number
     ticketPrice?: number | null
     ticketCurrency?: string
+    programOutlineUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -26412,6 +26435,7 @@ export namespace Prisma {
     attendanceCount?: IntFieldUpdateOperationsInput | number
     ticketPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     ticketCurrency?: StringFieldUpdateOperationsInput | string
+    programOutlineUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -26433,6 +26457,7 @@ export namespace Prisma {
     attendanceCount?: IntFieldUpdateOperationsInput | number
     ticketPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     ticketCurrency?: StringFieldUpdateOperationsInput | string
+    programOutlineUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -28308,6 +28333,7 @@ export namespace Prisma {
     attendanceCount?: SortOrder
     ticketPrice?: SortOrder
     ticketCurrency?: SortOrder
+    programOutlineUrl?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -28334,6 +28360,7 @@ export namespace Prisma {
     attendanceCount?: SortOrder
     ticketPrice?: SortOrder
     ticketCurrency?: SortOrder
+    programOutlineUrl?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -28355,6 +28382,7 @@ export namespace Prisma {
     attendanceCount?: SortOrder
     ticketPrice?: SortOrder
     ticketCurrency?: SortOrder
+    programOutlineUrl?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -30903,6 +30931,7 @@ export namespace Prisma {
     attendanceCount?: number
     ticketPrice?: number | null
     ticketCurrency?: string
+    programOutlineUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     guests?: EventGuestCreateNestedManyWithoutEventInput
@@ -30929,6 +30958,7 @@ export namespace Prisma {
     attendanceCount?: number
     ticketPrice?: number | null
     ticketCurrency?: string
+    programOutlineUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     guests?: EventGuestUncheckedCreateNestedManyWithoutEventInput
@@ -30998,6 +31028,7 @@ export namespace Prisma {
     attendanceCount?: IntFieldUpdateOperationsInput | number
     ticketPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     ticketCurrency?: StringFieldUpdateOperationsInput | string
+    programOutlineUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     guests?: EventGuestUpdateManyWithoutEventNestedInput
@@ -31024,6 +31055,7 @@ export namespace Prisma {
     attendanceCount?: IntFieldUpdateOperationsInput | number
     ticketPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     ticketCurrency?: StringFieldUpdateOperationsInput | string
+    programOutlineUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     guests?: EventGuestUncheckedUpdateManyWithoutEventNestedInput
@@ -31083,6 +31115,7 @@ export namespace Prisma {
     attendanceCount?: number
     ticketPrice?: number | null
     ticketCurrency?: string
+    programOutlineUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     artists?: EventArtistCreateNestedManyWithoutEventInput
@@ -31109,6 +31142,7 @@ export namespace Prisma {
     attendanceCount?: number
     ticketPrice?: number | null
     ticketCurrency?: string
+    programOutlineUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     artists?: EventArtistUncheckedCreateNestedManyWithoutEventInput
@@ -31151,6 +31185,7 @@ export namespace Prisma {
     attendanceCount?: IntFieldUpdateOperationsInput | number
     ticketPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     ticketCurrency?: StringFieldUpdateOperationsInput | string
+    programOutlineUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     artists?: EventArtistUpdateManyWithoutEventNestedInput
@@ -31177,6 +31212,7 @@ export namespace Prisma {
     attendanceCount?: IntFieldUpdateOperationsInput | number
     ticketPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     ticketCurrency?: StringFieldUpdateOperationsInput | string
+    programOutlineUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     artists?: EventArtistUncheckedUpdateManyWithoutEventNestedInput
@@ -31203,6 +31239,7 @@ export namespace Prisma {
     attendanceCount?: number
     ticketPrice?: number | null
     ticketCurrency?: string
+    programOutlineUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     artists?: EventArtistCreateNestedManyWithoutEventInput
@@ -31229,6 +31266,7 @@ export namespace Prisma {
     attendanceCount?: number
     ticketPrice?: number | null
     ticketCurrency?: string
+    programOutlineUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     artists?: EventArtistUncheckedCreateNestedManyWithoutEventInput
@@ -31271,6 +31309,7 @@ export namespace Prisma {
     attendanceCount?: IntFieldUpdateOperationsInput | number
     ticketPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     ticketCurrency?: StringFieldUpdateOperationsInput | string
+    programOutlineUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     artists?: EventArtistUpdateManyWithoutEventNestedInput
@@ -31297,6 +31336,7 @@ export namespace Prisma {
     attendanceCount?: IntFieldUpdateOperationsInput | number
     ticketPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     ticketCurrency?: StringFieldUpdateOperationsInput | string
+    programOutlineUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     artists?: EventArtistUncheckedUpdateManyWithoutEventNestedInput
@@ -31323,6 +31363,7 @@ export namespace Prisma {
     attendanceCount?: number
     ticketPrice?: number | null
     ticketCurrency?: string
+    programOutlineUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     artists?: EventArtistCreateNestedManyWithoutEventInput
@@ -31349,6 +31390,7 @@ export namespace Prisma {
     attendanceCount?: number
     ticketPrice?: number | null
     ticketCurrency?: string
+    programOutlineUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     artists?: EventArtistUncheckedCreateNestedManyWithoutEventInput
@@ -31420,6 +31462,7 @@ export namespace Prisma {
     attendanceCount?: IntFieldUpdateOperationsInput | number
     ticketPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     ticketCurrency?: StringFieldUpdateOperationsInput | string
+    programOutlineUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     artists?: EventArtistUpdateManyWithoutEventNestedInput
@@ -31446,6 +31489,7 @@ export namespace Prisma {
     attendanceCount?: IntFieldUpdateOperationsInput | number
     ticketPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     ticketCurrency?: StringFieldUpdateOperationsInput | string
+    programOutlineUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     artists?: EventArtistUncheckedUpdateManyWithoutEventNestedInput
@@ -31599,6 +31643,7 @@ export namespace Prisma {
     attendanceCount?: number
     ticketPrice?: number | null
     ticketCurrency?: string
+    programOutlineUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     artists?: EventArtistCreateNestedManyWithoutEventInput
@@ -31625,6 +31670,7 @@ export namespace Prisma {
     attendanceCount?: number
     ticketPrice?: number | null
     ticketCurrency?: string
+    programOutlineUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     artists?: EventArtistUncheckedCreateNestedManyWithoutEventInput
@@ -31667,6 +31713,7 @@ export namespace Prisma {
     attendanceCount?: IntFieldUpdateOperationsInput | number
     ticketPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     ticketCurrency?: StringFieldUpdateOperationsInput | string
+    programOutlineUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     artists?: EventArtistUpdateManyWithoutEventNestedInput
@@ -31693,6 +31740,7 @@ export namespace Prisma {
     attendanceCount?: IntFieldUpdateOperationsInput | number
     ticketPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     ticketCurrency?: StringFieldUpdateOperationsInput | string
+    programOutlineUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     artists?: EventArtistUncheckedUpdateManyWithoutEventNestedInput
@@ -31719,6 +31767,7 @@ export namespace Prisma {
     attendanceCount?: number
     ticketPrice?: number | null
     ticketCurrency?: string
+    programOutlineUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     artists?: EventArtistCreateNestedManyWithoutEventInput
@@ -31745,6 +31794,7 @@ export namespace Prisma {
     attendanceCount?: number
     ticketPrice?: number | null
     ticketCurrency?: string
+    programOutlineUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     artists?: EventArtistUncheckedCreateNestedManyWithoutEventInput
@@ -31855,6 +31905,7 @@ export namespace Prisma {
     attendanceCount?: IntFieldUpdateOperationsInput | number
     ticketPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     ticketCurrency?: StringFieldUpdateOperationsInput | string
+    programOutlineUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     artists?: EventArtistUpdateManyWithoutEventNestedInput
@@ -31881,6 +31932,7 @@ export namespace Prisma {
     attendanceCount?: IntFieldUpdateOperationsInput | number
     ticketPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     ticketCurrency?: StringFieldUpdateOperationsInput | string
+    programOutlineUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     artists?: EventArtistUncheckedUpdateManyWithoutEventNestedInput

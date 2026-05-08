@@ -9,6 +9,7 @@ import Footer from '@/components/public/Footer'
 import HomePage from '@/components/pages/HomePage'
 import EventsPage from '@/components/pages/EventsPage'
 import EventDetailPage from '@/components/pages/EventDetailPage'
+import EventProgramPage from '@/components/pages/EventProgramPage'
 import FoundationPage from '@/components/pages/FoundationPage'
 import TeamPage from '@/components/pages/TeamPage'
 import GalleryPage from '@/components/pages/GalleryPage'
@@ -18,7 +19,7 @@ import ContactPage from '@/components/pages/ContactPage'
 import ShopPage from '@/components/pages/ShopPage'
 import OrderTrackingPage from '@/components/pages/OrderTrackingPage'
 
-const RESERVED_PATHS = ['/', '/events', '/events/:slug', '/foundation', '/team', '/gallery', '/artists', '/donate', '/contact', '/shop', '/track-order']
+const RESERVED_PATHS = ['/', '/events', '/events/:slug', '/events/:slug/program', '/foundation', '/team', '/gallery', '/artists', '/donate', '/contact', '/shop', '/track-order']
 
 export function PageShell() {
   const { path } = useRouter()
@@ -53,6 +54,7 @@ export function PageShell() {
             {path === '/' && <HomePage />}
             {path === '/events' && <EventsPage />}
             {path === '/events/:slug' && <EventDetailPage />}
+            {path === '/events/:slug/program' && <EventProgramPage />}
             {path === '/foundation' && <FoundationPage />}
             {path === '/team' && <TeamPage />}
             {path === '/gallery' && <GalleryPage />}

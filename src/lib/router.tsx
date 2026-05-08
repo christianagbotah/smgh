@@ -37,6 +37,9 @@ function parseHash(hash: string): RouterState {
   } else if (segments[0] === 'events' && segments.length === 2) {
     path = '/events/:slug'
     params.slug = segments[1]
+  } else if (segments[0] === 'events' && segments.length === 3 && segments[2] === 'program') {
+    path = '/events/:slug/program'
+    params.slug = segments[1]
   } else if (segments[0] === 'events' && segments.length === 1) {
     path = '/events'
   } else if (segments[0] === 'track-order' && segments.length === 1) {

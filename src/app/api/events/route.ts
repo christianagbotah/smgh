@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
     const {
       title, slug, date, time, venue, city, address,
       description, bannerImage, status, tags, youtubeUrls,
-      artists, guests, testimonials
+      programOutlineUrl, artists, guests, testimonials
     } = body
 
     if (!title || !date || !venue || !city) {
@@ -96,6 +96,7 @@ export async function POST(request: NextRequest) {
         status: status || 'upcoming',
         tags: tags || null,
         youtubeUrls: youtubeUrls || null,
+        programOutlineUrl: programOutlineUrl || null,
         artists: artists ? {
           create: artists.map((a: { artistId: string; sortOrder: number }) => ({
             artistId: a.artistId,

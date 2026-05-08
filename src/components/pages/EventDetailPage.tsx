@@ -6,7 +6,7 @@ import { useRouter, Link } from '@/lib/router'
 import {
   Calendar, Clock, MapPin, ArrowLeft, Share2, Youtube, ChevronRight,
   Heart, ExternalLink, X, ChevronLeft, Users, Music, Image as ImageIcon,
-  Video, Mic, Quote, Copy, Check, Facebook, Twitter,
+  Video, Mic, Quote, Copy, Check, Facebook, Twitter, FileText,
   ShoppingBag, Ticket, UserPlus, Star, Timer, Send
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -718,7 +718,14 @@ export default function EventDetailPage() {
               <span className={`w-2 h-2 rounded-full ${sc.dot}`} />
               <span className="font-medium text-gray-600">{sc.label}</span>
             </div>
-            <div className="ml-auto flex-shrink-0">
+            <div className="ml-auto flex gap-2 flex-shrink-0">
+              {(event as any).programOutlineUrl && (
+                <Link to={`/events/${event.slug}/program`}>
+                  <Button size="sm" className="bg-gradient-to-r from-smgh-green to-emerald-500 hover:from-smgh-green-dark hover:to-emerald-600 text-white rounded-full shadow-sm">
+                    <FileText className="w-3.5 h-3.5 mr-1.5" /> Program
+                  </Button>
+                </Link>
+              )}
               <Link to="/donate">
                 <Button size="sm" className="bg-smgh-red hover:bg-smgh-red-dark text-white rounded-full shadow-sm">
                   <Heart className="w-3.5 h-3.5 mr-1.5" /> Donate

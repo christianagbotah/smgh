@@ -24,10 +24,11 @@ model Event {
   tags           String?
   youtubeUrls    String?
   attendanceCount Int     @default(0)
-  ticketPrice    Float?
-  ticketCurrency String   @default("GHS")
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  ticketPrice      Float?
+  ticketCurrency   String   @default("GHS")
+  programOutlineUrl String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   artists       EventArtist[]
   guests        EventGuest[]
