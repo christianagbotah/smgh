@@ -116,17 +116,30 @@ export default function DonatePage() {
     return selected ? [selected, manual] : [allPaymentOptions[0], manual]
   })()
 
-  // Read ?mode=partner from hash
+  // Read payment status from URL query params (Hubtel redirects with ?status=success)
   useEffect(() => {
     const hash = window.location.hash
+    const searchParams = new URLSearchParams(window.location.search)
+
     if (hash.includes('mode=partner') || hash.includes('type=partner')) {
       setDonorType('corporate')
     }
-    // Check for payment status in URL
-    if (hash.includes('status=success')) {
+
+    // Check for payment status from both query params and hash
+    const status = searchParams.get('status') || (hash.includes('status=') ? (hash.includes('status=success') ? 'success' : 'cancelled') : null)
+
+    if (status === 'success') {
       toast({ title: 'Payment successful! Thank you for your donation.' })
-    } else if (hash.includes('status=cancelled')) {
+      // Auto-show the success/thank you state
+      setSubmitted(true)
+    } else if (status === 'cancelled') {
       toast({ title: 'Payment was cancelled.', variant: 'destructive' })
+    }
+
+    // Clean up the URL params so refreshing doesn't re-trigger
+    if (searchParams.get('status')) {
+      const cleanUrl = window.location.pathname
+      window.history.replaceState({}, '', cleanUrl)
     }
   }, [])
 

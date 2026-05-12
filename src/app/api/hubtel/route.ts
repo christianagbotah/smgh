@@ -30,6 +30,18 @@ async function getHubtelCredentials() {
   }
 }
 
+// Get the base URL for callbacks — with fallback to request headers
+function getBaseUrl(request?: NextRequest): string {
+  if (process.env.NEXT_PUBLIC_BASE_URL) return process.env.NEXT_PUBLIC_BASE_URL
+  // Fallback: reconstruct from request headers
+  if (request) {
+    const protocol = request.headers.get('x-forwarded-proto') || 'https'
+    const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || ''
+    if (host) return `${protocol}://${host}`
+  }
+  return ''
+}
+
 // Map user-friendly network names to Hubtel channel codes
 function getNetworkChannel(network: string): string {
   const map: Record<string, string> = {
@@ -49,8 +61,8 @@ function getNetworkChannel(network: string): string {
 }
 
 // Format phone number to international format
-function formatMsisdn(phone: string, fallback = '233240000000'): string {
-  if (!phone) return fallback
+function formatMsisdn(phone: string): string {
+  if (!phone) return ''
   let msisdn = phone.trim()
   if (msisdn.startsWith('0')) {
     msisdn = '233' + msisdn.substring(1)
@@ -59,7 +71,35 @@ function formatMsisdn(phone: string, fallback = '233240000000'): string {
   }
   // Remove any spaces or dashes
   msisdn = msisdn.replace(/[\s-]/g, '')
+  // Validate: must start with 233 and be 12 digits
+  if (!msisdn.match(/^233\d{9}$/)) return ''
   return msisdn
+}
+
+// Helper to create a fetch with timeout that works on all Node.js versions
+function fetchWithTimeout(url: string, options: RequestInit & { timeoutMs?: number } = {}): Promise<Response> {
+  const { timeoutMs = 30000, ...fetchOptions } = options
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
+
+  return fetch(url, {
+    ...fetchOptions,
+    signal: options.signal || controller.signal,
+  }).finally(() => clearTimeout(timeoutId))
+}
+
+// GET handler — health check and Hubtel webhook verification
+export async function GET(request: NextRequest) {
+  // Hubtel sometimes sends GET requests to verify the webhook URL
+  const url = new URL(request.url)
+  const mode = url.searchParams.get('mode')
+
+  if (mode === 'verify' || mode === 'webhook') {
+    return NextResponse.json({ status: 'ok', message: 'Hubtel webhook endpoint is active' })
+  }
+
+  // General health check
+  return NextResponse.json({ status: 'ok', service: 'hubtel-payment', timestamp: new Date().toISOString() })
 }
 
 export async function POST(request: NextRequest) {
@@ -82,7 +122,7 @@ export async function POST(request: NextRequest) {
       TransactionId,
     } = body
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || ''
+    const baseUrl = getBaseUrl(request)
 
     // ── Test Hubtel Connection ───────────────────────────────────────
     if (action === 'test-connection') {
@@ -98,11 +138,11 @@ export async function POST(request: NextRequest) {
       try {
         // Test with a minimal API call to verify credentials
         const testUrl = `https://api.hubtel.com/v1/merchantaccount/merchants/${creds.merchantNumber}`
-        const response = await fetch(testUrl, {
+        const response = await fetchWithTimeout(testUrl, {
           headers: {
             'Authorization': `Basic ${creds.basicAuth}`,
           },
-          signal: AbortSignal.timeout(10000), // 10s timeout
+          timeoutMs: 10000,
         })
 
         if (response.ok || response.status === 200) {
@@ -115,14 +155,14 @@ export async function POST(request: NextRequest) {
 
         // Try the Online Checkout endpoint as fallback test
         const checkoutTestUrl = 'https://payproxyapi.hubtel.com/items/initiate'
-        const checkoutResponse = await fetch(checkoutTestUrl, {
+        const checkoutResponse = await fetchWithTimeout(checkoutTestUrl, {
           method: 'POST',
           headers: {
             'Authorization': `Basic ${creds.basicAuth}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ TotalAmount: 0.01, Description: 'Test' }),
-          signal: AbortSignal.timeout(10000),
+          timeoutMs: 10000,
         })
 
         if (checkoutResponse.status === 400 || checkoutResponse.status === 401 || checkoutResponse.status === 403) {
@@ -249,10 +289,8 @@ export async function POST(request: NextRequest) {
 
       const url = `https://api.hubtel.com/v1/merchantaccount/merchants/${creds.merchantNumber}/receive/mobilemoney`
 
-      const fields = {
+      const fields: Record<string, unknown> = {
         CustomerName: name || 'Donor',
-        CustomerMsisdn: msisdn,
-        CustomerEmail: email || '',
         Channel: channel,
         Amount: String(amount),
         PrimaryCallbackUrl: `${baseUrl}/api/hubtel`,
@@ -261,16 +299,25 @@ export async function POST(request: NextRequest) {
         Metadata: { donationId, orderId } as Record<string, string | undefined>,
       }
 
-      console.log('Hubtel Mobile Money request:', JSON.stringify({ url, clientRef, amount, channel, merchantNumber: creds.merchantNumber }))
+      // Only include CustomerMsisdn if we have a valid phone number
+      if (msisdn) {
+        fields.CustomerMsisdn = msisdn
+      }
+      // Only include CustomerEmail if we have one
+      if (email) {
+        fields.CustomerEmail = email
+      }
 
-      const response = await fetch(url, {
+      console.log('Hubtel Mobile Money request:', JSON.stringify({ url, clientRef, amount, channel, merchantNumber: creds.merchantNumber, hasPhone: !!msisdn }))
+
+      const response = await fetchWithTimeout(url, {
         method: 'POST',
         headers: {
           'Authorization': `Basic ${creds.basicAuth}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(fields),
-        signal: AbortSignal.timeout(30000),
+        timeoutMs: 30000,
       })
 
       const data = await response.json() as Record<string, unknown>
@@ -321,48 +368,94 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: creds?.error || 'Hubtel not configured. Please contact the administrator.' }, { status: 500 })
       }
 
-      const msisdn = formatMsisdn(phone || '', '')
+      const msisdn = formatMsisdn(phone || '')
 
       const invoiceId = `SMGH-${donationId}`
       const callbackUrl = `${baseUrl}/api/hubtel`
+      const returnUrl = `${baseUrl}/donate?status=success&ref=${invoiceId}`
+      const cancelUrl = `${baseUrl}/donate?status=cancelled&ref=${invoiceId}`
 
-      const requestBody = {
-        InvoiceId: invoiceId,
+      if (!baseUrl) {
+        console.error('Hubtel Onsite Checkout: NEXT_PUBLIC_BASE_URL is not configured. Cannot generate callback URLs.')
+        return NextResponse.json(
+          { error: 'Server configuration error: Base URL is not set. Please contact the administrator to configure NEXT_PUBLIC_BASE_URL.' },
+          { status: 500 }
+        )
+      }
+
+      console.log('Hubtel Onsite Checkout: callback URLs generated:', {
+        callback: callbackUrl,
+        return: returnUrl,
+        cancel: cancelUrl,
+      })
+
+      // Build request body — Hubtel Online Checkout API format
+      // Supports both v1 (PascalCase) and v2 (camelCase) field names
+      const requestBody: Record<string, unknown> = {
+        // Core required fields
         TotalAmount: Number(amount),
         Description: `SMGH Donation - ${name || 'Donor'}`,
-        CustomerName: name || '',
-        CustomerEmail: email || '',
-        CustomerMsisdn: msisdn,
+        ClientReference: invoiceId,
+        InvoiceId: invoiceId,
+
+        // Callback URLs
         PrimaryCallbackUrl: callbackUrl,
         SecondaryCallbackUrl: callbackUrl,
-        ReturnUrl: `${baseUrl}/donate?status=success&ref=${invoiceId}`,
-        CancellationUrl: `${baseUrl}/donate?status=cancelled&ref=${invoiceId}`,
+        CallbackUrl: callbackUrl,
+        ReturnUrl: returnUrl,
+        CancellationUrl: cancelUrl,
+
+        // Customer info — only include if available
+        CustomerName: name || undefined,
+        CustomerEmail: email || undefined,
+
+        // Metadata for webhook processing
         Metadata: {
           donationId,
           source: 'smgh-donation',
         } as Record<string, string>,
+
+        // Items array — required by some Hubtel API versions
+        Items: [{
+          Name: `SMGH Donation - ${name || 'Donor'}`,
+          Quantity: 1,
+          UnitPrice: Number(amount),
+          TotalPrice: Number(amount),
+          Description: `Donation to Sweet Mothers Ghana Foundation`,
+        }],
       }
+
+      // Only include CustomerMsisdn if we have a valid phone number
+      if (msisdn) {
+        requestBody.CustomerMsisdn = msisdn
+      }
+
+      // Remove undefined values to keep the request clean
+      Object.keys(requestBody).forEach(key => {
+        if (requestBody[key] === undefined) delete requestBody[key]
+      })
 
       console.log('Hubtel Onsite Checkout request:', JSON.stringify({
         ...requestBody,
-        CustomerMsisdn: msisdn ? msisdn.substring(0, 4) + '****' : '(empty)',
+        CustomerMsisdn: msisdn ? msisdn.substring(0, 4) + '****' : '(omitted)',
       }))
 
       let response: Response
       try {
-        response = await fetch('https://payproxyapi.hubtel.com/items/initiate', {
+        response = await fetchWithTimeout('https://payproxyapi.hubtel.com/items/initiate', {
           method: 'POST',
           headers: {
             'Authorization': `Basic ${creds.basicAuth}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(requestBody),
-          signal: AbortSignal.timeout(30000),
+          timeoutMs: 30000,
         })
       } catch (fetchError) {
-        console.error('Hubtel Onsite Checkout: Network error', fetchError)
+        const errMessage = fetchError instanceof Error ? fetchError.message : 'Unknown error'
+        console.error('Hubtel Onsite Checkout: Network error', errMessage)
         return NextResponse.json(
-          { error: 'Could not connect to Hubtel payment service. Please check your internet connection and try again.' },
+          { error: `Could not connect to Hubtel payment service: ${errMessage}` },
           { status: 502 }
         )
       }
@@ -413,12 +506,12 @@ export async function POST(request: NextRequest) {
       // v1: { ResponseCode: '00', Data: { CheckoutUrl: '...' } }
       // v2: { checkoutUrl: '...' } or { data: { checkoutUrl: '...' } }
       const responseData = data?.Data as Record<string, unknown> | null
-      const checkoutUrl = responseData?.CheckoutUrl as string
-        || responseData?.checkoutUrl as string
+      const checkoutUrl = data?.checkoutUrl as string
         || data?.CheckoutUrl as string
-        || data?.checkoutUrl as string
-        || (data?.data as Record<string, unknown>)?.CheckoutUrl as string
         || (data?.data as Record<string, unknown>)?.checkoutUrl as string
+        || (data?.data as Record<string, unknown>)?.CheckoutUrl as string
+        || responseData?.checkoutUrl as string
+        || responseData?.CheckoutUrl as string
         || ''
 
       if (!checkoutUrl) {
@@ -457,9 +550,9 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: creds?.error || 'Hubtel not configured' }, { status: 500 })
       }
 
-      const response = await fetch(`https://api.hubtel.com/v1/merchant/transactions/${reference}`, {
+      const response = await fetchWithTimeout(`https://api.hubtel.com/v1/merchant/transactions/${reference}`, {
         headers: { 'Authorization': `Basic ${creds.basicAuth}` },
-        signal: AbortSignal.timeout(15000),
+        timeoutMs: 15000,
       })
 
       const data = await response.json() as {
