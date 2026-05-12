@@ -16,7 +16,7 @@ async function getHubtelCredentials() {
   const missing: string[] = []
   if (!clientId) missing.push('API Username')
   if (!clientSecretVal) missing.push('API Key (Secret)')
-  if (!merchant) missing.push('Merchant Number / Merchant ID')
+  if (!merchant) missing.push('Merchant Account Number')
 
   if (missing.length > 0) {
     return { error: `Missing Hubtel credentials: ${missing.join(', ')}. Please configure them in Admin Settings.` }
@@ -33,7 +33,6 @@ async function getHubtelCredentials() {
 // Get the base URL for callbacks — with fallback to request headers
 function getBaseUrl(request?: NextRequest): string {
   if (process.env.NEXT_PUBLIC_BASE_URL) return process.env.NEXT_PUBLIC_BASE_URL
-  // Fallback: reconstruct from request headers
   if (request) {
     const protocol = request.headers.get('x-forwarded-proto') || 'https'
     const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || ''
@@ -69,14 +68,12 @@ function formatMsisdn(phone: string): string {
   } else if (msisdn.startsWith('+')) {
     msisdn = msisdn.substring(1)
   }
-  // Remove any spaces or dashes
   msisdn = msisdn.replace(/[\s-]/g, '')
-  // Validate: must start with 233 and be 12 digits
   if (!msisdn.match(/^233\d{9}$/)) return ''
   return msisdn
 }
 
-// Helper to create a fetch with timeout that works on all Node.js versions
+// Helper to create a fetch with timeout
 function fetchWithTimeout(url: string, options: RequestInit & { timeoutMs?: number } = {}): Promise<Response> {
   const { timeoutMs = 30000, ...fetchOptions } = options
   const controller = new AbortController()
@@ -88,9 +85,8 @@ function fetchWithTimeout(url: string, options: RequestInit & { timeoutMs?: numb
   }).finally(() => clearTimeout(timeoutId))
 }
 
-// GET handler — health check and Hubtel webhook verification
+// GET handler — health check
 export async function GET(request: NextRequest) {
-  // Hubtel sometimes sends GET requests to verify the webhook URL
   const url = new URL(request.url)
   const mode = url.searchParams.get('mode')
 
@@ -98,7 +94,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ status: 'ok', message: 'Hubtel webhook endpoint is active' })
   }
 
-  // General health check
   return NextResponse.json({ status: 'ok', service: 'hubtel-payment', timestamp: new Date().toISOString() })
 }
 
@@ -136,7 +131,6 @@ export async function POST(request: NextRequest) {
       }
 
       try {
-        // Test with a minimal API call to verify credentials
         const testUrl = `https://api.hubtel.com/v1/merchantaccount/merchants/${creds.merchantNumber}`
         const response = await fetchWithTimeout(testUrl, {
           headers: {
@@ -153,15 +147,21 @@ export async function POST(request: NextRequest) {
           })
         }
 
-        // Try the Online Checkout endpoint as fallback test
-        const checkoutTestUrl = 'https://payproxyapi.hubtel.com/items/initiate'
-        const checkoutResponse = await fetchWithTimeout(checkoutTestUrl, {
+        // Fallback: test with Online Checkout endpoint
+        const checkoutResponse = await fetchWithTimeout('https://payproxyapi.hubtel.com/items/initiate', {
           method: 'POST',
           headers: {
             'Authorization': `Basic ${creds.basicAuth}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ TotalAmount: 0.01, Description: 'Test' }),
+          body: JSON.stringify({
+            totalAmount: 0.01,
+            description: 'Connection Test',
+            callbackUrl: `${baseUrl}/api/hubtel`,
+            returnUrl: `${baseUrl}/donate`,
+            merchantAccountNumber: creds.merchantNumber,
+            clientReference: `test-${Date.now()}`,
+          }),
           timeoutMs: 10000,
         })
 
@@ -169,42 +169,30 @@ export async function POST(request: NextRequest) {
           const errData = await checkoutResponse.json().catch(() => ({}))
           return NextResponse.json({
             success: false,
-            error: `Hubtel API rejected the credentials (HTTP ${checkoutResponse.status}). Please verify your API Username and API Key are correct.`,
+            error: `Hubtel API rejected the credentials (HTTP ${checkoutResponse.status}).`,
             details: JSON.stringify(errData).substring(0, 200),
           }, { status: 400 })
         }
 
-        // If we get here, the credentials might work for one API but not the other
         return NextResponse.json({
           success: true,
           message: 'Hubtel API is reachable. Your credentials appear to be configured.',
           merchant: creds.merchantNumber,
-          note: 'The actual payment will verify full connectivity.',
         })
       } catch (fetchError) {
         return NextResponse.json({
           success: false,
-          error: 'Could not connect to Hubtel API. Please check your internet connection and try again.',
+          error: 'Could not connect to Hubtel API.',
           details: fetchError instanceof Error ? fetchError.message : 'Unknown error',
         }, { status: 502 })
       }
     }
 
     // ── Handle Hubtel webhook callback ──────────────────────────────
-    // Handles both Direct Mobile Money and Onsite Checkout webhook formats
     if (!action && (Status || Data || body.Status || body.TransactionId)) {
-      const creds = await getHubtelCredentials()
-      if (!creds || 'error' in creds) {
-        // Still process webhook even without credentials - log but don't fail
-        console.log('Hubtel webhook received but credentials not configured:', JSON.stringify(body).substring(0, 500))
-        return NextResponse.json({ received: true })
-      }
-
-      // Direct Mobile Money format: { Status, Data, ClientReference }
-      // Onsite Checkout format: { TransactionId, ClientReference, InvoiceId, Status, Amount, ... }
       const txStatus = Status || Data?.Status || body.Status
       const txData = Data || body
-      const meta = txData?.Metadata || txData?.metadata || {}
+      const meta = txData?.Metadata || txData?.metadata || txData?.Meta || {}
       const invoiceId = InvoiceId || txData?.InvoiceId || ''
       const clientRef = ClientReference || txData?.ClientReference || ''
 
@@ -217,21 +205,18 @@ export async function POST(request: NextRequest) {
       }
 
       if (txStatus === 'Completed' || txStatus === 'Success') {
-        // Update donation by metadata donationId
         if (webhookDonationId) {
           await db.donation.update({
             where: { id: webhookDonationId },
             data: { status: 'completed', paymentMethod: 'hubtel', paymentProvider: 'hubtel' },
-          }).catch(() => { /* record may not exist */ })
+          }).catch(() => {})
         }
-        // Update order by metadata orderId
         if (meta?.orderId) {
           await db.order.update({
             where: { id: meta.orderId },
             data: { paymentStatus: 'paid', status: 'confirmed' },
-          }).catch(() => { /* record may not exist */ })
+          }).catch(() => {})
         }
-        // Update by ClientReference (matches donation.id or order.id)
         if (clientRef) {
           const order = await db.order.findUnique({ where: { id: clientRef } })
           if (order) {
@@ -249,7 +234,6 @@ export async function POST(request: NextRequest) {
           }
         }
       } else if (txStatus === 'Failed' || txStatus === 'Cancelled' || txStatus === 'Timeout' || txStatus === 'Declined') {
-        // Mark donation/order as failed for non-completed statuses
         if (webhookDonationId) {
           await db.donation.update({
             where: { id: webhookDonationId },
@@ -278,12 +262,11 @@ export async function POST(request: NextRequest) {
 
       const creds = await getHubtelCredentials()
       if (!creds || 'error' in creds) {
-        return NextResponse.json({ error: creds?.error || 'Hubtel not configured. Please contact the administrator.' }, { status: 500 })
+        return NextResponse.json({ error: creds?.error || 'Hubtel not configured.' }, { status: 500 })
       }
 
       const clientRef = donationId || orderId || `smgh-${Date.now()}`
       const description = donationId ? 'SMGH Donation' : 'SMGH Order'
-
       const msisdn = formatMsisdn(phone || '')
       const channel = getNetworkChannel(network || 'mtn')
 
@@ -299,14 +282,8 @@ export async function POST(request: NextRequest) {
         Metadata: { donationId, orderId } as Record<string, string | undefined>,
       }
 
-      // Only include CustomerMsisdn if we have a valid phone number
-      if (msisdn) {
-        fields.CustomerMsisdn = msisdn
-      }
-      // Only include CustomerEmail if we have one
-      if (email) {
-        fields.CustomerEmail = email
-      }
+      if (msisdn) fields.CustomerMsisdn = msisdn
+      if (email) fields.CustomerEmail = email
 
       console.log('Hubtel Mobile Money request:', JSON.stringify({ url, clientRef, amount, channel, merchantNumber: creds.merchantNumber, hasPhone: !!msisdn }))
 
@@ -324,15 +301,10 @@ export async function POST(request: NextRequest) {
       console.log('Hubtel Mobile Money response:', JSON.stringify({ status: response.status, data }).substring(0, 500))
 
       if (!response.ok) {
-        const errMsg = data?.Message || data?.Description || data?.message || data?.ResponseDescription || 'Unknown error'
-        console.error('Hubtel API error:', response.status, errMsg)
-        return NextResponse.json(
-          { error: `Hubtel payment error: ${errMsg}` },
-          { status: response.status }
-        )
+        const errMsg = data?.Message || data?.Description || data?.message || 'Unknown error'
+        return NextResponse.json({ error: `Hubtel payment error: ${errMsg}` }, { status: response.status })
       }
 
-      // Save reference on donation/order
       if (donationId) {
         await db.donation.update({
           where: { id: donationId },
@@ -350,11 +322,13 @@ export async function POST(request: NextRequest) {
         success: true,
         data,
         reference: clientRef,
-        message: 'Mobile money payment initiated. Please check your phone for the prompt.',
+        message: 'Mobile money payment initiated. Check your phone for the prompt.',
       })
     }
 
-    // ── Onsite Checkout (Hubtel Online Checkout Invoice) ───────────
+    // ── Onsite Checkout (Hubtel Online Checkout) ───────────────────
+    // Using the EXACT Hubtel API format from their documentation
+    // Endpoint: POST https://payproxyapi.hubtel.com/items/initiate
     if (action === 'onsite-checkout') {
       if (!amount || Number(amount) <= 0) {
         return NextResponse.json({ error: 'A valid amount is required' }, { status: 400 })
@@ -365,79 +339,44 @@ export async function POST(request: NextRequest) {
 
       const creds = await getHubtelCredentials()
       if (!creds || 'error' in creds) {
-        return NextResponse.json({ error: creds?.error || 'Hubtel not configured. Please contact the administrator.' }, { status: 500 })
+        return NextResponse.json({ error: creds?.error || 'Hubtel not configured.' }, { status: 500 })
       }
 
-      const msisdn = formatMsisdn(phone || '')
-
-      const invoiceId = `SMGH-${donationId}`
       const callbackUrl = `${baseUrl}/api/hubtel`
-      const returnUrl = `${baseUrl}/donate?status=success&ref=${invoiceId}`
-      const cancelUrl = `${baseUrl}/donate?status=cancelled&ref=${invoiceId}`
+      const returnUrl = `${baseUrl}/donate?status=success&ref=SMGH-${donationId}`
+      const cancelUrl = `${baseUrl}/donate?status=cancelled&ref=SMGH-${donationId}`
 
       if (!baseUrl) {
-        console.error('Hubtel Onsite Checkout: NEXT_PUBLIC_BASE_URL is not configured. Cannot generate callback URLs.')
+        console.error('Hubtel Onsite Checkout: NEXT_PUBLIC_BASE_URL is not configured.')
         return NextResponse.json(
-          { error: 'Server configuration error: Base URL is not set. Please contact the administrator to configure NEXT_PUBLIC_BASE_URL.' },
+          { error: 'Server configuration error: Base URL is not set. Please contact the administrator.' },
           { status: 500 }
         )
       }
 
-      console.log('Hubtel Onsite Checkout: callback URLs generated:', {
-        callback: callbackUrl,
-        return: returnUrl,
-        cancel: cancelUrl,
-      })
+      // Build request body matching Hubtel's exact API format (camelCase)
+      // Reference: https://docs.hubtel.com/docs/online-checkout
+      const clientRef = `SMGH-${donationId}`
 
-      // Build request body — Hubtel Online Checkout API format
-      // Supports both v1 (PascalCase) and v2 (camelCase) field names
-      const requestBody: Record<string, unknown> = {
-        // Core required fields
-        TotalAmount: Number(amount),
-        Description: `SMGH Donation - ${name || 'Donor'}`,
-        ClientReference: invoiceId,
-        InvoiceId: invoiceId,
+      const requestBody = {
+        // Required fields — exact camelCase format from Hubtel API
+        totalAmount: Number(amount),
+        description: `SMGH Donation - ${name || 'Donor'}`,
+        callbackUrl: callbackUrl,
+        returnUrl: returnUrl,
+        cancellationUrl: cancelUrl,
+        merchantAccountNumber: creds.merchantNumber,
+        clientReference: clientRef,
 
-        // Callback URLs
-        PrimaryCallbackUrl: callbackUrl,
-        SecondaryCallbackUrl: callbackUrl,
-        CallbackUrl: callbackUrl,
-        ReturnUrl: returnUrl,
-        CancellationUrl: cancelUrl,
-
-        // Customer info — only include if available
-        CustomerName: name || undefined,
-        CustomerEmail: email || undefined,
-
-        // Metadata for webhook processing
-        Metadata: {
-          donationId,
-          source: 'smgh-donation',
-        } as Record<string, string>,
-
-        // Items array — required by some Hubtel API versions
-        Items: [{
-          Name: `SMGH Donation - ${name || 'Donor'}`,
-          Quantity: 1,
-          UnitPrice: Number(amount),
-          TotalPrice: Number(amount),
-          Description: `Donation to Sweet Mothers Ghana Foundation`,
-        }],
+        // Optional customer info
+        ...(name ? { clientName: name } : {}),
+        ...(email ? { clientEmail: email } : {}),
       }
-
-      // Only include CustomerMsisdn if we have a valid phone number
-      if (msisdn) {
-        requestBody.CustomerMsisdn = msisdn
-      }
-
-      // Remove undefined values to keep the request clean
-      Object.keys(requestBody).forEach(key => {
-        if (requestBody[key] === undefined) delete requestBody[key]
-      })
 
       console.log('Hubtel Onsite Checkout request:', JSON.stringify({
         ...requestBody,
-        CustomerMsisdn: msisdn ? msisdn.substring(0, 4) + '****' : '(omitted)',
+        callbackUrl,
+        returnUrl,
       }))
 
       let response: Response
@@ -455,19 +394,22 @@ export async function POST(request: NextRequest) {
         const errMessage = fetchError instanceof Error ? fetchError.message : 'Unknown error'
         console.error('Hubtel Onsite Checkout: Network error', errMessage)
         return NextResponse.json(
-          { error: `Could not connect to Hubtel payment service: ${errMessage}` },
+          { error: `Could not connect to Hubtel: ${errMessage}` },
           { status: 502 }
         )
       }
 
-      // Read response as text first to handle non-JSON or empty responses
+      // Read response
       const responseText = await response.text()
-      console.log('Hubtel Onsite Checkout response:', JSON.stringify({ status: response.status, bodyLength: responseText.length, bodyPreview: responseText.substring(0, 300) }))
+      console.log('Hubtel Onsite Checkout response:', JSON.stringify({
+        status: response.status,
+        bodyPreview: responseText.substring(0, 500),
+      }))
 
       if (!responseText.trim()) {
-        console.error('Hubtel Onsite Checkout: Empty response from API')
+        console.error('Hubtel Onsite Checkout: Empty response')
         return NextResponse.json(
-          { error: `Hubtel returned an empty response (HTTP ${response.status}). This usually means invalid API credentials. Please verify your Hubtel API Username and API Key in Admin Settings.` },
+          { error: `Hubtel returned an empty response (HTTP ${response.status}). Check your API credentials.` },
           { status: 502 }
         )
       }
@@ -478,49 +420,44 @@ export async function POST(request: NextRequest) {
       } catch {
         console.error('Hubtel Onsite Checkout: Non-JSON response:', responseText.substring(0, 200))
         return NextResponse.json(
-          { error: `Hubtel returned an invalid response (HTTP ${response.status}). The API credentials may be incorrect or the service is temporarily unavailable.` },
+          { error: `Hubtel returned an invalid response (HTTP ${response.status}).` },
           { status: 502 }
         )
       }
 
       if (!response.ok) {
-        const errMsg = data?.Message || data?.Description || data?.message || data?.ResponseCode || JSON.stringify(data)
+        const errMsg = data?.Message || data?.message || data?.Description || JSON.stringify(data)
         console.error('Hubtel Onsite Checkout API error:', response.status, errMsg)
 
-        // Provide specific guidance based on HTTP status codes
         let guidance = ''
         if (response.status === 401 || response.status === 403) {
-          guidance = ' Your API Username or API Key is incorrect. Please check your Hubtel Online Checkout credentials in Admin Settings.'
+          guidance = ' Your API Username or API Key is incorrect.'
         } else if (response.status === 400) {
-          guidance = ' The request was rejected by Hubtel. Please verify all credentials and try again.'
+          guidance = ' The request format was rejected. Check merchant account number and credentials.'
         }
 
         return NextResponse.json(
-          { error: `Hubtel payment error (${response.status}): ${errMsg}.${guidance}` },
+          { error: `Hubtel error (${response.status}): ${errMsg}.${guidance}` },
           { status: response.status }
         )
       }
 
-      // Extract checkout URL from response
-      // Response format can vary:
-      // v1: { ResponseCode: '00', Data: { CheckoutUrl: '...' } }
-      // v2: { checkoutUrl: '...' } or { data: { checkoutUrl: '...' } }
-      const responseData = data?.Data as Record<string, unknown> | null
-      const checkoutUrl = data?.checkoutUrl as string
-        || data?.CheckoutUrl as string
-        || (data?.data as Record<string, unknown>)?.checkoutUrl as string
-        || (data?.data as Record<string, unknown>)?.CheckoutUrl as string
-        || responseData?.checkoutUrl as string
-        || responseData?.CheckoutUrl as string
+      // Extract checkout URL from response — Hubtel returns camelCase
+      // Response: { checkoutUrl: "https://...", responseCode: "00", ... }
+      const checkoutUrl = data?.checkoutUrl
+        || data?.CheckoutUrl
+        || data?.data?.checkoutUrl
+        || data?.Data?.CheckoutUrl
+        || data?.data?.checkoutUrl
         || ''
 
       if (!checkoutUrl) {
-        console.error('Hubtel Onsite Checkout: No CheckoutUrl in response', JSON.stringify(data).substring(0, 300))
-        const responseCode = data?.ResponseCode || data?.responseCode || 'unknown'
-        const responseMsg = data?.Message || data?.message || 'No message from Hubtel'
+        console.error('Hubtel Onsite Checkout: No checkoutUrl in response', JSON.stringify(data).substring(0, 300))
+        const responseCode = data?.responseCode || data?.ResponseCode || 'unknown'
+        const responseMsg = data?.message || data?.Message || 'No message from Hubtel'
 
         return NextResponse.json(
-          { error: `Hubtel did not return a payment link. (Response: ${responseCode} - ${responseMsg}). Please check your Hubtel account settings and ensure Online Checkout is enabled.` },
+          { error: `Hubtel did not return a payment link. (Code: ${responseCode} - ${responseMsg})` },
           { status: 500 }
         )
       }
@@ -528,13 +465,13 @@ export async function POST(request: NextRequest) {
       // Save reference on donation
       await db.donation.update({
         where: { id: donationId },
-        data: { reference: invoiceId, paymentMethod: 'hubtel', paymentProvider: 'hubtel' },
+        data: { reference: clientRef, paymentMethod: 'hubtel', paymentProvider: 'hubtel' },
       }).catch(() => {})
 
       return NextResponse.json({
         success: true,
-        checkoutUrl,
-        reference: invoiceId,
+        checkoutUrl: checkoutUrl as string,
+        reference: clientRef,
         message: 'Redirecting to Hubtel checkout page...',
       })
     }

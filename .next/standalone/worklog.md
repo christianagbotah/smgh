@@ -454,3 +454,27 @@ Stage Summary:
 - Event detail: "Program" button appears in sticky bar when outline is set
 - QR code: 1024x1024px PNG, High error correction, links to {baseUrl}/#/events/{slug}/program
 - User needs to: git pull on cPanel, run `npx prisma db push`, restart app
+---
+Task ID: 1
+Agent: Main Agent
+Task: Fix Hubtel payment integration - 502 error, payment not going through
+
+Work Log:
+- Analyzed the Hubtel API route (`src/app/api/hubtel/route.ts`) and DonatePage component
+- Identified 6 issues causing payment failures
+- Fixed CustomerMsisdn being sent as empty string to Hubtel (now validates format and omits if invalid)
+- Added Items array to Onsite Checkout request body (required by some Hubtel API versions)
+- Added GET handler for /api/hubtel endpoint (prevents 502 when browser directly hits the URL)
+- Added BASE_URL fallback using request headers if NEXT_PUBLIC_BASE_URL env var is missing
+- Replaced AbortSignal.timeout() with manual AbortController+setTimeout for broader Node.js compatibility
+- Fixed DonatePage to check URL search params for payment status (Hubtel redirects with ?status=success, not hash)
+- Added auto-show thank you state when redirected back from successful Hubtel payment
+- Added URL cleanup to prevent re-triggering status toasts on page refresh
+- Improved error messages for all Hubtel API failure cases with specific guidance
+- Built project, committed and pushed to GitHub
+
+Stage Summary:
+- Commit: c48f8c3d - "fix: Hubtel payment integration - fix 502, empty phone, missing items array, URL status detection"
+- 2 source files modified: src/app/api/hubtel/route.ts, src/components/pages/DonatePage.tsx
+- Build successful with no errors
+- Pushed to GitHub main branch
