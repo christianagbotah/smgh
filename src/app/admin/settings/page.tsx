@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Save, CreditCard, Phone, ImagePlus, X, GripVertical, Lock, Globe, MapPin, Menu, Trash2, Plus, ChevronUp, ChevronDown, Search, FileText, Palette } from 'lucide-react'
+import { Save, CreditCard, Phone, ImagePlus, X, GripVertical, Lock, Globe, MapPin, Menu, Trash2, Plus, ChevronUp, ChevronDown, Search, FileText, Palette, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 import { fetchWrite } from '@/lib/fetch-helpers'
@@ -24,6 +24,10 @@ export default function AdminSettings() {
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [changingPw, setChangingPw] = useState(false)
+
+  // Hubtel test connection state
+  const [testingHubtel, setTestingHubtel] = useState(false)
+  const [hubtelTestResult, setHubtelTestResult] = useState<{ success: boolean; message: string; details?: string } | null>(null)
 
   // Parse hero slides
   const heroSlides: string[] = (() => {
@@ -411,24 +415,99 @@ export default function AdminSettings() {
             (settings.active_payment_provider || 'paystack') === 'hubtel' || (settings.active_payment_provider || 'paystack') === 'both'
               ? '' : 'opacity-40 pointer-events-none'
           }`}>
-            <h4 className="text-white text-sm font-medium mb-3 flex items-center gap-2">
-              <Phone className="w-4 h-4 text-orange-400" />
-              Hubtel Keys
-            </h4>
-            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-white text-sm font-medium flex items-center gap-2">
+                <Phone className="w-4 h-4 text-orange-400" />
+                Hubtel Keys
+              </h4>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={testingHubtel}
+                onClick={async () => {
+                  // Save settings first before testing
+                  setTestingHubtel(true)
+                  setHubtelTestResult(null)
+                  try {
+                    // Save first
+                    await fetch('/api/settings', {
+                      method: 'PUT',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ settings }),
+                    })
+                    // Then test
+                    const res = await fetch('/api/hubtel', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ action: 'test-connection' }),
+                    })
+                    const data = await res.json()
+                    setHubtelTestResult({
+                      success: data.success,
+                      message: data.message || data.error || 'Test failed',
+                      details: data.details,
+                    })
+                    toast({
+                      title: data.success ? 'Hubtel Connected!' : 'Connection Failed',
+                      description: data.success ? 'Your Hubtel credentials are working.' : data.error,
+                      variant: data.success ? 'default' : 'destructive',
+                    })
+                  } catch {
+                    setHubtelTestResult({ success: false, message: 'Could not reach the server. Please try again.' })
+                    toast({ title: 'Test failed', variant: 'destructive' })
+                  } finally {
+                    setTestingHubtel(false)
+                  }
+                }}
+                className="border-orange-500/40 text-orange-400 hover:bg-orange-500/10 hover:text-orange-300"
+              >
+                {testingHubtel ? <RefreshCw className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5 mr-1.5" />}
+                {testingHubtel ? 'Testing...' : 'Test Connection'}
+              </Button>
+            </div>
+            <p className="text-cyan-400/60 text-xs mb-3">
+              Enter your Hubtel Online Checkout credentials. Save settings first, then click &quot;Test Connection&quot; to verify.
+            </p>
+            <div className="grid sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3">
               <div>
-                <label className="text-gray-400 text-xs mb-1 block">API Username</label>
-                <input value={settings.hubtel_username || ''} onChange={e => update('hubtel_username', e.target.value)} className="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-gray-700 text-white text-sm focus:outline-none focus:border-smgh-teal" placeholder="API Username" />
+                <label className="text-gray-400 text-xs mb-1 block">API Username <span className="text-orange-400">*</span></label>
+                <input value={settings.hubtel_username || ''} onChange={e => update('hubtel_username', e.target.value)} className="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-gray-700 text-white text-sm focus:outline-none focus:border-smgh-teal" placeholder="Online Checkout Username" />
+              </div>
+              <div>
+                <label className="text-gray-400 text-xs mb-1 block">Merchant Number <span className="text-orange-400">*</span></label>
+                <input value={settings.hubtel_merchant_number || ''} onChange={e => update('hubtel_merchant_number', e.target.value)} className="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-gray-700 text-white text-sm focus:outline-none focus:border-smgh-teal" placeholder="e.g. HM123456" />
+                <p className="text-gray-600 text-[10px] mt-0.5">Your Hubtel merchant account number</p>
               </div>
               <div>
                 <label className="text-gray-400 text-xs mb-1 block">Merchant ID</label>
                 <input value={settings.hubtel_merchant_id || ''} onChange={e => update('hubtel_merchant_id', e.target.value)} className="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-gray-700 text-white text-sm focus:outline-none focus:border-smgh-teal" placeholder="e.g. 2018511" />
+                <p className="text-gray-600 text-[10px] mt-0.5">Fallback if merchant number is empty</p>
               </div>
               <div>
-                <label className="text-gray-400 text-xs mb-1 block">API Key (Secret)</label>
-                <input type="password" value={settings.hubtel_client_secret || ''} onChange={e => update('hubtel_client_secret', e.target.value)} className="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-gray-700 text-white text-sm focus:outline-none focus:border-smgh-teal" placeholder="API Key" />
+                <label className="text-gray-400 text-xs mb-1 block">API Key (Secret) <span className="text-orange-400">*</span></label>
+                <input type="password" value={settings.hubtel_client_secret || ''} onChange={e => update('hubtel_client_secret', e.target.value)} className="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-gray-700 text-white text-sm focus:outline-none focus:border-smgh-teal" placeholder="Online Checkout API Key" />
               </div>
             </div>
+            {/* Test Result */}
+            {hubtelTestResult && (
+              <div className={`mt-3 p-3 rounded-lg text-sm flex items-start gap-2 ${
+                hubtelTestResult.success
+                  ? 'bg-green-500/10 border border-green-500/30 text-green-400'
+                  : 'bg-red-500/10 border border-red-500/30 text-red-400'
+              }`}>
+                {hubtelTestResult.success
+                  ? <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                  : <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                }
+                <div>
+                  <p className="font-medium">{hubtelTestResult.message}</p>
+                  {hubtelTestResult.details && (
+                    <p className="text-xs opacity-70 mt-1 break-all">{hubtelTestResult.details}</p>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
