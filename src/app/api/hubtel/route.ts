@@ -119,6 +119,45 @@ export async function POST(request: NextRequest) {
 
     const baseUrl = getBaseUrl(request)
 
+    // ── Debug Credentials (admin only) ──────────────────────────────
+    if (action === 'debug-credentials') {
+      const username = await db.siteSetting.findUnique({ where: { key: 'hubtel_username' } })
+      const secret = await db.siteSetting.findUnique({ where: { key: 'hubtel_client_secret' } })
+      const merchant = await db.siteSetting.findUnique({ where: { key: 'hubtel_merchant_number' } })
+      const merchantId = await db.siteSetting.findUnique({ where: { key: 'hubtel_merchant_id' } })
+
+      const clientId = username?.value || merchantId?.value || ''
+      const secretVal = secret?.value || ''
+      const merchantVal = merchant?.value || merchantId?.value || ''
+      const basicAuth = clientId && secretVal ? Buffer.from(`${clientId}:${secretVal}`).toString('base64') : '(empty)'
+
+      // Mask secrets for safe display
+      const mask = (s: string) => s ? (s.length <= 4 ? '****' : s.substring(0, 2) + '****' + s.substring(s.length - 2)) : '(not set)'
+
+      return NextResponse.json({
+        credentials: {
+          hubtel_username: mask(clientId),
+          hubtel_username_raw_length: clientId.length,
+          hubtel_client_secret: mask(secretVal),
+          hubtel_client_secret_raw_length: secretVal.length,
+          hubtel_merchant_number: merchantVal || '(not set)',
+          hubtel_merchant_id: merchantId?.value || '(not set)',
+          merchantAccountNumber_used: merchantVal || merchantId?.value || '(none)',
+        },
+        auth: {
+          basicAuth_preview: mask(basicAuth),
+          basicAuth_length: basicAuth.length,
+          // Show the format being sent: base64("username:secret")
+          format: `base64("${mask(clientId)}:${mask(secretVal)}")`,
+        },
+        // Compare with the working curl the user provided
+        expected_curl_format: {
+          Authorization_header: `Basic ${mask(basicAuth)}`,
+          merchantAccountNumber: merchantVal,
+        },
+      })
+    }
+
     // ── Test Hubtel Connection ───────────────────────────────────────
     if (action === 'test-connection') {
       const creds = await getHubtelCredentials()
@@ -131,23 +170,7 @@ export async function POST(request: NextRequest) {
       }
 
       try {
-        const testUrl = `https://api.hubtel.com/v1/merchantaccount/merchants/${creds.merchantNumber}`
-        const response = await fetchWithTimeout(testUrl, {
-          headers: {
-            'Authorization': `Basic ${creds.basicAuth}`,
-          },
-          timeoutMs: 10000,
-        })
-
-        if (response.ok || response.status === 200) {
-          return NextResponse.json({
-            success: true,
-            message: 'Hubtel credentials are valid! Connection successful.',
-            merchant: creds.merchantNumber,
-          })
-        }
-
-        // Fallback: test with Online Checkout endpoint
+        // Use the Online Checkout endpoint for testing (same endpoint as real payments)
         const checkoutResponse = await fetchWithTimeout('https://payproxyapi.hubtel.com/items/initiate', {
           method: 'POST',
           headers: {
@@ -165,20 +188,39 @@ export async function POST(request: NextRequest) {
           timeoutMs: 10000,
         })
 
-        if (checkoutResponse.status === 400 || checkoutResponse.status === 401 || checkoutResponse.status === 403) {
-          const errData = await checkoutResponse.json().catch(() => ({}))
+        const responseText = await checkoutResponse.text()
+        console.log('Hubtel test-connection response:', checkoutResponse.status, responseText.substring(0, 300))
+
+        if (checkoutResponse.ok) {
+          const data = responseText ? JSON.parse(responseText) : {}
           return NextResponse.json({
-            success: false,
-            error: `Hubtel API rejected the credentials (HTTP ${checkoutResponse.status}).`,
-            details: JSON.stringify(errData).substring(0, 200),
-          }, { status: 400 })
+            success: true,
+            message: 'Hubtel credentials are valid! Online Checkout is working.',
+            merchant: creds.merchantNumber,
+            response: { status: checkoutResponse.status, hasCheckoutUrl: !!data?.checkoutUrl },
+          })
+        }
+
+        // Non-OK response from Online Checkout
+        let errData: Record<string, unknown> = {}
+        try { errData = JSON.parse(responseText) } catch {}
+
+        let guidance = ''
+        if (checkoutResponse.status === 401) {
+          guidance = ' Your API Username or API Key is incorrect. These are your Hubtel Online Checkout credentials — NOT the general Hubtel API credentials.'
+        } else if (checkoutResponse.status === 403) {
+          guidance = ' Access forbidden. Your account may not have Online Checkout enabled.'
+        } else if (checkoutResponse.status === 400) {
+          guidance = ' Request rejected. Check your Merchant Account Number.'
         }
 
         return NextResponse.json({
-          success: true,
-          message: 'Hubtel API is reachable. Your credentials appear to be configured.',
-          merchant: creds.merchantNumber,
-        })
+          success: false,
+          error: `Hubtel rejected the request (HTTP ${checkoutResponse.status}).${guidance}`,
+          details: JSON.stringify(errData).substring(0, 300),
+          auth_preview: `Basic ${creds.basicAuth.substring(0, 8)}...${creds.basicAuth.substring(creds.basicAuth.length - 8)}`,
+          merchant_used: creds.merchantNumber,
+        }, { status: checkoutResponse.status })
       } catch (fetchError) {
         return NextResponse.json({
           success: false,
